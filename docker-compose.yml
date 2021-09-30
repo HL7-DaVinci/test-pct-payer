@@ -1,11 +1,12 @@
 version: "3"
 services:
-  hapi-fhir-jpaserver-start:
+  test-pct-payer:
     build: .
-    container_name: hapi-fhir-jpaserver-start
+    container_name: test-pct-payer
     restart: on-failure
     ports:
       - "8080:8080"
+    network_mode: "host"
   hapi-fhir-mysql:
     image: mysql:latest
     container_name: hapi-fhir-mysql
