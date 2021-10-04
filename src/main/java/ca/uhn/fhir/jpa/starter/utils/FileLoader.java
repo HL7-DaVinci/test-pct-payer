@@ -15,7 +15,7 @@ public class FileLoader {
      *
      * @return json loaded from the topic-list.json containing the list of file url for bulk topic-list.
      */
-    public static String loadTopics(String fileName) {
+    public static String loadResource(String fileName) {
         try {
           InputStream in = FileLoader.class.getClassLoader().getResourceAsStream(fileName);
           String text = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
