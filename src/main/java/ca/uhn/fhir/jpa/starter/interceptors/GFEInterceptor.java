@@ -69,27 +69,9 @@ public class GFEInterceptor {
     * Constructor using a specific logger
     */
    public GFEInterceptor() {
-       // configure("http://localhost:8081/fhir", null);
-       baseUrl = "http://localhost:8081/fhir";
        requestHandler = new RequestHandler();
    }
 
-   // public GFEInterceptor(String url, FhirContext ctx) {
-   //    configure(url, ctx);
-   // }
-   // /**
-   //  * Used for constructors to initilize variables
-   //  * @param url The url for the fhir server
-   //  * @param ctx the fhir context
-   //  */
-   // private void configure(String url, FhirContext ctx) {
-   //      baseUrl = url;
-   //      myCtx = ctx;
-   //      client = myCtx.newRestfulGenericClient(baseUrl + "/fhir");
-   //      requestHandler = new RequestHandler();
-   //      // jparser = myCtx.newJsonParser();
-   //      // parser = new JSONParser();
-   // }
    /**
     * Set the base url
     * @param url the url
@@ -107,20 +89,14 @@ public class GFEInterceptor {
    @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_PROCESSED)
    public boolean incomingRequestPreProcessed(HttpServletRequest theRequest, HttpServletResponse theResponse) {
      String[] parts = theRequest.getRequestURI().toString().split("/");
-     // Here is where the Claim Topic should be evaluated
+     // Here is where the Claim should be evaluated
      System.out.println("Intercepted the request pl");
-     System.out.println(theRequest.getRequestURI().toString());
      myLogger.info("Intercepted the request");
-     //myLogger.info(parts);
-     for (String p: parts) {
-        System.out.println(parts);
-     }
-     // System.out.println(theRequest.getRequestURI().toString());
      if (parts.length > 3 && parts[2].equals("Claim") && parts[3].equals("$gfe-submit")) {
          myLogger.info("Received Submit");
          System.out.println("pl received submit");
          try {
-            handleSubmit(theResponse);
+            handleSubmit(theRequest, theResponse);
          } catch (Exception e) {
             myLogger.info("Error in submission");
             myLogger.info(e.getMessage());
@@ -130,20 +106,16 @@ public class GFEInterceptor {
      }
      return true;
   }
-  public void handleSubmit(HttpServletResponse theResponse) throws Exception {
+  public void handleSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws Exception {
       theResponse.setStatus(200);
+      // TODO: update this to create a real AEOB from the request
       String outputString = FileLoader.loadResource("Bundle-GFE.json");
       System.out.println("Loaded Resource");
-      // myLogger.info(outputString);
-      myLogger.info(baseUrl + "/Bundle");
-      String result = requestHandler.sendPost(baseUrl + "/Bundle", outputString);
-      myLogger.info("RESULT");
-      myLogger.info(result);
-      // PrintWriter out = theResponse.getWriter();
-      // theResponse.setContentType("application/json");
-      // theResponse.setCharacterEncoding("UTF-8");
-      // out.print(outputString);
-      // out.flush();
+      PrintWriter out = theResponse.getWriter();
+      theResponse.setContentType("application/json");
+      theResponse.setCharacterEncoding("UTF-8");
+      out.print(outputString);
+      out.flush();
   }
 
 }
