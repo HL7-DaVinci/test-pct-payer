@@ -111,9 +111,12 @@ public class GFEInterceptor {
       // TODO: update this to create a real AEOB from the request
       String outputString = FileLoader.loadResource("Bundle-GFE.json");
       System.out.println("Loaded Resource");
-      PrintWriter out = theResponse.getWriter();
       theResponse.setContentType("application/json");
       theResponse.setCharacterEncoding("UTF-8");
+      theResponse.addHeader("Access-Control-Allow-Origin", "*");
+      theResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+      theResponse.addHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept, Authorization");
+      PrintWriter out = theResponse.getWriter();
       out.print(outputString);
       out.flush();
   }
