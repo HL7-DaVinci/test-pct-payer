@@ -229,7 +229,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
     loggingInterceptor.setErrorMessageFormat(appProperties.getLogger().getError_format());
     loggingInterceptor.setLogExceptions(appProperties.getLogger().getLog_exceptions());
     this.registerInterceptor(loggingInterceptor);
-    this.registerInterceptor(new GFEInterceptor());
+    this.registerInterceptor(new GFEInterceptor(ctx));
 
     /*
      * If you are hosting this server at a specific DNS name, the server will try to

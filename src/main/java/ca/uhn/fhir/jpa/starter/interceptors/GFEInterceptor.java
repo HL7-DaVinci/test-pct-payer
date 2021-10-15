@@ -13,6 +13,7 @@ import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
 import ca.uhn.fhir.jpa.searchparam.matcher.InMemoryMatchResult;
 import ca.uhn.fhir.jpa.searchparam.matcher.IndexedSearchParamExtractor;
 import ca.uhn.fhir.jpa.searchparam.extractor.ResourceIndexedSearchParams;
+import ca.uhn.fhir.rest.api.MethodOutcome;
 
 import ca.uhn.fhir.context.FhirContext;
 
@@ -54,11 +55,13 @@ import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 public class GFEInterceptor {
    private final Logger myLogger = LoggerFactory.getLogger(GFEInterceptor.class.getName());
 
-   private String baseUrl;
+   private String baseUrl = "https://davinci-pct-payer.logicahealth.org";
 
-   // private IGenericClient client;
+   private IGenericClient client;
    //
    private RequestHandler requestHandler;
+   private FhirContext myCtx;
+
    // private IParser jparser;
    // // private JSONParser parser;
 
@@ -68,8 +71,10 @@ public class GFEInterceptor {
    /**
     * Constructor using a specific logger
     */
-   public GFEInterceptor() {
+   public GFEInterceptor(FhirContext ctx) {
        requestHandler = new RequestHandler();
+       myCtx = ctx;
+       client = myCtx.newRestfulGenericClient(baseUrl + "/fhir");
    }
 
    /**
@@ -106,10 +111,18 @@ public class GFEInterceptor {
      }
      return true;
   }
+  public Bundle createbundle() {
+    Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.COLLECTION);
+    MethodOutcome outcome = client.create().resource(bundle).prettyPrint().encodedJson().execute();
+    return bundle;
+  }
   public void handleSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws Exception {
       theResponse.setStatus(200);
       // TODO: update this to create a real AEOB from the request
-      String outputString = FileLoader.loadResource("Bundle-GFE.json");
+      // Create a Bundle with some base resources inside?
+      //
+      String outputString = FileLoader.loadResource("Bundle-test.json");
       System.out.println("Loaded Resource");
       theResponse.setContentType("application/json");
       theResponse.setCharacterEncoding("UTF-8");
