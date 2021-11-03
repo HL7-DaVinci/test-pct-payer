@@ -33,18 +33,11 @@ import ca.uhn.fhir.jpa.provider.*;
 
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.instance.model.api.*;
-// import org.hl7.fhir.dstu2.model.BaseDateTimeType;
-// import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.uhn.fhir.rest.client.api.*;
 import ca.uhn.fhir.parser.*;
 
-// import org.json.simple.JSONArray;
-// import org.json.simple.JSONObject;
-// import org.json.simple.parser.JSONParser;
-// import org.json.simple.parser.ParseException;
-// import ca.uhn.fhir.jpa.starter.utils.JSONWrapper;
 import ca.uhn.fhir.jpa.starter.utils.RequestHandler;
 import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 
@@ -55,7 +48,7 @@ import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 public class GFEInterceptor {
    private final Logger myLogger = LoggerFactory.getLogger(GFEInterceptor.class.getName());
 
-   private String baseUrl = "http://localhost:8081";//"https://davinci-pct-payer.logicahealth.org";
+   private String baseUrl = "https://davinci-pct-payer.logicahealth.org";//"http://localhost:8081";//
 
    private IGenericClient client;
    //
@@ -63,10 +56,6 @@ public class GFEInterceptor {
    private FhirContext myCtx;
 
    private IParser jparser;
-   // // private JSONParser parser;
-
-   // private InMemoryResourceMatcher matcher;
-   // private IndexedSearchParamExtractor extractor;
 
    /**
     * Constructor using a specific logger
@@ -97,12 +86,11 @@ public class GFEInterceptor {
    public boolean incomingRequestPreProcessed(HttpServletRequest theRequest, HttpServletResponse theResponse) {
      String[] parts = theRequest.getRequestURI().toString().split("/");
      // Here is where the Claim should be evaluated
-     System.out.println("Intercepted the request pl");
+     System.out.println("Intercepted the request");
      myLogger.info("Intercepted the request");
-     // Change this to post.
-     if (parts.length > 3 && parts[2].equals("Claim") && parts[3].equals("$gfe-submit")) {
+     if (theRequest.getMethod().equals("POST") && parts.length > 3 && parts[2].equals("Claim") && parts[3].equals("$gfe-submit")) {
          myLogger.info("Received Submit");
-         System.out.println("pl received submit");
+         System.out.println("Received Submit");
          try {
             handleSubmit(theRequest, theResponse);
          } catch (Exception e) {
@@ -114,15 +102,13 @@ public class GFEInterceptor {
      }
      return true;
   }
+  /**
+   * Create a new bundle with type Collection and an identifier to persist and be used for queries
+   * @return the new bundle
+   */
   public Bundle createBundle() {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.COLLECTION);
-    /*
-      "identifier": {
-        "system": "http://example.org/documentIDs",
-        "value": "A12345"
-      },
-     */
     Identifier identifier = new Identifier();
     identifier.setSystem("http://example.org/documentIDs");
     String uuid = UUID.randomUUID().toString();
@@ -134,11 +120,13 @@ public class GFEInterceptor {
     }
     return bundle;
   }
+  /**
+   * Update the bundle
+   * @param bundle the bundle to update
+   */
   public void updateBundle(Bundle bundle) {
       try {
           MethodOutcome outcome = client.update().resource(bundle).prettyPrint().encodedJson().execute();
-          // String result = jparser.encodeResourceToString((IBaseResource)outcome.getOperationOutcome());
-          // System.out.println(result);
       } catch(Exception e) {
           System.out.println("Failure to update the bundle");
       }
@@ -165,6 +153,14 @@ public class GFEInterceptor {
       } catch (Exception e) { System.out.println("Found Exception" + e.getMessage());/*report an error*/ }
       return targetString;
   }
+  /**
+   * Modify the aeob with new extensions and all the resources from the gfe to the aeob and add all
+   * the resources to the aeobBundle
+   * @param  gfeBundle  the gfe bundle
+   * @param  aeob       the aeob to modify
+   * @param  aeobBundle the bundle to return
+   * @return            the complete aeob bundle
+   */
   public Bundle convertGFEtoAEOB(Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
     System.out.println("Parsed Bundle");
     // Bundle bundle = jparser.parseResource(Bundle.class, input);
@@ -212,9 +208,14 @@ public class GFEInterceptor {
 
     return aeobBundle;
   }
+  /**
+   * Parse the resource and create the new aeob bundle. Send the initial bundle in the return
+   * @param  theRequest  the request with the resource
+   * @param  theResponse the response
+   * @throws Exception   any errors
+   */
   public void handleSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws Exception {
       theResponse.setStatus(200);
-      // TODO: update this to create a real AEOB from the request
       // Create a Bundle with some base resources inside?
       // TODO: add error handling
       Bundle returnBundle = createBundle();
@@ -227,7 +228,6 @@ public class GFEInterceptor {
       ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
       Bundle gfeBundle = jparser.parseResource(Bundle.class, resource);
       convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
-      // Bundle still needs to be written back and updated
 
       String result = jparser.encodeResourceToString((IBaseResource)returnBundle);
       System.out.println("\n\n\n--------------------------------------------------------");
