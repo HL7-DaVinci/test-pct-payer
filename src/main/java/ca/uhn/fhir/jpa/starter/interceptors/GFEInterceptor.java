@@ -186,7 +186,6 @@ public class GFEInterceptor {
         if (bundleEntry.fhirType() == "Claim") {
             Claim claim = (Claim) bundleEntry;
             gfeReference.setValue(new Reference("Claim/" + claim.getId()));
-            claim.getItem().get(0).getExtension().get(0);
         } else if (bundleEntry.fhirType() == "Patient") {
             Patient patient = (Patient) bundleEntry;
             aeob.setPatient(new Reference(patient.getId()));
