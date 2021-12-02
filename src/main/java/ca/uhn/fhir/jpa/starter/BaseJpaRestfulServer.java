@@ -131,6 +131,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
     registerProviders(resourceProviders.createProviders());
     registerProvider(jpaSystemProvider);
 
+
+
     /*
      * The conformance provider exports the supported resources, search parameters, etc for
      * this server. The JPA version adds resourceProviders counts to the exported statement, so it
@@ -155,10 +157,9 @@ public class BaseJpaRestfulServer extends RestfulServer {
         confProvider.setImplementationDescription("HAPI FHIR DSTU3 Server");
         setServerConformanceProvider(confProvider);
       } else if (fhirVersion == FhirVersionEnum.R4) {
-
-				JpaCapabilityStatementProvider confProvider = new JpaCapabilityStatementProvider(this, fhirSystemDao,
+				MetadataProvider confProvider = new MetadataProvider(this, fhirSystemDao,
 					daoConfig, searchParamRegistry, myValidationSupport);
-        confProvider.setImplementationDescription("HAPI FHIR R4 Server");
+        confProvider.setImplementationDescription("PCT Reference Implementation Server");
         setServerConformanceProvider(confProvider);
       } else if (fhirVersion == FhirVersionEnum.R5) {
 
