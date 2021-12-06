@@ -48,7 +48,7 @@ import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 public class GFEInterceptor {
    private final Logger myLogger = LoggerFactory.getLogger(GFEInterceptor.class.getName());
 
-   private String baseUrl = "https://davinci-pct-payer.logicahealth.org";//"http://localhost:8081";//
+   private String baseUrl = "https://davinci-pct-payer.logicahealth.org";//"http://localhost:8080";//
 
    private IGenericClient client;
    //
@@ -163,6 +163,7 @@ public class GFEInterceptor {
    */
   public Bundle convertGFEtoAEOB(Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
     System.out.println("Parsed Bundle");
+    // might be different for Institutional or Professional
     // Bundle bundle = jparser.parseResource(Bundle.class, input);
     List<Extension> gfeExts = new ArrayList<>();
     Extension gfeReference = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeReference");
@@ -214,32 +215,46 @@ public class GFEInterceptor {
    * @throws Exception   any errors
    */
   public void handleSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws Exception {
-      theResponse.setStatus(200);
-      // Create a Bundle with some base resources inside?
-      // TODO: add error handling
-      Bundle returnBundle = createBundle();
-      // Convert the original bundle to a string. This will allow a query to occur later
-      String outputString = jparser.encodeResourceToString((IBaseResource)returnBundle);
-
-      String resource = parseRequest(theRequest);
-      String eob = FileLoader.loadResource("raw-aeob.json");
-
-      ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
-      Bundle gfeBundle = jparser.parseResource(Bundle.class, resource);
-      convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
-
-      String result = jparser.encodeResourceToString((IBaseResource)returnBundle);
-      System.out.println("\n\n\n--------------------------------------------------------");
-      System.out.println("Final Result: \n" + result);
-      System.out.println("--------------------------------------------------------\n\n\n");
-      updateBundle(returnBundle);
-
-      System.out.println(outputString);
+      theResponse.setStatus(404);
       theResponse.setContentType("application/json");
       theResponse.setCharacterEncoding("UTF-8");
       theResponse.addHeader("Access-Control-Allow-Origin", "*");
       theResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
       theResponse.addHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept, Authorization");
+      // Create a Bundle with some base resources inside?
+      // TODO: add error handling
+      String outputString = "";
+      try {
+        Bundle returnBundle = createBundle();
+        // Convert the original bundle to a string. This will allow a query to occur later
+        outputString = jparser.encodeResourceToString((IBaseResource)returnBundle);
+
+        String resource = parseRequest(theRequest);
+        String eob = FileLoader.loadResource("raw-aeob.json");
+
+        ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
+        Bundle gfeBundle = jparser.parseResource(Bundle.class, resource);
+        convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
+
+        String result = jparser.encodeResourceToString((IBaseResource)returnBundle);
+        System.out.println("\n\n\n--------------------------------------------------------");
+        System.out.println("Final Result: \n" + result);
+        System.out.println("--------------------------------------------------------\n\n\n");
+        updateBundle(returnBundle);
+
+        System.out.println(outputString);
+        theResponse.setStatus(200);
+      } catch(Exception ex) {
+          OperationOutcome oo = new OperationOutcome();
+          OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
+          ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+          ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
+          CodeableConcept cc = new CodeableConcept();
+          cc.setText(ex.getMessage());
+          ooic.setDetails(cc);
+          oo.addIssue(ooic);
+          outputString = jparser.encodeResourceToString((IBaseResource) oo);
+      }
       PrintWriter out = theResponse.getWriter();
       out.print(outputString);
       out.flush();
