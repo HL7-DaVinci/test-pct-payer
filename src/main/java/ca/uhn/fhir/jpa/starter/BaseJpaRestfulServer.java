@@ -230,7 +230,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
     loggingInterceptor.setErrorMessageFormat(appProperties.getLogger().getError_format());
     loggingInterceptor.setLogExceptions(appProperties.getLogger().getLog_exceptions());
     this.registerInterceptor(loggingInterceptor);
-    this.registerInterceptor(new GFEInterceptor(ctx));
+
 
     /*
      * If you are hosting this server at a specific DNS name, the server will try to
@@ -248,7 +248,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
     } else {
       setServerAddressStrategy(new IncomingRequestAddressStrategy());
     }
-
+    this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
     /*
      * If you are using DSTU3+, you may want to add a terminology uploader, which allows
      * uploading of external terminologies such as Snomed CT. Note that this uploader

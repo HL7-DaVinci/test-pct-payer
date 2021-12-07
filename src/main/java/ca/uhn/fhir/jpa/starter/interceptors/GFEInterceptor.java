@@ -48,7 +48,7 @@ import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 public class GFEInterceptor {
    private final Logger myLogger = LoggerFactory.getLogger(GFEInterceptor.class.getName());
 
-   private String baseUrl = "https://davinci-pct-payer.logicahealth.org";//"http://localhost:8080";//
+   private String baseUrl = "http://localhost:8080";//"https://davinci-pct-payer.logicahealth.org";////
 
    private IGenericClient client;
    //
@@ -60,12 +60,13 @@ public class GFEInterceptor {
    /**
     * Constructor using a specific logger
     */
-   public GFEInterceptor(FhirContext ctx) {
+   public GFEInterceptor(FhirContext ctx, String serverAddress) {
        requestHandler = new RequestHandler();
        myCtx = ctx;
        client = myCtx.newRestfulGenericClient(baseUrl + "/fhir");
        jparser = myCtx.newJsonParser();
        jparser.setPrettyPrint(true);
+       baseUrl = serverAddress;
    }
 
    /**
@@ -89,7 +90,6 @@ public class GFEInterceptor {
      System.out.println("Intercepted the request");
      myLogger.info("Intercepted the request");
      if (theRequest.getMethod().equals("POST") && parts.length > 3 && parts[2].equals("Claim") && parts[3].equals("$gfe-submit")) {
-         myLogger.info("Received Submit");
          System.out.println("Received Submit");
          try {
             handleSubmit(theRequest, theResponse);
@@ -181,8 +181,7 @@ public class GFEInterceptor {
     for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
         IBaseResource bundleEntry = (IBaseResource) e.getResource();
         String resource = jparser.encodeResourceToString(bundleEntry);
-        myLogger.info(resource);
-        System.out.println(resource);
+        // System.out.println(resource);
 
         if (bundleEntry.fhirType() == "Claim") {
             Claim claim = (Claim) bundleEntry;
