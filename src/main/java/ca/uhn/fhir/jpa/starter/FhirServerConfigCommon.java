@@ -61,7 +61,7 @@ public class FhirServerConfigCommon {
     if (appProperties.getSubscription().getEmail() != null) {
       ourLog.info("Email subscriptions enabled");
     }
-    
+
     if (appProperties.getEnable_index_contained_resource() == Boolean.TRUE) {
         ourLog.info("Indexed on contained resource enabled");
       }
@@ -134,7 +134,7 @@ public class FhirServerConfigCommon {
       if(appProperties.getPartitioning().getAllow_references_across_partitions()) {
         retVal.setAllowReferencesAcrossPartitions(CrossPartitionReferenceMode.ALLOWED_UNQUALIFIED);
       } else {
-        retVal.setAllowReferencesAcrossPartitions(CrossPartitionReferenceMode.NOT_ALLOWED); 
+        retVal.setAllowReferencesAcrossPartitions(CrossPartitionReferenceMode.NOT_ALLOWED);
       }
     }
 
@@ -167,7 +167,7 @@ public class FhirServerConfigCommon {
     }
 
     modelConfig.setNormalizedQuantitySearchLevel(appProperties.getNormalized_quantity_search_level());
-    
+
     modelConfig.setIndexOnContainedResources(appProperties.getEnable_index_contained_resource());
     return modelConfig;
   }

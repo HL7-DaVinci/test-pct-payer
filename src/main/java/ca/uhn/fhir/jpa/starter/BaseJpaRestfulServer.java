@@ -249,6 +249,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
       setServerAddressStrategy(new IncomingRequestAddressStrategy());
     }
     this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
+    // daoConfig.setAllowExternalReferences(true);
+    // daoConfig.getTreatBaseUrlsAsLocal().add(serverAddress);
     /*
      * If you are using DSTU3+, you may want to add a terminology uploader, which allows
      * uploading of external terminologies such as Snomed CT. Note that this uploader

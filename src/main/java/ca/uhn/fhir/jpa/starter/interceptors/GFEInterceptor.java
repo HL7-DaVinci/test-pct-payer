@@ -62,11 +62,14 @@ public class GFEInterceptor {
     */
    public GFEInterceptor(FhirContext ctx, String serverAddress) {
        requestHandler = new RequestHandler();
+       if (serverAddress != null && !serverAddress.equals("")) {
+         baseUrl = serverAddress;
+       }
        myCtx = ctx;
        client = myCtx.newRestfulGenericClient(baseUrl + "/fhir");
        jparser = myCtx.newJsonParser();
        jparser.setPrettyPrint(true);
-       baseUrl = serverAddress;
+
    }
 
    /**
@@ -88,7 +91,6 @@ public class GFEInterceptor {
      String[] parts = theRequest.getRequestURI().toString().split("/");
      // Here is where the Claim should be evaluated
      System.out.println("Intercepted the request");
-     myLogger.info("Intercepted the request");
      if (theRequest.getMethod().equals("POST") && parts.length > 3 && parts[2].equals("Claim") && parts[3].equals("$gfe-submit")) {
          System.out.println("Received Submit");
          try {
@@ -119,6 +121,18 @@ public class GFEInterceptor {
         bundle = (Bundle) outcome.getResource();
     }
     return bundle;
+  }
+  /**
+   * Create new resource in server that contains the aeob
+   * @param  aeob the aeob to create in the server
+   * @return      the result which has the new ID
+   */
+  public ExplanationOfBenefit createAEOB(ExplanationOfBenefit aeob) {
+      MethodOutcome outcome = client.create().resource(aeob).prettyPrint().encodedJson().execute();
+      if (outcome.getCreated()) {
+          aeob = (ExplanationOfBenefit) outcome.getResource();
+      }
+      return aeob;
   }
   /**
    * Update the bundle
@@ -162,9 +176,6 @@ public class GFEInterceptor {
    * @return            the complete aeob bundle
    */
   public Bundle convertGFEtoAEOB(Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
-    System.out.println("Parsed Bundle");
-    // might be different for Institutional or Professional
-    // Bundle bundle = jparser.parseResource(Bundle.class, input);
     List<Extension> gfeExts = new ArrayList<>();
     Extension gfeReference = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeReference");
     gfeExts.add(gfeReference);
@@ -172,40 +183,104 @@ public class GFEInterceptor {
     gfeExts.add(disclaimer);
     Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", DateTimeType.now());
     gfeExts.add(expirationDate);
-    // Make this use the current time + x
-    aeob.setExtension(gfeExts);
+    Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
+    gfeReference.setValue(new Reference("Claim/" + claim.getId()));
+    if (claim.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
+        convertInstitutional(claim, gfeBundle, aeob, aeobBundle);
+    } else {
+        convertProfessional(claim, gfeBundle, aeob, aeobBundle);
+    }
     Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
-    temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/PCT-AEOB-1");
+    aeob = createAEOB(aeob);
+    temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId());
     temp.setResource(aeob);
     aeobBundle.addEntry(temp);
-    for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
-        IBaseResource bundleEntry = (IBaseResource) e.getResource();
-        String resource = jparser.encodeResourceToString(bundleEntry);
-        // System.out.println(resource);
-
-        if (bundleEntry.fhirType() == "Claim") {
-            Claim claim = (Claim) bundleEntry;
-            gfeReference.setValue(new Reference("Claim/" + claim.getId()));
-        } else if (bundleEntry.fhirType() == "Patient") {
-            Patient patient = (Patient) bundleEntry;
-            aeob.setPatient(new Reference(patient.getId()));
-        } else if (bundleEntry.fhirType() == "Organization") {
-            // Update if institutional or professional
-            Organization org = (Organization) bundleEntry;
-            if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
-              aeob.setInsurer(new Reference(org.getId()));
-            } else if (org.getType().get(0).getCoding().get(0).getCode().equals("Institutional-submitter")) {
-              aeob.setProvider(new Reference(org.getId()));
-            }
-
-        } else if (bundleEntry.fhirType() == "Coverage") {
-            Coverage cov = (Coverage) bundleEntry;
-            aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
-        }
-        aeobBundle.addEntry(e);
-    }
-
     return aeobBundle;
+  }
+  /**
+   * Add all resources into the new aeob bundle and update the aeob with the institutional
+   * @param  claim      the claim for the aeob
+   * @param  gfeBundle  the bundle with all gfe resources
+   * @param  aeob       the aeob
+   * @param  aeobBundle the return bundle to be updated
+   * @return            the new bundle
+   */
+  public Bundle convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
+      CodeableConcept type = new CodeableConcept();
+      List<Coding> c = new ArrayList<>();
+      Coding cd = new Coding("http://terminology.hl7.org/CodeSystem/claim-type", "institutional", "Institutional");
+      c.add(cd);
+      type.setCoding(c);
+      aeob.setSubType(type);
+      for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
+          IBaseResource bundleEntry = (IBaseResource) e.getResource();
+          String resource = jparser.encodeResourceToString(bundleEntry);
+          if (bundleEntry.fhirType().equals("Patient")) {
+              Patient patient = (Patient) bundleEntry;
+              aeob.setPatient(new Reference(patient.getId()));
+          } else if (bundleEntry.fhirType().equals("Organization")) {
+              // Update if institutional or professional
+              Organization org = (Organization) bundleEntry;
+              if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
+                aeob.setInsurer(new Reference(org.getId()));
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")){
+                aeob.setProvider(new Reference(org.getId()));
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("Institutional-submitter")) {
+                aeob.setProvider(new Reference(org.getId()));
+              }
+
+          } else if (bundleEntry.fhirType().equals("Coverage")) {
+              Coverage cov = (Coverage) bundleEntry;
+              aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
+          }
+          aeobBundle.addEntry(e);
+      }
+
+      return aeobBundle;
+  }
+  /**
+   * Add all resources into the new aeob bundle and update the aeob with the professional
+   * @param  claim      the claim for the aeob
+   * @param  gfeBundle  the bundle with all gfe resources
+   * @param  aeob       the aeob
+   * @param  aeobBundle the return bundle to be updated
+   * @return            the new bundle
+   */
+  public Bundle convertProfessional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
+     CodeableConcept type = new CodeableConcept();
+     List<Coding> c = new ArrayList<>();
+     Coding cd = new Coding("http://terminology.hl7.org/CodeSystem/claim-type", "professional", "Professional");
+     c.add(cd);
+     type.setCoding(c);
+     aeob.setSubType(type);
+      for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
+          IBaseResource bundleEntry = (IBaseResource) e.getResource();
+          String resource = jparser.encodeResourceToString(bundleEntry);
+          if (bundleEntry.fhirType().equals("Patient")) {
+              Patient patient = (Patient) bundleEntry;
+              aeob.setPatient(new Reference(patient.getId()));
+          } else if (bundleEntry.fhirType().equals("Practitioner")){
+              Practitioner prac = (Practitioner) bundleEntry;
+              if (prac.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-practitioner")) {
+                aeob.setProvider(new Reference(prac.getId()));
+              }
+          } else if (bundleEntry.fhirType().equals("Organization")) {
+              // Update if institutional or professional
+              Organization org = (Organization) bundleEntry;
+              if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
+                aeob.setInsurer(new Reference(org.getId()));
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")) {
+                // Provider
+                aeob.setProvider(new Reference(org.getId()));
+              }
+          } else if (bundleEntry.fhirType().equals("Coverage")) {
+              Coverage cov = (Coverage) bundleEntry;
+              aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
+          }
+          aeobBundle.addEntry(e);
+      }
+
+      return aeobBundle;
   }
   /**
    * Parse the resource and create the new aeob bundle. Send the initial bundle in the return
@@ -220,8 +295,6 @@ public class GFEInterceptor {
       theResponse.addHeader("Access-Control-Allow-Origin", "*");
       theResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
       theResponse.addHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept, Authorization");
-      // Create a Bundle with some base resources inside?
-      // TODO: add error handling
       String outputString = "";
       try {
         Bundle returnBundle = createBundle();

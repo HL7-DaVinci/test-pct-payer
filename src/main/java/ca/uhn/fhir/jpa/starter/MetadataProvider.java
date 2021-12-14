@@ -44,6 +44,7 @@ public class MetadataProvider extends JpaCapabilityStatementProvider {
 
     CapabilityStatementSoftwareComponent software = new CapabilityStatementSoftwareComponent();
     software.setName("https://github.com/HL7-DaVinci/test-pct-payer");
+    software.setVersion("1.0.1");
     metadata.setSoftware(software);
 
     metadata.addImplementationGuide("https://build.fhir.org/ig/HL7/davinci-pct/");
