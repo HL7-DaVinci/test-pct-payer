@@ -92,7 +92,7 @@ public class GFEInterceptor {
      // Here is where the Claim should be evaluated
      System.out.println("Intercepted the request");
      if (theRequest.getMethod().equals("POST") && parts.length > 3 && parts[2].equals("Claim") && parts[3].equals("$gfe-submit")) {
-         System.out.println("Received Submit");
+         System.out.println("Received GFE Submit");
          try {
             handleSubmit(theRequest, theResponse);
          } catch (Exception e) {
@@ -176,6 +176,10 @@ public class GFEInterceptor {
    * @return            the complete aeob bundle
    */
   public Bundle convertGFEtoAEOB(Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
+    // NOTE: Add processing for revenue
+    // total[0].amount.value adjudication[0].amount.value net.value
+    //
+
     List<Extension> gfeExts = new ArrayList<>();
     Extension gfeReference = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeReference");
     gfeExts.add(gfeReference);
@@ -184,6 +188,14 @@ public class GFEInterceptor {
     Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", DateTimeType.now());
     gfeExts.add(expirationDate);
     Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
+
+    // Update the AEOB resource based on the claim. NOTE: additional work might need to be done here
+    // This just assumes that the numbers are the same to the total claim
+    aeob.getTotal().get(0).setAmount(claim.getTotal());
+    aeob.getItem().get(0).getAdjudication().get(0).setAmount(claim.getTotal());
+    aeob.getItem().get(0).setNet(claim.getTotal());
+
+
     gfeReference.setValue(new Reference("Claim/" + claim.getId()));
     if (claim.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
         convertInstitutional(claim, gfeBundle, aeob, aeobBundle);
@@ -314,7 +326,7 @@ public class GFEInterceptor {
         System.out.println("--------------------------------------------------------\n\n\n");
         updateBundle(returnBundle);
 
-        System.out.println(outputString);
+        // System.out.println(outputString);
         theResponse.setStatus(200);
       } catch(Exception ex) {
           OperationOutcome oo = new OperationOutcome();
