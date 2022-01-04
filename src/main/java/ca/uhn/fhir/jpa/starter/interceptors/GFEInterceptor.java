@@ -197,16 +197,16 @@ public class GFEInterceptor {
 
 
     gfeReference.setValue(new Reference("Claim/" + claim.getId()));
-    if (claim.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
-        convertInstitutional(claim, gfeBundle, aeob, aeobBundle);
-    } else {
-        convertProfessional(claim, gfeBundle, aeob, aeobBundle);
-    }
     Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
     aeob = createAEOB(aeob);
     temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId());
     temp.setResource(aeob);
     aeobBundle.addEntry(temp);
+    if (claim.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
+        convertInstitutional(claim, gfeBundle, aeob, aeobBundle);
+    } else {
+        convertProfessional(claim, gfeBundle, aeob, aeobBundle);
+    }
     return aeobBundle;
   }
   /**
