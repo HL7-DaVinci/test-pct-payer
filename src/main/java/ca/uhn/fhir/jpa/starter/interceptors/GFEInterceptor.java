@@ -116,6 +116,7 @@ public class GFEInterceptor {
     String uuid = UUID.randomUUID().toString();
     identifier.setValue(uuid);
     bundle.setIdentifier(identifier);
+    bundle.setTimestamp(new Date());
     MethodOutcome outcome = client.create().resource(bundle).prettyPrint().encodedJson().execute();
     if (outcome.getCreated()) {
         bundle = (Bundle) outcome.getResource();
@@ -143,6 +144,17 @@ public class GFEInterceptor {
           MethodOutcome outcome = client.update().resource(bundle).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
           System.out.println("Failure to update the bundle");
+      }
+  }
+  /**
+   * Update the AEOB
+   * @param aeob the aeob to update
+   */
+  public void updateAEOB(ExplanationOfBenefit aeob) {
+      try {
+          MethodOutcome outcome = client.update().resource(aeob).prettyPrint().encodedJson().execute();
+      } catch(Exception e) {
+          System.out.println("Failure to update the aeob");
       }
   }
   /**
@@ -189,6 +201,8 @@ public class GFEInterceptor {
     gfeExts.add(expirationDate);
     Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
 
+    aeob.setExtension(gfeExts);
+
     // Update the AEOB resource based on the claim. NOTE: additional work might need to be done here
     // This just assumes that the numbers are the same to the total claim
     aeob.getTotal().get(0).setAmount(claim.getTotal());
@@ -196,8 +210,9 @@ public class GFEInterceptor {
     aeob.getItem().get(0).setNet(claim.getTotal());
 
 
-    gfeReference.setValue(new Reference("Claim/" + claim.getId()));
+    gfeReference.setValue(new Reference(claim.getId()));
     Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
+
     aeob = createAEOB(aeob);
     temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId());
     temp.setResource(aeob);
@@ -207,6 +222,7 @@ public class GFEInterceptor {
     } else {
         convertProfessional(claim, gfeBundle, aeob, aeobBundle);
     }
+    updateAEOB(aeob);
     return aeobBundle;
   }
   /**
@@ -218,12 +234,8 @@ public class GFEInterceptor {
    * @return            the new bundle
    */
   public Bundle convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
-      CodeableConcept type = new CodeableConcept();
-      List<Coding> c = new ArrayList<>();
-      Coding cd = new Coding("http://terminology.hl7.org/CodeSystem/claim-type", "institutional", "Institutional");
-      c.add(cd);
-      type.setCoding(c);
-      aeob.setSubType(type);
+      aeob.getType().getCoding().get(0).setCode("Institutional");
+      aeob.getType().getCoding().get(0).setDisplay("institutional");
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
@@ -264,7 +276,7 @@ public class GFEInterceptor {
      Coding cd = new Coding("http://terminology.hl7.org/CodeSystem/claim-type", "professional", "Professional");
      c.add(cd);
      type.setCoding(c);
-     aeob.setSubType(type);
+     aeob.setType(type);
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
@@ -317,6 +329,7 @@ public class GFEInterceptor {
         String eob = FileLoader.loadResource("raw-aeob.json");
 
         ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
+        aeob.setCreated(new Date());
         Bundle gfeBundle = jparser.parseResource(Bundle.class, resource);
         convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
 

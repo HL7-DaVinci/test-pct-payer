@@ -112,7 +112,9 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
         resourceType.startsWith("Patient")||
         resourceType.startsWith("OperationDefinition")||
         resourceType.startsWith("Practitioner")||
-        resourceType.startsWith("ValueSet");
+        resourceType.startsWith("ValueSet") ||
+        resourceType.startsWith("StructureDefinition") ||
+        resourceType.startsWith("Organization");
   }
 
 }
