@@ -197,7 +197,7 @@ public class GFEInterceptor {
     gfeExts.add(gfeReference);
     Extension disclaimer = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/disclaimer", new StringType("Estimate Only ..."));
     gfeExts.add(disclaimer);
-    Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", DateTimeType.now());
+    Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", DateTimeType.today());
     gfeExts.add(expirationDate);
     Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
 
@@ -210,11 +210,11 @@ public class GFEInterceptor {
     aeob.getItem().get(0).setNet(claim.getTotal());
 
 
-    gfeReference.setValue(new Reference(claim.getId()));
+    gfeReference.setValue(new Reference(gfeBundle.getId()));
     Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
 
     aeob = createAEOB(aeob);
-    temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId());
+    temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
     temp.setResource(aeob);
     aeobBundle.addEntry(temp);
     if (claim.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
@@ -234,8 +234,8 @@ public class GFEInterceptor {
    * @return            the new bundle
    */
   public Bundle convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
-      aeob.getType().getCoding().get(0).setCode("Institutional");
-      aeob.getType().getCoding().get(0).setDisplay("institutional");
+      aeob.getType().getCoding().get(0).setCode("institutional");
+      aeob.getType().getCoding().get(0).setDisplay("Institutional");
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
@@ -271,12 +271,8 @@ public class GFEInterceptor {
    * @return            the new bundle
    */
   public Bundle convertProfessional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
-     CodeableConcept type = new CodeableConcept();
-     List<Coding> c = new ArrayList<>();
-     Coding cd = new Coding("http://terminology.hl7.org/CodeSystem/claim-type", "professional", "Professional");
-     c.add(cd);
-     type.setCoding(c);
-     aeob.setType(type);
+      aeob.getType().getCoding().get(0).setCode("professional");
+      aeob.getType().getCoding().get(0).setDisplay("Professional");
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
