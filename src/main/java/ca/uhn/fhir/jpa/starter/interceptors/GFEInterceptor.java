@@ -197,7 +197,8 @@ public class GFEInterceptor {
     gfeExts.add(gfeReference);
     Extension disclaimer = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/disclaimer", new StringType("Estimate Only ..."));
     gfeExts.add(disclaimer);
-    Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", DateTimeType.today());
+    // TODO: make expirationDate dynamic
+    Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", new DateType(2022, 6, 15));
     gfeExts.add(expirationDate);
     Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
 
@@ -210,7 +211,7 @@ public class GFEInterceptor {
     aeob.getItem().get(0).setNet(claim.getTotal());
 
 
-    gfeReference.setValue(new Reference(gfeBundle.getId()));
+    gfeReference.setValue(new Reference(gfeBundle));
     Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
 
     aeob = createAEOB(aeob);
@@ -249,7 +250,7 @@ public class GFEInterceptor {
                 aeob.setInsurer(new Reference(org.getId()));
               } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")){
                 aeob.setProvider(new Reference(org.getId()));
-              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("Institutional-submitter")) {
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("institutional-submitter")) {
                 aeob.setProvider(new Reference(org.getId()));
               }
 
