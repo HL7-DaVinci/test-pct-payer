@@ -237,6 +237,7 @@ public class GFEInterceptor {
   public Bundle convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
       aeob.getType().getCoding().get(0).setCode("institutional");
       aeob.getType().getCoding().get(0).setDisplay("Institutional");
+      System.out.println("Processing Institutional Claim");
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
@@ -244,7 +245,6 @@ public class GFEInterceptor {
               Patient patient = (Patient) bundleEntry;
               aeob.setPatient(new Reference(patient.getId()));
           } else if (bundleEntry.fhirType().equals("Organization")) {
-              // Update if institutional or professional
               Organization org = (Organization) bundleEntry;
               if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
                 aeob.setInsurer(new Reference(org.getId()));
@@ -274,29 +274,30 @@ public class GFEInterceptor {
   public Bundle convertProfessional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
       aeob.getType().getCoding().get(0).setCode("professional");
       aeob.getType().getCoding().get(0).setDisplay("Professional");
+      System.out.println("Processing Professional Claim");
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
+          System.out.println(bundleEntry.fhirType());
           if (bundleEntry.fhirType().equals("Patient")) {
               Patient patient = (Patient) bundleEntry;
               aeob.setPatient(new Reference(patient.getId()));
-          } else if (bundleEntry.fhirType().equals("Practitioner")){
-              Practitioner prac = (Practitioner) bundleEntry;
-              if (prac.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-practitioner")) {
-                aeob.setProvider(new Reference(prac.getId()));
-              }
           } else if (bundleEntry.fhirType().equals("Organization")) {
-              // Update if institutional or professional
               Organization org = (Organization) bundleEntry;
               if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
                 aeob.setInsurer(new Reference(org.getId()));
-              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")) {
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov") && claim.getProvider().getReference().contains("Organization")) {
                 // Provider
+                System.out.println("Adding Provider with Organization");
                 aeob.setProvider(new Reference(org.getId()));
               }
           } else if (bundleEntry.fhirType().equals("Coverage")) {
               Coverage cov = (Coverage) bundleEntry;
               aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
+          } else if (bundleEntry.fhirType().equals("PractitionerRole") && claim.getProvider().getReference().contains("PractitionerRole")) {
+              PractitionerRole pr = (PractitionerRole) bundleEntry;
+              System.out.println("Adding Provider by PractitionerRole");
+              aeob.setProvider(new Reference(pr.getId()));
           }
           aeobBundle.addEntry(e);
       }
@@ -332,7 +333,7 @@ public class GFEInterceptor {
 
         String result = jparser.encodeResourceToString((IBaseResource)returnBundle);
         System.out.println("\n\n\n--------------------------------------------------------");
-        System.out.println("Final Result: \n" + result);
+        // System.out.println("Final Result: \n" + result);
         System.out.println("--------------------------------------------------------\n\n\n");
         updateBundle(returnBundle);
 
