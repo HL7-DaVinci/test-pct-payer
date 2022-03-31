@@ -21,6 +21,10 @@ import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.context.support.IValidationSupport;
+import org.hl7.fhir.r4.model.CapabilityStatement;
+
+import javax.servlet.http.HttpServletRequest;
+
 
 public class MetadataProvider extends JpaCapabilityStatementProvider {
   //BaseJpaRestfulServer,IFhirSystemDao,DaoConfig,ISearchParamRegistry,IValidationSupport
@@ -48,7 +52,7 @@ public class MetadataProvider extends JpaCapabilityStatementProvider {
     metadata.setSoftware(software);
 
     metadata.addImplementationGuide("https://build.fhir.org/ig/HL7/davinci-pct/");
-
+    getSecurity(metadata, theRequest, details);
     updateRestComponents(metadata.getRest());
     return metadata;
   }
@@ -85,5 +89,22 @@ public class MetadataProvider extends JpaCapabilityStatementProvider {
         }
       }
     }
+  }
+  private void getSecurity(CapabilityStatement originalRests, HttpServletRequest theRequest, RequestDetails details) {
+    Extension securityExtension = new Extension();
+    securityExtension.setUrl("http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris");
+    securityExtension.addExtension()
+        .setUrl("authorize")
+        .setValue(new UriType(Config.get("proxy_authorize")));
+    securityExtension.addExtension()
+        .setUrl("token")
+        .setValue(new UriType(Config.get("proxy_token")));
+    CapabilityStatement.CapabilityStatementRestSecurityComponent securityComponent = new CapabilityStatement.CapabilityStatementRestSecurityComponent();
+    securityComponent.setCors(true);
+    securityComponent
+        .addExtension(securityExtension);
+
+    originalRests = (CapabilityStatement) super.getServerConformance(theRequest, details);
+    originalRests.getRest().get(0).setSecurity(securityComponent);
   }
 }

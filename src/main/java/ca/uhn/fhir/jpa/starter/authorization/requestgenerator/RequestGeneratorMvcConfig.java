@@ -15,7 +15,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = "org.hl7.davinci.ehrserver.requestgenerator")
+@ComponentScan(basePackages = "authorization.requestgenerator")
 public class RequestGeneratorMvcConfig implements WebMvcConfigurer {
 
   @Override
@@ -30,7 +30,7 @@ public class RequestGeneratorMvcConfig implements WebMvcConfigurer {
    * Setup the template resolver with the location of the templates.
    */
   @Bean
-  public SpringResourceTemplateResolver templateResolver() {
+  public SpringResourceTemplateResolver tempResolver() {
     SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
     resolver.setPrefix("/WEB-INF/build/");
     resolver.setSuffix(".html");
@@ -43,9 +43,9 @@ public class RequestGeneratorMvcConfig implements WebMvcConfigurer {
    * Setup the view resolver.
    */
   @Bean
-  public ThymeleafViewResolver viewResolver() {
+  public ThymeleafViewResolver viewResolves() {
     ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
-    viewResolver.setTemplateEngine(templateEngine());
+    viewResolver.setTemplateEngine(tempEngine());
     viewResolver.setCharacterEncoding("UTF-8");
     return viewResolver;
   }
@@ -54,9 +54,9 @@ public class RequestGeneratorMvcConfig implements WebMvcConfigurer {
    * Setup the template engine.
    */
   @Bean
-  public SpringTemplateEngine templateEngine() {
+  public SpringTemplateEngine tempEngine() {
     SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-    templateEngine.setTemplateResolver(templateResolver());
+    templateEngine.setTemplateResolver(tempResolver());
     return templateEngine;
   }
 

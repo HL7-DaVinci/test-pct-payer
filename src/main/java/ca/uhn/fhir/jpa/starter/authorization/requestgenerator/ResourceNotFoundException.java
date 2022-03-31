@@ -1,4 +1,4 @@
-package org.hl7.davinci.ehrserver.requestgenerator;
+package ca.uhn.fhir.jpa.starter.authorization.requestgenerator;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

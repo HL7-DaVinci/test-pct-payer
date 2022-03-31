@@ -1,4 +1,4 @@
-package org.hl7.davinci.ehrserver.authproxy;
+package ca.uhn.fhir.jpa.starter.authorization.authproxy;
 
 public class TokenResponse {
   private String access_token;
