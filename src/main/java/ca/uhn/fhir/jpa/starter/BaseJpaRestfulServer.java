@@ -132,7 +132,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
 
     registerProviders(resourceProviders.createProviders());
     registerProvider(jpaSystemProvider);
-
+   
 
 
     /*
@@ -216,6 +216,9 @@ public class BaseJpaRestfulServer extends RestfulServer {
      * HTML output when the request is detected to come from a
      * browser.
      */
+    ClientAuthorizationInterceptor ClientAuthorizationInterceptor = new ClientAuthorizationInterceptor();
+    this.registerInterceptor(ClientAuthorizationInterceptor);
+
     ResponseHighlighterInterceptor responseHighlighterInterceptor = new ResponseHighlighterInterceptor();
     this.registerInterceptor(responseHighlighterInterceptor);
 
@@ -250,9 +253,9 @@ public class BaseJpaRestfulServer extends RestfulServer {
     } else {
       setServerAddressStrategy(new IncomingRequestAddressStrategy());
     }
-    this.registerInterceptor(new ClientAuthorizationInterceptor());
-    this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
-    this.registerInterceptor(new DataInterceptor(ctx, serverAddress));
+   this.registerInterceptor(new ClientAuthorizationInterceptor());
+   this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
+   this.registerInterceptor(new DataInterceptor(ctx, serverAddress));
     // daoConfig.setAllowExternalReferences(true);
     // daoConfig.getTreatBaseUrlsAsLocal().add(serverAddress);
     /*
