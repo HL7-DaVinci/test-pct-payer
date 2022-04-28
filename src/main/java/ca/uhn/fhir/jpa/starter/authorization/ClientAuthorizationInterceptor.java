@@ -36,7 +36,7 @@ public class ClientAuthorizationInterceptor extends AuthorizationInterceptor {
     }
 
     CloseableHttpClient client = HttpClients.createDefault();
-    if(!theRequestDetails.getCompleteUrl().contains("/$gfe-submit")) {
+    if(!theRequestDetails.getCompleteUrl().contains("/$gfe-submit") && theRequestDetails.getCompleteUrl().indexOf("/Bundle?identifier") == -1 ) {
       return new RuleBuilder()
       .allowAll()
       .build();
