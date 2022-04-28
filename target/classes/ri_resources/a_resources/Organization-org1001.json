@@ -1,0 +1,66 @@
+{
+  "resourceType": "Organization",
+  "id": "org1001",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-organization"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><p><b>identifier</b>: Electronic Transmitter Identification Number: ETIN-3200002</p><p><b>active</b>: true</p><p><b>type</b>: <span title=\"Codes: {http://terminology.hl7.org/CodeSystem/organization-type pay}\">Payer</span></p><p><b>name</b>: Umbrella Insurance Company</p><p><b>telecom</b>: ph: 860-547-5001(WORK)</p><p><b>address</b>: 680 Asylum Street Hartford CT 06155 US </p></div>"
+  },
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTOrgIdentifierTypeCS",
+            "code": "ETIN",
+            "display": "Electronic Transmitter Identification Number"
+          }
+        ]
+      },
+      "value": "ETIN-3200002"
+    }
+  ],
+  "active": true,
+  "type": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+          "code": "pay",
+          "display": "Payer"
+        }
+      ]
+    }
+  ],
+  "name": "Umbrella Insurance Company",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "860-547-5001",
+      "use": "work"
+    }
+  ],
+  "address": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/countrySubdivisionCode",
+          "valueCoding": {
+            "code": "US-CT"
+          }
+        }
+      ],
+      "line": [
+        "680 Asylum Street"
+      ],
+      "city": "Hartford",
+      "state": "CT",
+      "postalCode": "06155",
+      "country": "US"
+    }
+  ]
+}

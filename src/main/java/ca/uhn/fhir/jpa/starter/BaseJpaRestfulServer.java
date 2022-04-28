@@ -59,9 +59,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import ca.uhn.fhir.jpa.starter.interceptors.GFEInterceptor;
 import ca.uhn.fhir.jpa.starter.interceptors.DataInterceptor;
 import ca.uhn.fhir.jpa.starter.authorization.ClientAuthorizationInterceptor;
+import ca.uhn.fhir.jpa.starter.resourceProvider.GFESubmitProvider;
 
 public class BaseJpaRestfulServer extends RestfulServer {
   private static final org.slf4j.Logger ourLog = org.slf4j.LoggerFactory.getLogger(BaseJpaRestfulServer.class);
@@ -254,8 +254,10 @@ public class BaseJpaRestfulServer extends RestfulServer {
       setServerAddressStrategy(new IncomingRequestAddressStrategy());
     }
    this.registerInterceptor(new ClientAuthorizationInterceptor());
-   this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
    this.registerInterceptor(new DataInterceptor(ctx, serverAddress));
+    registerProvider(new GFESubmitProvider(ctx, serverAddress));
+    // this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
+    this.registerInterceptor(new DataInterceptor(ctx, serverAddress));
     // daoConfig.setAllowExternalReferences(true);
     // daoConfig.getTreatBaseUrlsAsLocal().add(serverAddress);
     /*
