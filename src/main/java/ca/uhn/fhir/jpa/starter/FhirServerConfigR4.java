@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 @Configuration
 @Conditional(OnR4Condition.class)
 @Import(StarterCqlR4Config.class)
+@ComponentScan(basePackages = "authorization.authproxy")
 public class FhirServerConfigR4 extends BaseJavaConfigR4 {
 
   @Autowired

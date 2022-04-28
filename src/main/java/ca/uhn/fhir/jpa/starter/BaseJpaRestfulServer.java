@@ -60,6 +60,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ca.uhn.fhir.jpa.starter.interceptors.DataInterceptor;
+import ca.uhn.fhir.jpa.starter.authorization.ClientAuthorizationInterceptor;
 import ca.uhn.fhir.jpa.starter.resourceProvider.GFESubmitProvider;
 
 public class BaseJpaRestfulServer extends RestfulServer {
@@ -131,7 +132,7 @@ public class BaseJpaRestfulServer extends RestfulServer {
 
     registerProviders(resourceProviders.createProviders());
     registerProvider(jpaSystemProvider);
-
+   
 
 
     /*
@@ -215,6 +216,9 @@ public class BaseJpaRestfulServer extends RestfulServer {
      * HTML output when the request is detected to come from a
      * browser.
      */
+    ClientAuthorizationInterceptor ClientAuthorizationInterceptor = new ClientAuthorizationInterceptor();
+    this.registerInterceptor(ClientAuthorizationInterceptor);
+
     ResponseHighlighterInterceptor responseHighlighterInterceptor = new ResponseHighlighterInterceptor();
     this.registerInterceptor(responseHighlighterInterceptor);
 
@@ -249,6 +253,8 @@ public class BaseJpaRestfulServer extends RestfulServer {
     } else {
       setServerAddressStrategy(new IncomingRequestAddressStrategy());
     }
+   this.registerInterceptor(new ClientAuthorizationInterceptor());
+   this.registerInterceptor(new DataInterceptor(ctx, serverAddress));
     registerProvider(new GFESubmitProvider(ctx, serverAddress));
     // this.registerInterceptor(new GFEInterceptor(ctx, serverAddress));
     this.registerInterceptor(new DataInterceptor(ctx, serverAddress));

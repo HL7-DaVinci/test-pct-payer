@@ -86,8 +86,8 @@ public class GFEInterceptor {
     * @param  theResponse the response from the server
     * @return             whether to continue processing
     */
-   @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_PROCESSED)
-   public boolean incomingRequestPreProcessed(HttpServletRequest theRequest, HttpServletResponse theResponse) {
+   @Hook(Pointcut.SERVER_INCOMING_REQUEST_POST_PROCESSED)
+   public boolean incomingRequestPostProcessed(HttpServletRequest theRequest, HttpServletResponse theResponse) {
      String[] parts = theRequest.getRequestURI().toString().split("/");
      // Here is where the Claim should be evaluated
      System.out.println("Intercepted the request");
