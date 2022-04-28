@@ -36,15 +36,12 @@ public class ClientAuthorizationInterceptor extends AuthorizationInterceptor {
     }
 
     CloseableHttpClient client = HttpClients.createDefault();
-     System.out.println("in this if " + theRequestDetails.getCompleteUrl().contains("/$gfe-submit"));
-     System.out.println("what the is url" + theRequestDetails.getCompleteUrl());
     if(!theRequestDetails.getCompleteUrl().contains("/$gfe-submit")) {
       return new RuleBuilder()
       .allowAll()
       .build();
     }
     String authHeader = theRequestDetails.getHeader("Authorization");
-    System.out.println("request details" + theRequestDetails.getCompleteUrl());
     // Get the token and drop the "Bearer"
     if (authHeader == null) {
       return new RuleBuilder()
@@ -56,9 +53,6 @@ public class ClientAuthorizationInterceptor extends AuthorizationInterceptor {
     String token = authHeader.split(" ")[1];
     String secret = Config.get("client_secret");
     String clientId = Config.get("client_id");
-    System.out.println("token"  + token);
-    System.out.println("secret"  + secret);
-    System.out.println("clientid"  + clientId);
 
     HttpPost httpPost = new HttpPost(introspectUrl);
     List<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -75,7 +69,6 @@ public class ClientAuthorizationInterceptor extends AuthorizationInterceptor {
     try {
       CloseableHttpResponse response = client.execute(httpPost);
       String jsonString = EntityUtils.toString(response.getEntity());
-      System.out.println("json strong" + jsonString);
       jsonResponse = new JsonParser().parse(jsonString).getAsJsonObject();
       client.close();
 
