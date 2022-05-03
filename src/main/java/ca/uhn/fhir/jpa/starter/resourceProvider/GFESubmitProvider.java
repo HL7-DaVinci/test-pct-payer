@@ -289,9 +289,10 @@ public class GFESubmitProvider implements IResourceProvider{
       theResponse.setStatus(404);
       theResponse.setContentType("application/json");
       theResponse.setCharacterEncoding("UTF-8");
-      theResponse.addHeader("Access-Control-Allow-Origin", "*");
-      theResponse.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-      theResponse.addHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept, Authorization");
+      theResponse.setHeader("Access-Control-Allow-Origin", "*");
+      theResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+      theResponse.setHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept, Authorization");
+      System.out.println("Set the headers");
       String outputString = "";
       try {
         Bundle returnBundle = createBundle();
