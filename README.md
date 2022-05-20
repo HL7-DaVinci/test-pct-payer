@@ -347,3 +347,39 @@ see the `-distroless` suffix in the image tags.
 To add a custom operation, refer to the documentation in the core hapi-fhir libraries [here](https://hapifhir.io/hapi-fhir/docs/server_plain/rest_operations_operations.html).
 
 Within `hapi-fhir-jpaserver-starter`, create a generic class (that does not extend or implement any classes or interfaces), add the `@Operation` as a method within the generic class, and then register the class as a provider using `RestfulServer.registerProvider()`.
+
+
+## Keycloak
+
+Keycloak is a way to authenticate users to access specific requests. We use it to request the gfe-submit operation and the bundles
+
+To run keycloak you need to build the docker file
+```
+docker build -f Dockerfile.keycloak .
+```
+And then run 
+```
+docker-compose -f docker-compose-keycloak.yml up
+```
+This will run keycloak on localhost:8180. If you go to localhost, you will be prompted to an admin screen. You will need to enter a username and password which are defined in the docker-compose-keycloak.yml file.
+
+Once you're logged in you need to create a new realm.
+  Add a new realm:
+  1) click Master (top left nav bar)
+  2) click add realm
+  3) name it pct
+  4) Import | Select file to import (import relm-export.json located in tmp folder in this directory)
+  5) Select "SKIP" to the "If resource exists" selection box.
+  6) Navigate to the Users tab and make a new user.
+  7) Give the new user a password in the credentials tab. Make sure to turn the 'Temporary' slider off before clicking 'Reset Password'.
+  8) Go to Role Mappings and add the user role
+
+Modify config files to point at your new clients and realms
+
+  1) Change /src/main/resources/fhirServer.properties to use the client ID (app-token if using imported realm), realm name, and client secret of the bearer only client, then set use_oauth to true in order to use the security feature.
+  2) The bearer only client's secret can be found in the Credentials tab
+
+Now you have a working keycloak setup. Feel free to add additional users or credentials accordingly. 
+  
+In the future there should be a way to import keycloak realms automatically, there was just some errors when I was testing it. 
+

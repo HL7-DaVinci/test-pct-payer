@@ -1,0 +1,3 @@
+FROM jboss/keycloak
+COPY /tmp/realm-export.json /tmp/realm-export.json
+

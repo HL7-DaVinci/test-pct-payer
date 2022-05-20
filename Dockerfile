@@ -7,6 +7,7 @@ RUN mvn -ntp dependency:go-offline
 COPY src/ /tmp/test-pct-payer/src/
 RUN mvn clean install -DskipTests
 
+
 FROM build-hapi AS build-distroless
 RUN mvn package spring-boot:repackage -Pboot
 RUN mkdir /app && \
