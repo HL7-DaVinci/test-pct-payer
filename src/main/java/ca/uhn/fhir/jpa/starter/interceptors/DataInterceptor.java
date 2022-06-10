@@ -102,24 +102,24 @@ public class DataInterceptor {
       // Here is where the Claim should be evaluated
       if (!dataLoaded) {
          dataLoaded = true;
-         System.out.println("First request made to Server");
-         System.out.println("Loading all data");
+         myLogger.info("First request made to Server");
+         myLogger.info("Loading all data");
          for (String filename: organizations) {
             loadDataOrganization(filename);
          }
-         System.out.println("Loaded Organizations");
+         myLogger.info("Loaded Organizations");
          for (String filename: patients) {
             loadDataPatient(filename);
          }
-         System.out.println("Loaded Patients");
+         myLogger.info("Loaded Patients");
          for (String filename: contracts) {
             loadDataContract(filename);
          }
-         System.out.println("Loaded Contracts");
+         myLogger.info("Loaded Contracts");
          for (String filename: coverages) {
             loadDataCoverage(filename);
          }
-         System.out.println("Loaded Coverage");
+         myLogger.info("Loaded Coverage");
       }
       return true;
   }
@@ -127,40 +127,40 @@ public class DataInterceptor {
       try {
           String p = FileLoader.loadResource(resource);
           Organization r = jparser.parseResource(Organization.class, p);
-          System.out.println("Uploading resource " + resource);
+          myLogger.info("Uploading resource: {} ", resource);
           MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          System.out.println("Failure to update the Organization");
+          myLogger.info("Failure to update the Organization");
       }
   }
   public void loadDataPatient(String resource) {
       try {
           String p = FileLoader.loadResource(resource);
           Patient r = jparser.parseResource(Patient.class, p);
-          System.out.println("Uploading resource " + resource);
+          myLogger.info("Uploading resource " + resource);
           MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          System.out.println("Failure to update the Patient");
+          myLogger.info("Failure to update the Patient");         
       }
   }
   public void loadDataContract(String resource) {
       try {
           String p = FileLoader.loadResource(resource);
           Contract r = jparser.parseResource(Contract.class, p);
-          System.out.println("Uploading resource " + resource);
+          myLogger.info("Uploading resource " + resource);
           MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          System.out.println("Failure to update the Contract");
+          myLogger.info("Failure to update the Contract");
       }
   }
   public void loadDataCoverage(String resource) {
       try {
           String p = FileLoader.loadResource(resource);
           Coverage r = jparser.parseResource(Coverage.class, p);
-          System.out.println("Uploading resource " + resource);
+          myLogger.info("Uploading resource " + resource);
           MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          System.out.println("Failure to update the Coverage");
+          myLogger.info("Failure to update the Coverage");
       }
   }
 

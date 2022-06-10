@@ -21,8 +21,13 @@ import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.context.support.IValidationSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MetadataProvider extends JpaCapabilityStatementProvider {
+
+  private final Logger myLogger = LoggerFactory.getLogger(MetadataProvider.class.getName());
+
   //BaseJpaRestfulServer,IFhirSystemDao,DaoConfig,ISearchParamRegistry,IValidationSupport
   MetadataProvider(BaseJpaRestfulServer theRestfulServer, IFhirSystemDao theSystemDao, DaoConfig theDaoConfig,ISearchParamRegistry spr, IValidationSupport ivs) {
     super(theRestfulServer, theSystemDao, theDaoConfig, spr, ivs);
@@ -31,7 +36,7 @@ public class MetadataProvider extends JpaCapabilityStatementProvider {
 
   @Metadata
   public CapabilityStatement getServerConformance(HttpServletRequest theRequest, RequestDetails details) {
-    System.out.println("Generating statement");
+    myLogger.info("Generating statement");
     CapabilityStatement metadata = (CapabilityStatement) super.getServerConformance(theRequest, details);
     metadata.setTitle("Da Vinci PCT Payer Reference Implementation");
     metadata.setStatus(PublicationStatus.DRAFT);

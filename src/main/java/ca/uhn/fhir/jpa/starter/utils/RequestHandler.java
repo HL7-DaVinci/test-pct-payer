@@ -18,11 +18,15 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class for handling http requests
  */
 public class RequestHandler {
+  private final Logger myLogger = LoggerFactory.getLogger(RequestHandler.class.getName());
+
     private final String USER_AGENT = "Mozilla/5.0";
     public RequestHandler() {
 
@@ -43,8 +47,8 @@ public class RequestHandler {
         con.setRequestMethod("GET");
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'GET' request to URL : " + url + params);
-        System.out.println("Response Code : " + responseCode);
+        myLogger.info("\nSending 'GET' request to URL : " + url + params);
+        myLogger.info("Response Code : " + responseCode);
 
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
@@ -55,7 +59,7 @@ public class RequestHandler {
           response.append(inputLine);
         }
         in.close();
-        System.out.println("Finished Get");
+        myLogger.info("Finished Get");
         return response.toString();
 
   }
@@ -92,7 +96,7 @@ public class RequestHandler {
         // Install the all-trusting host verifier
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
-        System.out.println("Sending Post to: " + url);
+        myLogger.info("Sending Post to: " + url);
         URL obj = new URL(url);
 
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -104,10 +108,10 @@ public class RequestHandler {
             byte[] input = data.getBytes("utf-8");
             os.write(input, 0, input.length);
         } catch (Exception e) {
-            System.out.println(e);
+            myLogger.info("Exception: " + e);            
         }
         int responseCode = con.getResponseCode();
-        System.out.println("Response Code: " + responseCode);
+        myLogger.info("Response Code: " + responseCode);            
 
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
@@ -118,7 +122,7 @@ public class RequestHandler {
           response.append(inputLine);
         }
         in.close();
-        System.out.println("Response:" + response.toString());
+        myLogger.info("Response:" + response.toString());            
         return response.toString();
     }
     /**
@@ -154,7 +158,7 @@ public class RequestHandler {
           // Install the all-trusting host verifier
           HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
-          System.out.println("Sending Put to: " + url);
+          myLogger.info("Sending Put to: " + url);            
           URL obj = new URL(url);
 
           HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -166,10 +170,10 @@ public class RequestHandler {
               byte[] input = data.getBytes("utf-8");
               os.write(input, 0, input.length);
           } catch (Exception e) {
-              System.out.println(e);
+              myLogger.info("Exception: " + e);                          
           }
           int responseCode = con.getResponseCode();
-          System.out.println("Response Code: " + responseCode);
+          myLogger.info("Response Code: " + responseCode);                          
 
           BufferedReader in = new BufferedReader(
                   new InputStreamReader(con.getInputStream()));
@@ -180,7 +184,7 @@ public class RequestHandler {
             response.append(inputLine);
           }
           in.close();
-          System.out.println("Response:" + response.toString());
+          myLogger.info("Response:" + response.toString());                                    
           return response.toString();
       }
 

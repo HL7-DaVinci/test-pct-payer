@@ -70,7 +70,7 @@ public class GFESubmitProvider implements IResourceProvider{
    }
    @Operation(name="$gfe-submit", manualResponse=true, manualRequest=true)
    public void gfeSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws IOException {
-     System.out.println("Received GFE Submit");
+     myLogger.info("Received GFE Submit");
       try {
          handleSubmit(theRequest, theResponse);
       } catch (Exception e) {
@@ -118,7 +118,7 @@ public class GFESubmitProvider implements IResourceProvider{
       try {
           MethodOutcome outcome = client.update().resource(bundle).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          System.out.println("Failure to update the bundle");
+          myLogger.info("Failure to update the bundle");
       }
   }
   /**
@@ -129,7 +129,7 @@ public class GFESubmitProvider implements IResourceProvider{
       try {
           MethodOutcome outcome = client.update().resource(aeob).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          System.out.println("Failure to update the aeob");
+          myLogger.info("Failure to update the aeob");
       }
   }
   /**
@@ -151,7 +151,9 @@ public class GFESubmitProvider implements IResourceProvider{
         initialReader.close();
         targetString = buffer.toString();
 
-      } catch (Exception e) { System.out.println("Found Exception" + e.getMessage());/*report an error*/ }
+      } catch (Exception e) { 
+          myLogger.info("Found Exception: {}", e.getMessage());/*report an error*/ 
+        }
       return targetString;
   }
   /**
@@ -212,7 +214,9 @@ public class GFESubmitProvider implements IResourceProvider{
   public Bundle convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
       aeob.getType().getCoding().get(0).setCode("institutional");
       aeob.getType().getCoding().get(0).setDisplay("Institutional");
-      System.out.println("Processing Institutional Claim");
+      //System.out.println("Processing Institutional Claim");
+      myLogger.info("Processing Institutional Claim");
+
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
@@ -249,11 +253,16 @@ public class GFESubmitProvider implements IResourceProvider{
   public Bundle convertProfessional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
       aeob.getType().getCoding().get(0).setCode("professional");
       aeob.getType().getCoding().get(0).setDisplay("Professional");
-      System.out.println("Processing Professional Claim");
+      //System.out.println("Processing Professional Claim");
+      myLogger.info("Processing Professional Claim");
+
+      
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
-          System.out.println(bundleEntry.fhirType());
+          //System.out.println(bundleEntry.fhirType());
+          myLogger.info(bundleEntry.fhirType());
+
           if (bundleEntry.fhirType().equals("Patient")) {
               Patient patient = (Patient) bundleEntry;
               aeob.setPatient(new Reference(patient.getId()));
@@ -263,7 +272,9 @@ public class GFESubmitProvider implements IResourceProvider{
                 aeob.setInsurer(new Reference(org.getId()));
               } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov") && claim.getProvider().getReference().contains("Organization")) {
                 // Provider
-                System.out.println("Adding Provider with Organization");
+                //System.out.println("Adding Provider with Organization");
+                myLogger.info("Adding Provider with Organization");
+
                 aeob.setProvider(new Reference(org.getId()));
               }
           } else if (bundleEntry.fhirType().equals("Coverage")) {
@@ -271,7 +282,10 @@ public class GFESubmitProvider implements IResourceProvider{
               aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
           } else if (bundleEntry.fhirType().equals("PractitionerRole") && claim.getProvider().getReference().contains("PractitionerRole")) {
               PractitionerRole pr = (PractitionerRole) bundleEntry;
-              System.out.println("Adding Provider by PractitionerRole");
+              //System.out.println("Adding Provider by PractitionerRole");
+              myLogger.info("Adding Provider by PractitionerRole");
+
+              
               aeob.setProvider(new Reference(pr.getId()));
           }
           aeobBundle.addEntry(e);
@@ -292,7 +306,9 @@ public class GFESubmitProvider implements IResourceProvider{
       theResponse.setHeader("Access-Control-Allow-Origin", "*");
       theResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
       theResponse.setHeader("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type, Accept, Authorization");
-      System.out.println("Set the headers");
+      //System.out.println("Set the headers");
+      myLogger.info("Set the headers");
+
       String outputString = "";
       try {
         Bundle returnBundle = createBundle();
@@ -308,9 +324,14 @@ public class GFESubmitProvider implements IResourceProvider{
         convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
 
         String result = jparser.encodeResourceToString((IBaseResource)returnBundle);
-        System.out.println("\n\n\n--------------------------------------------------------");
+        //System.out.println("\n\n\n--------------------------------------------------------");
+        myLogger.info("\n\n\n--------------------------------------------------------");
+
+        
         // System.out.println("Final Result: \n" + result);
-        System.out.println("--------------------------------------------------------\n\n\n");
+        //System.out.println("--------------------------------------------------------\n\n\n");
+        myLogger.info("--------------------------------------------------------\n\n\n");
+
         updateBundle(returnBundle);
 
         // System.out.println(outputString);
