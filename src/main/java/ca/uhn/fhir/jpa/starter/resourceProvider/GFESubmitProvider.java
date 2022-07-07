@@ -174,18 +174,145 @@ public class GFESubmitProvider implements IResourceProvider{
     gfeExts.add(gfeReference);
     Extension disclaimer = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/disclaimer", new StringType("Estimate Only ..."));
     gfeExts.add(disclaimer);
-    // TODO: make expirationDate dynamic
-    Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", new DateType(2022, 6, 15));
+    
+    Calendar cal = Calendar.getInstance(); 
+    cal.add(Calendar.MONTH, 6);
+    Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", new DateType(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)));
     gfeExts.add(expirationDate);
-    Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
 
     aeob.setExtension(gfeExts);
 
+    // TODO support multiple claims (one AEOB per GFE claim)
+    Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();    
+    
+    
+    List<ExplanationOfBenefit.ItemComponent> eobItems = new ArrayList<>();
+    
+
+    List<Claim.ItemComponent> gfeClaimItems = claim.getItem();
+    for (Claim.ItemComponent claimItem : gfeClaimItems) 
+    {
+      ExplanationOfBenefit.ItemComponent eobItem = new ExplanationOfBenefit.ItemComponent();
+      // extensions - includes estimated service date
+      eobItem.setExtension(claimItem.getExtension());
+      
+      // sequence
+      eobItem.setSequence(claimItem.getSequence());
+
+      // revenue
+      eobItem.setRevenue(claimItem.getRevenue());
+
+      // productOrService
+      eobItem.setProductOrService(claimItem.getProductOrService());
+      
+      // modifier
+      eobItem.setModifier(claimItem.getModifier());
+
+      // net
+      eobItem.setNet(claimItem.getNet());
+
+      
+
+
+      // adjudication
+      List<ExplanationOfBenefit.AdjudicationComponent> eobItemAdjudications = new ArrayList<>();
+      ExplanationOfBenefit.AdjudicationComponent eobItem1Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
+      CodeableConcept adj1Category = new CodeableConcept();
+      
+      // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
+      // Hard codes, which could be improved.
+      adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("paidtoprovider").setDisplay("Paid to Provider");
+      eobItem1Adjudication.setCategory(adj1Category);
+      eobItem1Adjudication.setAmount(claimItem.getNet());
+
+      eobItemAdjudications.add(eobItem1Adjudication);
+
+
+      // Submitted
+      ExplanationOfBenefit.AdjudicationComponent eobItem2Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
+      CodeableConcept adj2Category = new CodeableConcept();
+      // Use net for submitted and eligible amounts
+      adj2Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("submitted").setDisplay("Submitted Amount");
+      eobItem2Adjudication.setCategory(adj2Category);
+      eobItem2Adjudication.setAmount(claimItem.getNet());
+
+      // Medical Management extension
+      //List<Extension> adjExts = new ArrayList<>();
+      Extension medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt", new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "concurrent-review", "Concurrent Review"));
+
+      eobItem2Adjudication.addExtension(medMgmtExt);
+      eobItemAdjudications.add(eobItem2Adjudication);
+
+
+      // Eligible
+      ExplanationOfBenefit.AdjudicationComponent eobItem3Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
+      CodeableConcept adj3Category = new CodeableConcept();
+      
+      // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
+      // Hard codes, which could be improved.
+      adj3Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("eligible").setDisplay("Eligible Amount");
+      eobItem3Adjudication.setCategory(adj3Category);
+      eobItem3Adjudication.setAmount(claimItem.getNet());
+
+      eobItemAdjudications.add(eobItem3Adjudication);
+
+
+
+      eobItem.setAdjudication(eobItemAdjudications);
+
+
+      eobItems.add(eobItem);
+    }
+    aeob.setItem(eobItems);
+    //aeob.getItem().get(0).getAdjudication().get(0).setAmount(claim.getTotal());
+    //aeob.getItem().get(0).setNet(claim.getTotal());
+    //Money tempMoney = new Money();
+    //tempMoney.setValue(1000);
+    //tempMoney.setCurrency("CAN");
+    //aeob.getItem().get(0).setNet(tempMoney);
+
+    
+    //Totals
     // Update the AEOB resource based on the claim. NOTE: additional work might need to be done here
     // This just assumes that the numbers are the same to the total claim
     aeob.getTotal().get(0).setAmount(claim.getTotal());
-    aeob.getItem().get(0).getAdjudication().get(0).setAmount(claim.getTotal());
-    aeob.getItem().get(0).setNet(claim.getTotal());
+    List<ExplanationOfBenefit.TotalComponent> eobTotals = new ArrayList<>();
+    ExplanationOfBenefit.TotalComponent eob1Total = new ExplanationOfBenefit.TotalComponent();
+    CodeableConcept total1Category = new CodeableConcept();
+    
+    // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
+    // Hard codes, which could be improved.
+    total1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("paidtoprovider").setDisplay("Paid to Provider");
+    eob1Total.setCategory(total1Category);
+    eob1Total.setAmount(claim.getTotal());
+
+    eobTotals.add(eob1Total);
+
+
+    // Submitted
+    ExplanationOfBenefit.TotalComponent eob2Total = new ExplanationOfBenefit.TotalComponent();
+    CodeableConcept total2Category = new CodeableConcept();
+    // Use net for submitted and eligible amounts
+    total2Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("submitted").setDisplay("Submitted Amount");
+    eob2Total.setCategory(total2Category);
+    eob2Total.setAmount(claim.getTotal());
+
+    eobTotals.add(eob2Total);
+
+
+    // Eligible
+    ExplanationOfBenefit.TotalComponent eob3Total = new ExplanationOfBenefit.TotalComponent();
+    CodeableConcept total3Category = new CodeableConcept();
+    
+    // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
+    // Hard codes, which could be improved.
+    total3Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("eligible").setDisplay("Eligible Amount");
+    eob3Total.setCategory(total3Category);
+    eob3Total.setAmount(claim.getTotal());
+
+    eobTotals.add(eob3Total);
+
+    aeob.setTotal(eobTotals);
 
 
     gfeReference.setValue(new Reference(gfeBundle));
