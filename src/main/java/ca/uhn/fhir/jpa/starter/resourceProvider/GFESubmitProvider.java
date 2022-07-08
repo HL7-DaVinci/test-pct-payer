@@ -215,6 +215,7 @@ public class GFESubmitProvider implements IResourceProvider{
 
 
       // adjudication
+      // Hastily put together for Connectathon. Could be architected better using an array, dict, or map
       List<ExplanationOfBenefit.AdjudicationComponent> eobItemAdjudications = new ArrayList<>();
       ExplanationOfBenefit.AdjudicationComponent eobItem1Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
       CodeableConcept adj1Category = new CodeableConcept();
@@ -250,7 +251,7 @@ public class GFESubmitProvider implements IResourceProvider{
       
       // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
       // Hard codes, which could be improved.
-      adj3Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("eligible").setDisplay("Eligible Amount");
+      adj3Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("eligible").setDisplay("Eligible Amount");
       eobItem3Adjudication.setCategory(adj3Category);
       eobItem3Adjudication.setAmount(claimItem.getNet());
 
@@ -306,7 +307,7 @@ public class GFESubmitProvider implements IResourceProvider{
     
     // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
     // Hard codes, which could be improved.
-    total3Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("eligible").setDisplay("Eligible Amount");
+    total3Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("eligible").setDisplay("Eligible Amount");
     eob3Total.setCategory(total3Category);
     eob3Total.setAmount(claim.getTotal());
 
