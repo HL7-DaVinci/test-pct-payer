@@ -130,6 +130,7 @@ public class DataInterceptor {
           myLogger.info("Uploading resource: {} ", resource);
           MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
+          myLogger.info(e.toString());
           myLogger.info("Failure to update the Organization");
       }
   }
@@ -140,7 +141,7 @@ public class DataInterceptor {
           myLogger.info("Uploading resource " + resource);
           MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
       } catch(Exception e) {
-          myLogger.info("Failure to update the Patient");         
+          myLogger.info("Failure to update the Patient");
       }
   }
   public void loadDataContract(String resource) {

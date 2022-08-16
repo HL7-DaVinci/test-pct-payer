@@ -151,8 +151,8 @@ public class GFESubmitProvider implements IResourceProvider{
         initialReader.close();
         targetString = buffer.toString();
 
-      } catch (Exception e) { 
-          myLogger.info("Found Exception: {}", e.getMessage());/*report an error*/ 
+      } catch (Exception e) {
+          myLogger.info("Found Exception: {}", e.getMessage());/*report an error*/
         }
       return targetString;
   }
@@ -164,7 +164,7 @@ public class GFESubmitProvider implements IResourceProvider{
    * @param  aeobBundle the bundle to return
    * @return            the complete aeob bundle
    */
-  public Bundle convertGFEtoAEOB(Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
+  public Bundle convertGFEtoAEOB(Bundle gfeBundle, Claim claim, ExplanationOfBenefit aeob, Bundle aeobBundle) {
     // NOTE: Add processing for revenue
     // total[0].amount.value adjudication[0].amount.value net.value
     //
@@ -174,8 +174,8 @@ public class GFESubmitProvider implements IResourceProvider{
     gfeExts.add(gfeReference);
     Extension disclaimer = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/disclaimer", new StringType("Estimate Only ..."));
     gfeExts.add(disclaimer);
-    
-    Calendar cal = Calendar.getInstance(); 
+
+    Calendar cal = Calendar.getInstance();
     cal.add(Calendar.MONTH, 6);
     Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate", new DateType(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)));
     gfeExts.add(expirationDate);
@@ -183,19 +183,19 @@ public class GFESubmitProvider implements IResourceProvider{
     aeob.setExtension(gfeExts);
 
     // TODO support multiple claims (one AEOB per GFE claim)
-    Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();    
-    
-    
+    // Claim claim = (Claim) gfeBundle.getEntry().get(0).getResource();
+
+
     List<ExplanationOfBenefit.ItemComponent> eobItems = new ArrayList<>();
-    
+
 
     List<Claim.ItemComponent> gfeClaimItems = claim.getItem();
-    for (Claim.ItemComponent claimItem : gfeClaimItems) 
+    for (Claim.ItemComponent claimItem : gfeClaimItems)
     {
       ExplanationOfBenefit.ItemComponent eobItem = new ExplanationOfBenefit.ItemComponent();
       // extensions - includes estimated service date
       eobItem.setExtension(claimItem.getExtension());
-      
+
       // sequence
       eobItem.setSequence(claimItem.getSequence());
 
@@ -204,14 +204,14 @@ public class GFESubmitProvider implements IResourceProvider{
 
       // productOrService
       eobItem.setProductOrService(claimItem.getProductOrService());
-      
+
       // modifier
       eobItem.setModifier(claimItem.getModifier());
 
       // net
       eobItem.setNet(claimItem.getNet());
 
-      
+
 
 
       // adjudication
@@ -219,7 +219,7 @@ public class GFESubmitProvider implements IResourceProvider{
       List<ExplanationOfBenefit.AdjudicationComponent> eobItemAdjudications = new ArrayList<>();
       ExplanationOfBenefit.AdjudicationComponent eobItem1Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
       CodeableConcept adj1Category = new CodeableConcept();
-      
+
       // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
       // Hard codes, which could be improved.
       adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("paidtoprovider").setDisplay("Paid to Provider");
@@ -248,7 +248,7 @@ public class GFESubmitProvider implements IResourceProvider{
       // Eligible
       ExplanationOfBenefit.AdjudicationComponent eobItem3Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
       CodeableConcept adj3Category = new CodeableConcept();
-      
+
       // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
       // Hard codes, which could be improved.
       adj3Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("eligible").setDisplay("Eligible Amount");
@@ -272,7 +272,7 @@ public class GFESubmitProvider implements IResourceProvider{
     //tempMoney.setCurrency("CAN");
     //aeob.getItem().get(0).setNet(tempMoney);
 
-    
+
     //Totals
     // Update the AEOB resource based on the claim. NOTE: additional work might need to be done here
     // This just assumes that the numbers are the same to the total claim
@@ -280,7 +280,7 @@ public class GFESubmitProvider implements IResourceProvider{
     List<ExplanationOfBenefit.TotalComponent> eobTotals = new ArrayList<>();
     ExplanationOfBenefit.TotalComponent eob1Total = new ExplanationOfBenefit.TotalComponent();
     CodeableConcept total1Category = new CodeableConcept();
-    
+
     // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
     // Hard codes, which could be improved.
     total1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType").setCode("paidtoprovider").setDisplay("Paid to Provider");
@@ -304,7 +304,7 @@ public class GFESubmitProvider implements IResourceProvider{
     // Eligible
     ExplanationOfBenefit.TotalComponent eob3Total = new ExplanationOfBenefit.TotalComponent();
     CodeableConcept total3Category = new CodeableConcept();
-    
+
     // currently adjudication is to pay whatever the provider changes. This could be made more easy with a set or algorithms or data driven, also for adding subjectToMedicalMgmt
     // Hard codes, which could be improved.
     total3Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("eligible").setDisplay("Eligible Amount");
@@ -323,10 +323,13 @@ public class GFESubmitProvider implements IResourceProvider{
     temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
     temp.setResource(aeob);
     aeobBundle.addEntry(temp);
+    for (Extension ex : claim.getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeProviderAssignedIdentifier")) {
+        aeob.addExtension(ex);
+    }
     if (claim.getMeta().getProfile().get(0).equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
-        convertInstitutional(claim, gfeBundle, aeob, aeobBundle);
+        convertInstitutional(claim, gfeBundle, aeob);
     } else {
-        convertProfessional(claim, gfeBundle, aeob, aeobBundle);
+        convertProfessional(claim, gfeBundle, aeob);
     }
     updateAEOB(aeob);
     return aeobBundle;
@@ -339,12 +342,13 @@ public class GFESubmitProvider implements IResourceProvider{
    * @param  aeobBundle the return bundle to be updated
    * @return            the new bundle
    */
-  public Bundle convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
+  public ExplanationOfBenefit convertInstitutional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob) {
       aeob.getType().getCoding().get(0).setCode("institutional");
       aeob.getType().getCoding().get(0).setDisplay("Institutional");
       //System.out.println("Processing Institutional Claim");
       myLogger.info("Processing Institutional Claim");
 
+      // TODO: add support for multiple GFEs
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
@@ -353,22 +357,42 @@ public class GFESubmitProvider implements IResourceProvider{
               aeob.setPatient(new Reference(patient.getId()));
           } else if (bundleEntry.fhirType().equals("Organization")) {
               Organization org = (Organization) bundleEntry;
-              if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
+              if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")
+                && claim.getInsurer().getReference().contains(org.getId())) {
+                // "insurer": {
+                //   "reference": "Organization/org1001"
+                // },
                 aeob.setInsurer(new Reference(org.getId()));
-              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")){
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")
+                && claim.getProvider().getReference().contains(org.getId())){
+                // "provider": {
+                //   "reference": "Organization/org1002"
+                // },
                 aeob.setProvider(new Reference(org.getId()));
               } else if (org.getType().get(0).getCoding().get(0).getCode().equals("institutional-submitter")) {
-                aeob.setProvider(new Reference(org.getId()));
+                for (Extension ex : claim.getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeSubmitter")) {
+                  // Extension: "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeSubmitter"
+                  // {
+                  //   "url": "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeSubmitter",
+                  //   "valueReference": {
+                  //     "reference": "Organization/Submitter-Org-1"
+                  //   }
+                  // },
+                  if (((Reference) ex.getValue()).getReference().contains(org.getId())) {
+                      aeob.setProvider(new Reference(org.getId()));
+                      break;
+                  }
+                }
               }
 
           } else if (bundleEntry.fhirType().equals("Coverage")) {
               Coverage cov = (Coverage) bundleEntry;
               aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
           }
-          aeobBundle.addEntry(e);
+          // aeobBundle.addEntry(e);
       }
 
-      return aeobBundle;
+      return aeob;
   }
   /**
    * Add all resources into the new aeob bundle and update the aeob with the professional
@@ -378,27 +402,28 @@ public class GFESubmitProvider implements IResourceProvider{
    * @param  aeobBundle the return bundle to be updated
    * @return            the new bundle
    */
-  public Bundle convertProfessional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob, Bundle aeobBundle) {
+  public ExplanationOfBenefit convertProfessional(Claim claim, Bundle gfeBundle, ExplanationOfBenefit aeob) {
       aeob.getType().getCoding().get(0).setCode("professional");
       aeob.getType().getCoding().get(0).setDisplay("Professional");
       //System.out.println("Processing Professional Claim");
       myLogger.info("Processing Professional Claim");
 
-      
+      // TODO: add support for multiple GFEs
       for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
           IBaseResource bundleEntry = (IBaseResource) e.getResource();
           String resource = jparser.encodeResourceToString(bundleEntry);
           //System.out.println(bundleEntry.fhirType());
           myLogger.info(bundleEntry.fhirType());
-
           if (bundleEntry.fhirType().equals("Patient")) {
               Patient patient = (Patient) bundleEntry;
               aeob.setPatient(new Reference(patient.getId()));
           } else if (bundleEntry.fhirType().equals("Organization")) {
               Organization org = (Organization) bundleEntry;
-              if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")) {
+              if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")
+                && claim.getInsurer().getReference().contains(org.getId())) {
                 aeob.setInsurer(new Reference(org.getId()));
-              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov") && claim.getProvider().getReference().contains("Organization")) {
+              } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov") && claim.getProvider().getReference().contains("Organization")
+                && claim.getProvider().getReference().contains(org.getId())) {
                 // Provider
                 //System.out.println("Adding Provider with Organization");
                 myLogger.info("Adding Provider with Organization");
@@ -408,18 +433,38 @@ public class GFESubmitProvider implements IResourceProvider{
           } else if (bundleEntry.fhirType().equals("Coverage")) {
               Coverage cov = (Coverage) bundleEntry;
               aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
-          } else if (bundleEntry.fhirType().equals("PractitionerRole") && claim.getProvider().getReference().contains("PractitionerRole")) {
+          } else if (bundleEntry.fhirType().equals("PractitionerRole")) {
               PractitionerRole pr = (PractitionerRole) bundleEntry;
+              if (claim.getProvider().getReference().contains("PractitionerRole")
+                && claim.getProvider().getReference().contains(pr.getId())) {
+
               //System.out.println("Adding Provider by PractitionerRole");
               myLogger.info("Adding Provider by PractitionerRole");
 
-              
+
               aeob.setProvider(new Reference(pr.getId()));
+              }
+          }
+          // aeobBundle.addEntry(e);
+      }
+
+      return aeob;
+  }
+  public void convertGFEBundletoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle) {
+      for (Bundle.BundleEntryComponent e: gfeBundle.getEntry()) {
+          IBaseResource bundleEntry = (IBaseResource) e.getResource();
+          if (bundleEntry.fhirType().equals("Claim")) {
+              // This should be a gfe
+              Claim claim = (Claim) bundleEntry;
+              // load the base aeob
+              String eob = FileLoader.loadResource("raw-aeob.json");
+              ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
+              aeob.setCreated(new Date());
+              // set the aeob values based on the gfe
+              convertGFEtoAEOB(gfeBundle, claim, aeob, aeobBundle);
           }
           aeobBundle.addEntry(e);
       }
-
-      return aeobBundle;
   }
   /**
    * Parse the resource and create the new aeob bundle. Send the initial bundle in the return
@@ -444,18 +489,21 @@ public class GFESubmitProvider implements IResourceProvider{
         outputString = jparser.encodeResourceToString((IBaseResource)returnBundle);
 
         String resource = parseRequest(theRequest);
-        String eob = FileLoader.loadResource("raw-aeob.json");
-
-        ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
-        aeob.setCreated(new Date());
+        // String eob = FileLoader.loadResource("raw-aeob.json");
+        //
+        // ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
+        // aeob.setCreated(new Date());
         Bundle gfeBundle = jparser.parseResource(Bundle.class, resource);
-        convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
+        // Post the gfe bundle to the server
+        updateBundle(gfeBundle);
+        convertGFEBundletoAEOBBundle(gfeBundle, returnBundle);
+        // convertGFEtoAEOB(gfeBundle, aeob, returnBundle);
 
         String result = jparser.encodeResourceToString((IBaseResource)returnBundle);
         //System.out.println("\n\n\n--------------------------------------------------------");
         myLogger.info("\n\n\n--------------------------------------------------------");
 
-        
+
         // System.out.println("Final Result: \n" + result);
         //System.out.println("--------------------------------------------------------\n\n\n");
         myLogger.info("--------------------------------------------------------\n\n\n");
