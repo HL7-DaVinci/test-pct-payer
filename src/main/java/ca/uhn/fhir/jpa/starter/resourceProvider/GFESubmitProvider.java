@@ -392,10 +392,10 @@ public class GFESubmitProvider implements IResourceProvider{
           } else if (bundleEntry.fhirType().equals("Organization")) {
               Organization org = (Organization) bundleEntry;
               if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")
-                && claim.getInsurer().getReference().contains(org.getId())) {
+                && (claim.getInsurer().getReference().contains(org.getId()) || org.getId().contains(claim.getInsurer().getReference()))) {
                 aeob.setInsurer(new Reference(org.getId()));
               } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")
-                && claim.getProvider().getReference().contains(org.getId())){
+                && (claim.getProvider().getReference().contains(org.getId()) || org.getId().contains(claim.getProvider().getReference()))){
                 aeob.setProvider(new Reference(org.getId()));
               } else if (org.getType().get(0).getCoding().get(0).getCode().equals("institutional-submitter")) {
                 for (Extension ex : claim.getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeSubmitter")) {
@@ -435,11 +435,18 @@ public class GFESubmitProvider implements IResourceProvider{
               aeob.setPatient(new Reference(patient.getId()));
           } else if (bundleEntry.fhirType().equals("Organization")) {
               Organization org = (Organization) bundleEntry;
+              myLogger.info("Found Organization");
+              myLogger.info(org.getType().get(0).getCoding().get(0).getCode());
+              myLogger.info(claim.getInsurer().getReference());
+              myLogger.info(claim.getProvider().getReference());
+              myLogger.info(org.getId());
+              myLogger.info("----------");
               if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")
-                && claim.getInsurer().getReference().contains(org.getId())) {
+                && (claim.getInsurer().getReference().contains(org.getId()) || org.getId().contains(claim.getInsurer().getReference()))) {
+                myLogger.info("Adding Insurer");
                 aeob.setInsurer(new Reference(org.getId()));
               } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov") && claim.getProvider().getReference().contains("Organization")
-                && claim.getProvider().getReference().contains(org.getId())) {
+                && (claim.getProvider().getReference().contains(org.getId()) || org.getId().contains(claim.getProvider().getReference()))) {
                 // Provider
                 myLogger.info("Adding Provider with Organization");
 
@@ -451,7 +458,7 @@ public class GFESubmitProvider implements IResourceProvider{
           } else if (bundleEntry.fhirType().equals("PractitionerRole")) {
               PractitionerRole pr = (PractitionerRole) bundleEntry;
               if (claim.getProvider().getReference().contains("PractitionerRole")
-                && claim.getProvider().getReference().contains(pr.getId())) {
+                && (claim.getProvider().getReference().contains(pr.getId()) || pr.getId().contains(claim.getProvider().getReference()))) {
 
               myLogger.info("Adding Provider by PractitionerRole");
 
