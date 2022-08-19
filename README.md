@@ -1,7 +1,7 @@
 # PCT Payer Server
 
 This server is based on the HAPI FHIR JPA Starter server with modifications to support Patient Cost
-Transparency. The primary file for processing the Good Faith Estimate is [GFEInterceptor.java](https://github.com/HL7-DaVinci/test-pct-payer/blob/master/src/main/java/ca/uhn/fhir/jpa/starter/interceptors/GFEInterceptor.java)
+Transparency. The primary file for processing the Good Faith Estimate is [GFESubmitProvider.java](https://github.com/HL7-DaVinci/test-pct-payer/blob/master/src/main/java/ca/uhn/fhir/jpa/starter/resourceProvider/GFESubmitProvider.java)
 
 ## Prerequisites
 
