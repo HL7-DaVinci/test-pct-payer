@@ -1,45 +1,22 @@
 package ca.uhn.fhir.jpa.starter.interceptors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hl7.fhir.r4.model.Contract;
+import org.hl7.fhir.r4.model.Coverage;
+import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Patient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.interceptor.api.Hook;
 import ca.uhn.fhir.interceptor.api.Interceptor;
 import ca.uhn.fhir.interceptor.api.Pointcut;
-import ca.uhn.fhir.rest.api.server.RequestDetails;
-
-import ca.uhn.fhir.jpa.searchparam.matcher.InMemoryResourceMatcher;
-
-import ca.uhn.fhir.rest.annotation.Search;
-
-import ca.uhn.fhir.jpa.searchparam.MatchUrlService;
-import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
-import ca.uhn.fhir.jpa.searchparam.matcher.InMemoryMatchResult;
-import ca.uhn.fhir.jpa.searchparam.matcher.IndexedSearchParamExtractor;
-import ca.uhn.fhir.jpa.searchparam.extractor.ResourceIndexedSearchParams;
-import ca.uhn.fhir.rest.api.MethodOutcome;
-
-import ca.uhn.fhir.context.FhirContext;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletRequest;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
-
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.function.Function;
-import java.util.*;
-import java.io.*;
-import ca.uhn.fhir.jpa.provider.*;
-
-import org.hl7.fhir.r4.model.*;
-import org.hl7.fhir.instance.model.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import ca.uhn.fhir.rest.client.api.*;
-import ca.uhn.fhir.parser.*;
-
-import ca.uhn.fhir.jpa.starter.utils.RequestHandler;
 import ca.uhn.fhir.jpa.starter.utils.FileLoader;
+import ca.uhn.fhir.parser.IParser;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
  * Class for intercepting and handling the subsciptions

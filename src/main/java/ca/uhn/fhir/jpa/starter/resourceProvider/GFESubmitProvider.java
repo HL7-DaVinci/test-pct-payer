@@ -1,30 +1,47 @@
 package ca.uhn.fhir.jpa.starter.resourceProvider;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.*;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.api.MethodOutcome;
-import ca.uhn.fhir.rest.client.api.*;
-import ca.uhn.fhir.rest.server.IResourceProvider;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
-import ca.uhn.fhir.jpa.provider.*;
-import ca.uhn.fhir.jpa.starter.utils.RequestHandler;
-import ca.uhn.fhir.jpa.starter.utils.FileLoader;
-
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.instance.model.api.IIdType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Claim;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Coverage;
+import org.hl7.fhir.r4.model.DateType;
+import org.hl7.fhir.r4.model.ExplanationOfBenefit;
+import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Money;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.PractitionerRole;
+import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
-import java.util.function.Function;
-import java.util.*;
-import java.io.*;
-
-import org.hl7.fhir.r4.model.*;
-import org.hl7.fhir.instance.model.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.starter.utils.FileLoader;
+import ca.uhn.fhir.jpa.starter.utils.RequestHandler;
+import ca.uhn.fhir.parser.IParser;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.server.IResourceProvider;
 
 /**
  * Class for processing the gfe-submit operation
@@ -261,7 +278,7 @@ public class GFESubmitProvider implements IResourceProvider {
       ExplanationOfBenefit.AdjudicationComponent eobItem1Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
       CodeableConcept adj1Category = new CodeableConcept();
 
-      // currently adjudication is to pay whatever the provider changes. This could be
+      // currently adjudication is to pay whatever the provider charges. This could be
       // made more easy with a set or algorithms or data driven, also for adding
       // subjectToMedicalMgmt
       // Hard codes, which could be improved.
