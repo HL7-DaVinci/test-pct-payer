@@ -56,6 +56,7 @@ public class GFESubmitProvider implements IResourceProvider {
   private FhirContext myCtx;
 
   private IParser jparser;
+  private IParser xparser;
   private Random rand;
 
   @Override
@@ -75,6 +76,8 @@ public class GFESubmitProvider implements IResourceProvider {
     client = myCtx.newRestfulGenericClient(baseUrl + "/fhir");
     jparser = myCtx.newJsonParser();
     jparser.setPrettyPrint(true);
+    xparser = myCtx.newXmlParser();
+    xparser.setPrettyPrint(true);
     rand = new Random();
 
   }
@@ -188,6 +191,7 @@ public class GFESubmitProvider implements IResourceProvider {
     String targetString = "";
     try {
       Reader initialReader = r.getReader();
+      
       char[] arr = new char[8 * 1024];
       StringBuilder buffer = new StringBuilder();
       int numCharsRead;
@@ -197,6 +201,7 @@ public class GFESubmitProvider implements IResourceProvider {
       }
       initialReader.close();
       targetString = buffer.toString();
+      
 
     } catch (Exception e) {
       myLogger.info("Found Exception: {}", e.getMessage());/* report an error */
@@ -584,14 +589,31 @@ public class GFESubmitProvider implements IResourceProvider {
     myLogger.info("Set the headers");
 
     String outputString = "";
+   
     try {
+      String contentType = theRequest.getHeader("Content-Type");
+      String accept = theRequest.getHeader("Accept");
+      myLogger.info("Content-Type: " + contentType);
+      myLogger.info("Accept: " + accept);
       Bundle returnBundle = createBundle();
       // Convert the original bundle to a string. This will allow a query to occur
       // later
-      outputString = jparser.encodeResourceToString((IBaseResource) returnBundle);
-
+      
+      if (accept.equals("application/fhir+xml") || accept.equals("application/fhir+xml") ) {
+    	  outputString = xparser.encodeResourceToString((IBaseResource) returnBundle);
+      } else {
+    	  outputString = jparser.encodeResourceToString((IBaseResource) returnBundle);
+      }
+      
+      
       String resource = parseRequest(theRequest);
-      Bundle gfeBundle = jparser.parseResource(Bundle.class, resource);
+      
+      Bundle gfeBundle;
+      if (contentType.equals("application/fhir+xml") || contentType.equals("application/xml")) {
+    	  gfeBundle = xparser.parseResource(Bundle.class, resource);
+      } else {
+    	  gfeBundle = jparser.parseResource(Bundle.class, resource);
+      }
       // Post the gfe bundle to the server
       IIdType gfeBundleId = createGFEBundle(gfeBundle);
       if(gfeBundleId != null) {
@@ -609,10 +631,16 @@ public class GFESubmitProvider implements IResourceProvider {
       ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
       ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
       CodeableConcept cc = new CodeableConcept();
-      cc.setText(ex.getMessage());
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      ex.printStackTrace(pw);
+      pw.close();
+   //   cc.setText(ex.getMessage());
+      cc.setText(sw.toString());
       ooic.setDetails(cc);
       oo.addIssue(ooic);
       outputString = jparser.encodeResourceToString((IBaseResource) oo);
+     
     }
     PrintWriter out = theResponse.getWriter();
     out.print(outputString);
