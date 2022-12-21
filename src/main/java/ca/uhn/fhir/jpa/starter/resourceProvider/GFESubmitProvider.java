@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -15,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Claim;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -40,6 +40,7 @@ import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 import ca.uhn.fhir.jpa.starter.utils.RequestHandler;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.IResourceProvider;
@@ -50,7 +51,7 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 public class GFESubmitProvider implements IResourceProvider {
   private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.getName());
 
-  private String baseUrl = "http://localhost:8080";
+  private String baseUrl = "https://pct-payer.davinci.hl7.org";
 
   private IGenericClient client;
   private RequestHandler requestHandler;
@@ -90,7 +91,7 @@ public class GFESubmitProvider implements IResourceProvider {
    */
   public void setBaseUrl(String url) {
     baseUrl = url;
-  }
+  }  
 
   @Operation(name = "$gfe-submit", manualResponse = true, manualRequest = true)
   public void gfeSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws IOException {
@@ -103,6 +104,59 @@ public class GFESubmitProvider implements IResourceProvider {
       e.printStackTrace();
     }
   }
+
+
+  @Operation(name = "$gfe-submit-poll-status", manualResponse = true, manualRequest = true, idempotent = true)
+  public void getPollStatus(HttpServletRequest theRequest, HttpServletResponse theResponse, @OperationParam(name="_bundleId") String bundleId) throws IOException {
+
+    // Attempt to fetch bundle
+    Bundle bundle = client.read().resource(Bundle.class).withId(bundleId).execute();
+
+    if (bundle == null) {
+      theResponse.setStatus(404);
+      return;
+    }
+    
+    // Simulate a bundle building delay for testing
+    // If bundle was created less than two minutes ago we'll return the "in progress" 202 Accepted status
+    if (Instant.now().isBefore(bundle.getTimestamp().toInstant().plusSeconds(120))) {
+      theResponse.setStatus(202);
+      return;
+    }
+
+    
+    String outputString = "";
+
+    try {      
+      String contentType = theRequest.getHeader("Content-Type");
+      String accept = theRequest.getHeader("Accept");
+      myLogger.info("Content-Type: " + contentType);
+      myLogger.info("Accept: " + accept);
+
+      if (accept.equals("application/fhir+xml")) {
+        theResponse.setContentType("application/fhir+xml");
+        outputString = xparser.encodeResourceToString((IBaseResource) bundle);
+      } else {
+        theResponse.setContentType("application/json");
+        outputString = jparser.encodeResourceToString((IBaseResource) bundle);
+      }
+
+      theResponse.setStatus(200);
+      theResponse.getWriter().write(outputString);
+      theResponse.getWriter().close();
+
+    } catch (Exception e) {
+      OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
+      ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+      ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
+      myLogger.info(e.getMessage());
+      e.printStackTrace();
+      theResponse.setStatus(500);
+    }
+
+
+  }
+
 
   /**
    * Create a new bundle with type Collection and an identifier to persist and be
@@ -153,21 +207,6 @@ public class GFESubmitProvider implements IResourceProvider {
     }
   }
 
-  /**
-   * Create GFE bundle
-   * 
-   * @param bundle the GFE bundle to create
-   */
-  public IIdType createGFEBundle(Bundle bundle) {
-    try {
-      MethodOutcome outcome = client.create().resource(bundle).prettyPrint().encodedJson().execute();
-      myLogger.info("Created GFE bundle with id: " + outcome.getId().getValue());
-      return outcome.getId();
-    } catch (Exception e) {
-      myLogger.info("Failure to create GFE bundle");
-      return null;
-    }
-  }
 
   /**
    * Update the AEOB
@@ -596,16 +635,7 @@ public class GFESubmitProvider implements IResourceProvider {
       String accept = theRequest.getHeader("Accept");
       myLogger.info("Content-Type: " + contentType);
       myLogger.info("Accept: " + accept);
-      Bundle returnBundle = createBundle();
-      // Convert the original bundle to a string. This will allow a query to occur
-      // later
-      
-      if (accept.equals("application/fhir+xml") || accept.equals("application/fhir+xml") ) {
-    	  outputString = xparser.encodeResourceToString((IBaseResource) returnBundle);
-      } else {
-    	  outputString = jparser.encodeResourceToString((IBaseResource) returnBundle);
-      }
-      
+      Bundle returnBundle = createBundle();      
       
       String resource = parseRequest(theRequest);
       
@@ -615,17 +645,17 @@ public class GFESubmitProvider implements IResourceProvider {
       } else {
     	  gfeBundle = jparser.parseResource(Bundle.class, resource);
       }
-      // Post the gfe bundle to the server
-      IIdType gfeBundleId = createGFEBundle(gfeBundle);
-      if(gfeBundleId != null) {
-        gfeBundle.setId(gfeBundleId);
-      }
+
       convertGFEBundletoAEOBBundle(gfeBundle, returnBundle);
 
-      String result = jparser.encodeResourceToString((IBaseResource) returnBundle);
-
       updateBundle(returnBundle);
-      theResponse.setStatus(200);
+      
+      outputString = baseUrl + "/fhir/Claim/$gfe-submit-poll-status?_bundleId=" + returnBundle.getIdElement().getIdPart();
+
+      theResponse.setStatus(202);
+      theResponse.setHeader("Content-Location", outputString);
+      theResponse.setContentType("text/plain");
+      
     } catch (Exception ex) {
       OperationOutcome oo = new OperationOutcome();
       OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
@@ -643,9 +673,10 @@ public class GFESubmitProvider implements IResourceProvider {
       outputString = jparser.encodeResourceToString((IBaseResource) oo);
      
     }
-    PrintWriter out = theResponse.getWriter();
-    out.print(outputString);
-    out.flush();
+
+    theResponse.getWriter().write(outputString);
+    theResponse.getWriter().close();
+
   }
 
 }

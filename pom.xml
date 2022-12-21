@@ -161,12 +161,6 @@
             <artifactId>spring-web</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <version>2.4.1</version>
-            <artifactId>spring-boot-starter-web</artifactId>
-         </dependency>
-
         <!-- You may not need this if you are deploying to an application server which provides database connection pools itself. -->
         <dependency>
             <groupId>org.apache.commons</groupId>
