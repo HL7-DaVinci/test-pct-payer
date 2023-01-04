@@ -673,8 +673,7 @@ public class GFESubmitProvider implements IResourceProvider {
       outputString = jparser.encodeResourceToString((IBaseResource) oo);
      
     }
-
-    theResponse.getWriter().write(outputString);
+    
     theResponse.getWriter().close();
 
   }
