@@ -460,7 +460,7 @@ public class GFESubmitProvider implements IResourceProvider {
 
     aeob.setTotal(eobTotals);
 
-    gfeReference.setValue(new Reference(gfeBundle.getId()));
+    gfeReference.setValue(new Reference("Bundle/" + gfeBundle.getId()));
     Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
 
     aeob = createAEOB(aeob);
