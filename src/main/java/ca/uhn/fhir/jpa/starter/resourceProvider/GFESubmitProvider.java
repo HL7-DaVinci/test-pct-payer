@@ -347,31 +347,7 @@ public class GFESubmitProvider implements IResourceProvider {
       eobItem2Adjudication.setAmount(claimItem.getNet());
 
       // Mock adjudication for subject to medical mgmt
-      if (rand.nextInt(6) == 0) {
-        // Medical Management extension
-        int codeType = rand.nextInt(4);
-        Extension medMgmtExt;
-        if (codeType == 0) {
-          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                  "concurrent-review", "Concurrent Review"));
-        } else if (codeType == 1) {
-          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "prior-auth",
-                  "Prior Authorization"));
-        } else if (codeType == 2) {
-          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                  "step-therapy", "Step Therapy"));
-        } else {
-          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "fail-first",
-                  "Fail First"));
-        }
-
-        eobItem2Adjudication.addExtension(medMgmtExt);
-        eobItemAdjudications.add(eobItem2Adjudication);
-      }
+      subjectToMedicalManagementAdjudication(eobItemAdjudications, eobItem2Adjudication);
 
       // Eligible
       ExplanationOfBenefit.AdjudicationComponent eobItem3Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
@@ -387,29 +363,7 @@ public class GFESubmitProvider implements IResourceProvider {
 
       // Add Copay or Coinsurance if applicable
       if (coType < 2) {
-        Money amount2 = new Money();
-        CodeableConcept adj4Category = new CodeableConcept();
-        ExplanationOfBenefit.AdjudicationComponent eobItem4Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
-        // Use net for submitted and eligible amounts
-        if (coType == 0) {
-          // Copay
-          adj4Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("copay")
-              .setDisplay("CoPay");
-          cost += 20.0;
-          amount2.setValue(20);
-
-        } else if (coType == 1) {
-          // coinsurance
-          adj4Category.addCoding()
-              .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType")
-              .setCode("coinsurance").setDisplay("Co-insurance");
-          double costForItem = claimItem.getNet().getValue().doubleValue() * 0.2;
-          cost += costForItem;
-          amount2.setValue(costForItem);
-        }
-        eobItem4Adjudication.setCategory(adj4Category);
-        eobItem4Adjudication.setAmount(amount2);
-        eobItemAdjudications.add(eobItem4Adjudication);
+        cost = addCoPayOrCoInsurance(coType, cost, claimItem, eobItemAdjudications);
       }
 
       eobItem.setAdjudication(eobItemAdjudications);
@@ -464,12 +418,18 @@ public class GFESubmitProvider implements IResourceProvider {
     aeob.setTotal(eobTotals);
 
     gfeReference.setValue(new Reference("Bundle/" + gfeBundle.getId()));
-    Bundle.BundleEntryComponent temp = new Bundle.BundleEntryComponent();
+    Bundle.BundleEntryComponent aeobEntry = new Bundle.BundleEntryComponent();
 
     aeob = createAEOB(aeob);
-    temp.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
-    temp.setResource(aeob);
-    aeobBundle.addEntry(temp);
+    aeobEntry.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
+    aeobEntry.setResource(aeob);
+    aeobBundle.addEntry(aeobEntry);
+    
+    Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
+    gfeBundleEntry.setFullUrl("http://example.org/fhir/Bundle/" + gfeBundle.getId());
+    gfeBundleEntry.setResource(gfeBundle);
+    aeobBundle.addEntry(gfeBundleEntry);
+    
     for (Extension ex : claim
         .getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeProviderAssignedIdentifier")) {
       aeob.addExtension(ex);
@@ -480,9 +440,69 @@ public class GFESubmitProvider implements IResourceProvider {
     } else {
       convertProfessional(claim, gfeBundle, aeob);
     }
+    
+    
     updateAEOB(aeob);
     return aeobBundle;
   }
+
+private double addCoPayOrCoInsurance(double coType, double cost, Claim.ItemComponent claimItem,
+		List<ExplanationOfBenefit.AdjudicationComponent> eobItemAdjudications) {
+	Money amount2 = new Money();
+	CodeableConcept adj4Category = new CodeableConcept();
+	ExplanationOfBenefit.AdjudicationComponent eobItem4Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
+	// Use net for submitted and eligible amounts
+	if (coType == 0) {
+	  // Copay
+	  adj4Category.addCoding().setSystem("http://terminology.hl7.org/CodeSystem/adjudication").setCode("copay")
+	      .setDisplay("CoPay");
+	  cost += 20.0;
+	  amount2.setValue(20);
+
+	} else if (coType == 1) {
+	  // coinsurance
+	  adj4Category.addCoding()
+	      .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType")
+	      .setCode("coinsurance").setDisplay("Co-insurance");
+	  double costForItem = claimItem.getNet().getValue().doubleValue() * 0.2;
+	  cost += costForItem;
+	  amount2.setValue(costForItem);
+	}
+	eobItem4Adjudication.setCategory(adj4Category);
+	eobItem4Adjudication.setAmount(amount2);
+	eobItemAdjudications.add(eobItem4Adjudication);
+	return cost;
+}
+
+private void subjectToMedicalManagementAdjudication(
+		List<ExplanationOfBenefit.AdjudicationComponent> eobItemAdjudications,
+		ExplanationOfBenefit.AdjudicationComponent eobItem2Adjudication) {
+	if (rand.nextInt(6) == 0) {
+        // Medical Management extension
+        int codeType = rand.nextInt(4);
+        Extension medMgmtExt;
+        if (codeType == 0) {
+          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
+              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
+                  "concurrent-review", "Concurrent Review"));
+        } else if (codeType == 1) {
+          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
+              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "prior-auth",
+                  "Prior Authorization"));
+        } else if (codeType == 2) {
+          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
+              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
+                  "step-therapy", "Step Therapy"));
+        } else {
+          medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
+              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "fail-first",
+                  "Fail First"));
+        }
+
+        eobItem2Adjudication.addExtension(medMgmtExt);
+        eobItemAdjudications.add(eobItem2Adjudication);
+      }
+}
 
   /**
    * Add all resources into the new aeob bundle and update the aeob with the
