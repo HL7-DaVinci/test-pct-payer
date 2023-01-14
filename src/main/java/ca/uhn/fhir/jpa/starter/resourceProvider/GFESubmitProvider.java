@@ -61,6 +61,8 @@ public class GFESubmitProvider implements IResourceProvider {
   private IParser xparser;
   private Random rand;
 
+  private Integer simulatedDelaySeconds = 60;
+
   @Override
   public Class<Claim> getResourceType() {
     return Claim.class;
@@ -119,8 +121,9 @@ public class GFESubmitProvider implements IResourceProvider {
     
     // Simulate a bundle building delay for testing
     // If bundle was created less than two minutes ago we'll return the "in progress" 202 Accepted status
-    if (Instant.now().isBefore(bundle.getTimestamp().toInstant().plusSeconds(120))) {
+    if (Instant.now().isBefore(bundle.getTimestamp().toInstant().plusSeconds(simulatedDelaySeconds))) {
       theResponse.setStatus(202);
+      theResponse.setHeader("Retry-After", simulatedDelaySeconds.toString());
       return;
     }
 
@@ -635,7 +638,7 @@ public class GFESubmitProvider implements IResourceProvider {
       String accept = theRequest.getHeader("Accept");
       myLogger.info("Content-Type: " + contentType);
       myLogger.info("Accept: " + accept);
-      Bundle returnBundle = createBundle();      
+      Bundle returnBundle = createBundle();
       
       String resource = parseRequest(theRequest);
       
