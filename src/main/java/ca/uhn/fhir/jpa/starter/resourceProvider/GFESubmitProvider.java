@@ -275,6 +275,15 @@ public class GFESubmitProvider implements IResourceProvider {
           myLogger.info("Failure to update the bundle");
     }
   }
+  
+  public IBaseResource updateResource(IBaseResource r) {
+      try {
+          MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
+      } catch(Exception e) {
+          myLogger.info("Failure to update the bundle");
+    }
+      return r;
+  }
 
 
   /**
@@ -344,8 +353,9 @@ public class GFESubmitProvider implements IResourceProvider {
     gfeExts.add(expirationDate);
 
     aeob.setExtension(gfeExts);
-    
-    if (claim.getProviderTarget() != null) {
+
+    Bundle.BundleEntryComponent providerEntry  = getClaimProvider(claim, gfeBundle);
+    if (providerEntry != null) {
     		myLogger.info("Adding provider");
     	    Reference provRef = claim.getProvider();
     	    aeob.setProvider(new Reference(provRef.getReference()));
@@ -412,12 +422,14 @@ public class GFESubmitProvider implements IResourceProvider {
     aeob.setTotal(eobTotals);
 
     gfeReference.setValue(new Reference("Bundle/" + gfeBundle.getId()));
-    
-    if (claim.getProviderTarget() != null) {
-    		myLogger.info("Saving provider");
-    		IBaseResource providerResource = createResource(claim.getProviderTarget());
-    } else {
-    		myLogger.info("Unable to resolve Claim.provider reference in GFE Bundle");
+    if (providerEntry != null) {
+        IBaseResource providerResource = providerEntry.getResource();
+        if (getClaimProvider(claim, gfeBundle) != null) {
+        		myLogger.info("Saving provider");
+        		updateResource(providerResource);
+        } else {
+        		myLogger.info("Unable to resolve Claim.provider reference in GFE Bundle");
+        }
     }
     
     myLogger.info("Saving AEOB");
@@ -430,6 +442,8 @@ public class GFESubmitProvider implements IResourceProvider {
     aeobEntry.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
     aeobEntry.setResource(aeob);
     aeobBundle.addEntry(aeobEntry);
+    
+//    aeobBundle.addEntry(providerEntry);
     
     myLogger.info("Adding GFE Bundle to AEOB Bundle");
     Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
@@ -756,7 +770,7 @@ private void subjectToMedicalManagementAdjudication(
 
       String resource = parseRequest(theRequest);
 
-      myLogger.info("Parsed resource: " + resource);
+//      myLogger.info("Parsed resource: " + resource);
       Bundle gfeBundle;
       if (contentType.equals("application/fhir+xml") || contentType.equals("application/xml")) {
     	  	gfeBundle = xparser.parseResource(Bundle.class, resource);
@@ -764,7 +778,11 @@ private void subjectToMedicalManagementAdjudication(
     	  	gfeBundle = jparser.parseResource(Bundle.class, resource);
       }
       myLogger.info("Converting GFE Bundle to AEOB Bundle");
-      convertGFEBundletoAEOBBundle(gfeBundle, returnBundle);
+      try {
+    	  	convertGFEBundletoAEOBBundle(gfeBundle, returnBundle);
+      } catch (Exception e) {
+    	  	myLogger.info("Error converting GFE Bundle to AEOB Bundle: " + e.getMessage());
+      }
 
       myLogger.info("Storing AEOB Bundle");
       updateBundle(returnBundle);
@@ -797,5 +815,21 @@ private void subjectToMedicalManagementAdjudication(
     theResponse.getWriter().close();
 
   }
-
+  
+  Bundle.BundleEntryComponent getClaimProvider(Claim claim, Bundle gfeBundle) {
+	  Bundle.BundleEntryComponent providerEntry = null;
+	  String ref = claim.getProvider().getReference();
+//	  myLogger.info("Provider reference: " + ref);
+	  if (claim.getProvider().getReference() != null) {
+		  for (Bundle.BundleEntryComponent entry : gfeBundle.getEntry()) {
+			  String fullUrl = entry.getFullUrl();
+			//  myLogger.info("Entry: " + fullUrl);
+			  if(fullUrl.endsWith(ref)) {
+				  providerEntry = entry;
+				  break;
+			  }
+		  }
+	  }
+	  return providerEntry;
+  }
 }
