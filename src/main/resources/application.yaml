@@ -43,6 +43,7 @@ hapi:
 #   use_apache_address_strategy_https: false
 ### enable to set the Server URL
     server_address:  'https://pct-payer.davinci.hl7.org' # 'http://localhost:8080'
+    # server_address:  'http://localhost:8080'
 #    defer_indexing_for_codesystems_of_size: 101
     implementationguides:
       pct:
