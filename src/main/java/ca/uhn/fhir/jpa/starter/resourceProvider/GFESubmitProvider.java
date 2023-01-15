@@ -137,14 +137,24 @@ public class GFESubmitProvider implements IResourceProvider {
     }
     
     // Simulate a bundle building delay for testing
-    // If bundle was created less than two minutes ago we'll return the "in progress" 202 Accepted status
+    // If bundle was created less than the set number of simluated delay seconds we'll return the "in progress" 202 Accepted status
     if (Instant.now().isBefore(bundle.getTimestamp().toInstant().plusSeconds(simulatedDelaySeconds))) {
       theResponse.setStatus(202);
       theResponse.setHeader("Retry-After", simulatedDelaySeconds.toString());
       return;
     }
 
-    
+    Bundle responseBundle = new Bundle();
+    responseBundle.setType(Bundle.BundleType.BATCHRESPONSE);
+
+    Bundle.BundleEntryComponent bundleEntry = new Bundle.BundleEntryComponent();
+    Bundle.BundleEntryResponseComponent bundleEntryResponse = new Bundle.BundleEntryResponseComponent();
+    bundleEntryResponse.setStatus("200 OK");
+    bundleEntryResponse.setLocation(String.format("Bundle/%s", bundleId));
+    bundleEntry.setResponse(bundleEntryResponse);
+    bundleEntry.setResource(bundle);
+    responseBundle.addEntry(bundleEntry);
+
     String outputString = "";
 
     try {      
@@ -155,10 +165,10 @@ public class GFESubmitProvider implements IResourceProvider {
 
       if (accept.equals("application/fhir+xml")) {
         theResponse.setContentType("application/fhir+xml");
-        outputString = xparser.encodeResourceToString((IBaseResource) bundle);
+        outputString = xparser.encodeResourceToString((IBaseResource) responseBundle);
       } else {
         theResponse.setContentType("application/json");
-        outputString = jparser.encodeResourceToString((IBaseResource) bundle);
+        outputString = jparser.encodeResourceToString((IBaseResource) responseBundle);
       }
 
       theResponse.setStatus(200);
