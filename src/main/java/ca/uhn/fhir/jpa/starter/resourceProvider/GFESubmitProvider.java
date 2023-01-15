@@ -15,6 +15,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hl7.fhir.dstu2.model.Narrative.NarrativeStatus;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Claim;
@@ -25,7 +26,9 @@ import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Money;
+import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
@@ -34,8 +37,10 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.starter.AppProperties;
 import ca.uhn.fhir.jpa.starter.utils.FileLoader;
 import ca.uhn.fhir.jpa.starter.utils.RequestHandler;
 import ca.uhn.fhir.parser.IParser;
@@ -60,6 +65,9 @@ public class GFESubmitProvider implements IResourceProvider {
   private IParser jparser;
   private IParser xparser;
   private Random rand;
+
+  @Autowired
+  AppProperties appProperties;
 
   private Integer simulatedDelaySeconds = 60;
 
@@ -98,6 +106,7 @@ public class GFESubmitProvider implements IResourceProvider {
   @Operation(name = "$gfe-submit", manualResponse = true, manualRequest = true)
   public void gfeSubmit(HttpServletRequest theRequest, HttpServletResponse theResponse) throws IOException {
     myLogger.info("Received GFE Submit");
+
     try {
       handleSubmit(theRequest, theResponse);
     } catch (Exception e) {
@@ -110,6 +119,14 @@ public class GFESubmitProvider implements IResourceProvider {
 
   @Operation(name = "$gfe-submit-poll-status", manualResponse = true, manualRequest = true, idempotent = true)
   public void getPollStatus(HttpServletRequest theRequest, HttpServletResponse theResponse, @OperationParam(name="_bundleId") String bundleId) throws IOException {
+
+
+    // Randomized adjudication error response
+    if (rand.nextInt(2) == 0) {
+      adjudicationErrorResponse(theRequest, theResponse);
+      return;
+    }
+
 
     // Attempt to fetch bundle
     Bundle bundle = client.read().resource(Bundle.class).withId(bundleId).execute();
@@ -157,6 +174,39 @@ public class GFESubmitProvider implements IResourceProvider {
       theResponse.setStatus(500);
     }
 
+
+  }
+
+  public void adjudicationErrorResponse(HttpServletRequest theRequest, HttpServletResponse theResponse) {
+
+
+    String adjudicationError = FileLoader.loadResource("raw-adjudication-error.json");
+    OperationOutcome oo = jparser.parseResource(OperationOutcome.class, adjudicationError);
+
+    String accept = theRequest.getHeader("Accept");
+    String outputString;
+
+    if (accept.equals("application/fhir+xml")) {
+      theResponse.setContentType("application/fhir+xml");
+      outputString = xparser.encodeResourceToString((OperationOutcome) oo);
+    } else {
+      theResponse.setContentType("application/json");
+      outputString = jparser.encodeResourceToString((OperationOutcome) oo);
+    }
+
+
+    try {
+      theResponse.setStatus(418);
+      theResponse.getWriter().write(outputString);
+      theResponse.getWriter().close();
+    } catch (Exception e) {
+      OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
+      ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+      ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
+      myLogger.info(e.getMessage());
+      e.printStackTrace();
+      theResponse.setStatus(500);
+    }
 
   }
 

@@ -43,12 +43,13 @@ hapi:
 #   use_apache_address_strategy_https: false
 ### enable to set the Server URL
     server_address:  'https://pct-payer.davinci.hl7.org' # 'http://localhost:8080'
+    # server_address:  'http://localhost:8080'
 #    defer_indexing_for_codesystems_of_size: 101
     implementationguides:
       pct:
         url: https://build.fhir.org/ig/HL7/davinci-pct/package.tgz
         name: hl7.fhir.us.davinci-pct
-        version: 0.1.0
+        version: 0.1.1
 ###    example from registry (packages.fhir.org)
 #      swiss:
 #        name: swiss.mednet.fhir
