@@ -366,6 +366,8 @@ public class GFESubmitProvider implements IResourceProvider {
     if (claim.getProviderTarget() != null) {
     		myLogger.info("Saving provider");
     		IBaseResource providerResource = createResource(claim.getProviderTarget());
+    } else {
+    		myLogger.info("Unable to resolve Claim.provider reference in GFE Bundle");
     }
     
     myLogger.info("Saving AEOB");
