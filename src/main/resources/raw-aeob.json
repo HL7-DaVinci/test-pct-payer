@@ -73,9 +73,9 @@
       } ],
       "category": {
         "coding": [ {
-          "system" : "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS",
-          "code": "paidtoprovider",
-          "display": "Paid to provider"
+          "system" : "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS",
+          "code": "memberliability",
+          "display": "Member Liability"
         } ]
       },
       "amount": {

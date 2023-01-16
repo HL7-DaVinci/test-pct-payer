@@ -363,6 +363,19 @@ public class GFESubmitProvider implements IResourceProvider {
     gfeExts.add(expirationDate);
 
     aeob.setExtension(gfeExts);
+    List<Identifier> ids = aeob.getIdentifier();
+    Identifier id = new Identifier();
+    id.setSystem("urn:ietf:rfc:3986");
+    CodeableConcept idType = new CodeableConcept();
+    Coding c = new Coding();
+    c.setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTIdentifierType");
+    c.setCode("uc");
+    idType.getCoding().add(c);
+    id.setType(idType);
+    id.setValue("urn:uuid:" + UUID.randomUUID().toString());
+    ids.add(id);
+    
+    
 
     Bundle.BundleEntryComponent providerEntry  = getClaimProvider(claim, gfeBundle);
     if (providerEntry != null) {
@@ -398,8 +411,8 @@ public class GFESubmitProvider implements IResourceProvider {
     ExplanationOfBenefit.TotalComponent eob1Total = new ExplanationOfBenefit.TotalComponent();
     CodeableConcept total1Category = new CodeableConcept();
 
-    total1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS")
-        .setCode("paidtoprovider").setDisplay("Paid to Provider");
+    total1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS")
+        .setCode("memberliability").setDisplay("Member Liability");
     eob1Total.setCategory(total1Category);
     Money ptp = new Money();
     ptp.setValue(Math.max(eligibleAmount.getValue().doubleValue() - cost, 0));
@@ -523,8 +536,8 @@ private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, do
       // made more easy with a set or algorithms or data driven, also for adding
       // subjectToMedicalMgmt
       // Hard codes, which could be improved.
-      adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS")
-          .setCode("paidtoprovider").setDisplay("Paid to Provider");
+      adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS")
+          .setCode("memberliability").setDisplay("Member Liability");
       eobItem1Adjudication.setCategory(adj1Category);
       eobItem1Adjudication.setAmount(claimItem.getNet());
 
@@ -580,8 +593,8 @@ private double addCoPayOrCoInsurance(double coType, double cost, Claim.ItemCompo
 	} else if (coType == 1) {
 	  // coinsurance
 	  adj4Category.addCoding()
-	      .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS")
-	      .setCode("coinsurance").setDisplay("Co-insurance");
+	      .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS")
+	      .setCode("memberliability").setDisplay("Member Liability");
 	  double costForItem = claimItem.getNet().getValue().doubleValue() * 0.2;
 	  cost += costForItem;
 	  amount2.setValue(costForItem);
