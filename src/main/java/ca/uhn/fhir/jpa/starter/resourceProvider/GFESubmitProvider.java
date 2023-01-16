@@ -388,7 +388,7 @@ public class GFESubmitProvider implements IResourceProvider {
     ExplanationOfBenefit.TotalComponent eob1Total = new ExplanationOfBenefit.TotalComponent();
     CodeableConcept total1Category = new CodeableConcept();
 
-    total1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType")
+    total1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS")
         .setCode("paidtoprovider").setDisplay("Paid to Provider");
     eob1Total.setCategory(total1Category);
     Money ptp = new Money();
@@ -513,7 +513,7 @@ private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, do
       // made more easy with a set or algorithms or data driven, also for adding
       // subjectToMedicalMgmt
       // Hard codes, which could be improved.
-      adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType")
+      adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS")
           .setCode("paidtoprovider").setDisplay("Paid to Provider");
       eobItem1Adjudication.setCategory(adj1Category);
       eobItem1Adjudication.setAmount(claimItem.getNet());
@@ -570,7 +570,7 @@ private double addCoPayOrCoInsurance(double coType, double cost, Claim.ItemCompo
 	} else if (coType == 1) {
 	  // coinsurance
 	  adj4Category.addCoding()
-	      .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType")
+	      .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS")
 	      .setCode("coinsurance").setDisplay("Co-insurance");
 	  double costForItem = claimItem.getNet().getValue().doubleValue() * 0.2;
 	  cost += costForItem;

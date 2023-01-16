@@ -73,7 +73,7 @@
       } ],
       "category": {
         "coding": [ {
-          "system" : "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryType",
+          "system" : "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryTypeCS",
           "code": "paidtoprovider",
           "display": "Paid to provider"
         } ]

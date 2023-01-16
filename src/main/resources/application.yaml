@@ -46,6 +46,10 @@ hapi:
     # server_address:  'http://localhost:8080'
 #    defer_indexing_for_codesystems_of_size: 101
     implementationguides:
+      hrex:
+        url: http://hl7.org/fhir/us/davinci-hrex/package.tgz
+        name: hl7.fhir.us.davinci-hrex
+        version: 1.0.0
       pct:
         url: https://build.fhir.org/ig/HL7/davinci-pct/package.tgz
         name: hl7.fhir.us.davinci-pct
