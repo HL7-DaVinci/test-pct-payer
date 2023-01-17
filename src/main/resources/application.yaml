@@ -46,6 +46,14 @@ hapi:
     # server_address:  'http://localhost:8080'
 #    defer_indexing_for_codesystems_of_size: 101
     implementationguides:
+#      vsac:
+#        url: http://fhir.org/packages/us.nlm.vsac/0.9.0/package.tgz
+#        name: us.nlm.vsac
+#        version: 0.9.0
+      uscore:
+        url: http://hl7.org/fhir/us/core/STU3.1.1/package.tgz
+        name: hl7.fhir.us.core
+        version: 3.1.1
       hrex:
         url: http://hl7.org/fhir/us/davinci-hrex/package.tgz
         name: hl7.fhir.us.davinci-hrex
