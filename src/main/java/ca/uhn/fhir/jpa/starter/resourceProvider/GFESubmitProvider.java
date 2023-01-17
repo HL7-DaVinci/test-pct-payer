@@ -15,7 +15,6 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.hl7.fhir.dstu2.model.Narrative.NarrativeStatus;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Claim;
@@ -25,10 +24,9 @@ import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Money;
-import org.hl7.fhir.r4.model.Narrative;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
@@ -36,6 +34,9 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryResponseComponent;
+import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,13 +122,6 @@ public class GFESubmitProvider implements IResourceProvider {
   public void getPollStatus(HttpServletRequest theRequest, HttpServletResponse theResponse, @OperationParam(name="_bundleId") String bundleId) throws IOException {
 
 
-    // Randomized adjudication error response
-    if (rand.nextInt(2) == 0) {
-      adjudicationErrorResponse(theRequest, theResponse);
-      return;
-    }
-
-
     // Attempt to fetch bundle
     Bundle bundle = client.read().resource(Bundle.class).withId(bundleId).execute();
 
@@ -144,18 +138,48 @@ public class GFESubmitProvider implements IResourceProvider {
       return;
     }
 
-    Bundle responseBundle = new Bundle();
-    responseBundle.setType(Bundle.BundleType.BATCHRESPONSE);
 
-    Bundle.BundleEntryComponent bundleEntry = new Bundle.BundleEntryComponent();
-    Bundle.BundleEntryResponseComponent bundleEntryResponse = new Bundle.BundleEntryResponseComponent();
+    // Check for special return cases based on patient last name
+
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+
+      Resource res = entry.getResource();
+      if (res.fhirType().equals("Patient")) {
+
+        String familyName = "";
+        for (HumanName humanName : ((Patient) res).getName()) {
+          familyName = humanName.getFamily().toLowerCase();
+          myLogger.info("Found patient family name: {}", familyName);
+
+          // Patient last name of "Coffee" will return adjudication error response
+          if (familyName.equals("coffee")) {
+            adjudicationErrorResponse(theRequest, theResponse, bundle);
+            return;
+          }
+
+          // Patient last name of "Private" will return "PCT AEOB Complete" response instead of bundle
+          if (familyName.equals("private")) {
+            aeobCompleteResponse(theRequest, theResponse, bundle);
+            return;
+          }
+
+        }
+      }
+
+    }
+
+
+    Bundle responseBundle = new Bundle();
+    responseBundle.setType(BundleType.BATCHRESPONSE);
+
+    BundleEntryComponent bundleEntry = new BundleEntryComponent();
+    BundleEntryResponseComponent bundleEntryResponse = new BundleEntryResponseComponent();
     bundleEntryResponse.setStatus("200 OK");
     bundleEntryResponse.setLocation(String.format("Bundle/%s", bundleId));
     bundleEntry.setResponse(bundleEntryResponse);
     bundleEntry.setResource(bundle);
     responseBundle.addEntry(bundleEntry);
-
-    String outputString = "";
+    
 
     try {      
       String contentType = theRequest.getHeader("Content-Type");
@@ -163,60 +187,65 @@ public class GFESubmitProvider implements IResourceProvider {
       myLogger.info("Content-Type: " + contentType);
       myLogger.info("Accept: " + accept);
 
-      if (accept.equals("application/fhir+xml")) {
-        theResponse.setContentType("application/fhir+xml");
-        outputString = xparser.encodeResourceToString((IBaseResource) responseBundle);
-      } else {
-        theResponse.setContentType("application/json");
-        outputString = jparser.encodeResourceToString((IBaseResource) responseBundle);
-      }
+      String outputString = getOutputString(theRequest, theResponse, responseBundle);
 
       theResponse.setStatus(200);
       theResponse.getWriter().write(outputString);
       theResponse.getWriter().close();
 
     } catch (Exception e) {
-      OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
-      ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
-      ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
-      myLogger.info(e.getMessage());
-      e.printStackTrace();
-      theResponse.setStatus(500);
+      handleError(theRequest, theResponse, e);
     }
 
 
   }
 
-  public void adjudicationErrorResponse(HttpServletRequest theRequest, HttpServletResponse theResponse) {
+  public void adjudicationErrorResponse(HttpServletRequest theRequest, HttpServletResponse theResponse, Bundle bundle) throws IOException  {
 
+    myLogger.info("Sending adjudication error response.");
 
     String adjudicationError = FileLoader.loadResource("raw-adjudication-error.json");
     OperationOutcome oo = jparser.parseResource(OperationOutcome.class, adjudicationError);
 
-    String accept = theRequest.getHeader("Accept");
-    String outputString;
+    oo.setId("PCT-AEOB-Adjudication-Error-" + bundle.getIdElement().getIdPart());
+    oo.getIssueFirstRep().setDiagnostics("Some adjudication error for bundle " + bundle.getIdElement().getIdPart());
 
-    if (accept.equals("application/fhir+xml")) {
-      theResponse.setContentType("application/fhir+xml");
-      outputString = xparser.encodeResourceToString((OperationOutcome) oo);
-    } else {
-      theResponse.setContentType("application/json");
-      outputString = jparser.encodeResourceToString((OperationOutcome) oo);
-    }
+    String outputString = getOutputString(theRequest, theResponse, oo);
 
 
     try {
       theResponse.setStatus(418);
       theResponse.getWriter().write(outputString);
-      theResponse.getWriter().close();
     } catch (Exception e) {
-      OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
-      ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
-      ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
-      myLogger.info(e.getMessage());
-      e.printStackTrace();
-      theResponse.setStatus(500);
+      handleError(theRequest, theResponse, e);
     }
+
+    theResponse.getWriter().close();
+
+  }
+
+
+  public void aeobCompleteResponse(HttpServletRequest theRequest, HttpServletResponse theResponse, Bundle bundle) throws IOException {
+
+    myLogger.info("Sending AEOB complete response.");
+
+    String aeobComplete = FileLoader.loadResource("raw-aeob-complete.json");
+    OperationOutcome oo = jparser.parseResource(OperationOutcome.class, aeobComplete);
+
+    oo.setId("PCT-AEOB-Complete-Example-" + bundle.getIdElement().getIdPart());
+    oo.getIssueFirstRep().setDiagnostics("AEOB processing for bundle " + bundle.getIdElement().getIdPart() + " is complete, the AEOB will be sent directly to the patient. No AEOB will be returned to the submitter.");
+
+    String outputString = getOutputString(theRequest, theResponse, oo);
+
+    try {
+      theResponse.setStatus(418);
+      theResponse.getWriter().write(outputString);
+    } catch (Exception e) {
+      handleError(theRequest, theResponse, e);
+    }
+
+    theResponse.getWriter().close();
+
 
   }
 
@@ -229,7 +258,7 @@ public class GFESubmitProvider implements IResourceProvider {
    */
   public Bundle createBundle() {
     Bundle bundle = new Bundle();
-    bundle.setType(Bundle.BundleType.COLLECTION);
+    bundle.setType(BundleType.COLLECTION);
     Identifier identifier = new Identifier();
     identifier.setSystem("http://example.org/documentIDs");
     String uuid = UUID.randomUUID().toString();
@@ -364,7 +393,7 @@ public class GFESubmitProvider implements IResourceProvider {
 
     aeob.setExtension(gfeExts);
 
-    Bundle.BundleEntryComponent providerEntry  = getClaimProvider(claim, gfeBundle);
+    BundleEntryComponent providerEntry  = getClaimProvider(claim, gfeBundle);
     if (providerEntry != null) {
     		myLogger.info("Adding provider");
     	    Reference provRef = claim.getProvider();
@@ -447,7 +476,7 @@ public class GFESubmitProvider implements IResourceProvider {
 
     
     myLogger.info("Adding AEOB to AEOB Bundle");
-    Bundle.BundleEntryComponent aeobEntry = new Bundle.BundleEntryComponent();
+    BundleEntryComponent aeobEntry = new BundleEntryComponent();
 
     aeobEntry.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
     aeobEntry.setResource(aeob);
@@ -456,7 +485,7 @@ public class GFESubmitProvider implements IResourceProvider {
 //    aeobBundle.addEntry(providerEntry);
     
     myLogger.info("Adding GFE Bundle to AEOB Bundle");
-    Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
+    BundleEntryComponent gfeBundleEntry = new BundleEntryComponent();
     gfeBundleEntry.setFullUrl("http://example.org/fhir/Bundle/" + gfeBundle.getId());
     gfeBundleEntry.setResource(gfeBundle);
     aeobBundle.addEntry(gfeBundleEntry);
@@ -637,7 +666,7 @@ private void subjectToMedicalManagementAdjudication(
     aeob.getType().getCoding().get(0).setDisplay("Institutional");
     myLogger.info("Processing Institutional Claim");
 
-    for (Bundle.BundleEntryComponent e : gfeBundle.getEntry()) {
+    for (BundleEntryComponent e : gfeBundle.getEntry()) {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
       String resource = jparser.encodeResourceToString(bundleEntry);
       if (bundleEntry.fhirType().equals("Patient")) {
@@ -687,7 +716,7 @@ private void subjectToMedicalManagementAdjudication(
     aeob.getType().getCoding().get(0).setDisplay("Professional");
     myLogger.info("Processing Professional Claim");
 
-    for (Bundle.BundleEntryComponent e : gfeBundle.getEntry()) {
+    for (BundleEntryComponent e : gfeBundle.getEntry()) {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
       String resource = jparser.encodeResourceToString(bundleEntry);
       if (bundleEntry.fhirType().equals("Patient")) {
@@ -735,7 +764,7 @@ private void subjectToMedicalManagementAdjudication(
   }
 
   public void convertGFEBundletoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle) {
-    for (Bundle.BundleEntryComponent e : gfeBundle.getEntry()) {
+    for (BundleEntryComponent e : gfeBundle.getEntry()) {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
       if (bundleEntry.fhirType().equals("Claim")) {
         // This should be a gfe
@@ -776,18 +805,18 @@ private void subjectToMedicalManagementAdjudication(
       String accept = theRequest.getHeader("Accept");
       myLogger.info("Content-Type: " + contentType);
       myLogger.info("Accept: " + accept);
-      Bundle returnBundle = createBundle();
 
       String resource = parseRequest(theRequest);
-
-//      myLogger.info("Parsed resource: " + resource);
+      
       Bundle gfeBundle;
       if (contentType.equals("application/fhir+xml") || contentType.equals("application/xml")) {
     	  	gfeBundle = xparser.parseResource(Bundle.class, resource);
       } else {
     	  	gfeBundle = jparser.parseResource(Bundle.class, resource);
       }
+
       myLogger.info("Converting GFE Bundle to AEOB Bundle");
+      Bundle returnBundle = createBundle();
       try {
     	  	convertGFEBundletoAEOBBundle(gfeBundle, returnBundle);
       } catch (Exception e) {
@@ -805,33 +834,19 @@ private void subjectToMedicalManagementAdjudication(
       theResponse.setContentType("text/plain");
       
     } catch (Exception ex) {
-      OperationOutcome oo = new OperationOutcome();
-      OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
-      ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
-      ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
-      CodeableConcept cc = new CodeableConcept();
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      ex.printStackTrace(pw);
-      pw.close();
-   //   cc.setText(ex.getMessage());
-      cc.setText(sw.toString());
-      ooic.setDetails(cc);
-      oo.addIssue(ooic);
-      outputString = jparser.encodeResourceToString((IBaseResource) oo);
-     
+      handleError(theRequest, theResponse, ex);
     }
     
     theResponse.getWriter().close();
 
   }
   
-  Bundle.BundleEntryComponent getClaimProvider(Claim claim, Bundle gfeBundle) {
-	  Bundle.BundleEntryComponent providerEntry = null;
+  BundleEntryComponent getClaimProvider(Claim claim, Bundle gfeBundle) {
+	  BundleEntryComponent providerEntry = null;
 	  String ref = claim.getProvider().getReference();
 //	  myLogger.info("Provider reference: " + ref);
 	  if (claim.getProvider().getReference() != null) {
-		  for (Bundle.BundleEntryComponent entry : gfeBundle.getEntry()) {
+		  for (BundleEntryComponent entry : gfeBundle.getEntry()) {
 			  String fullUrl = entry.getFullUrl();
 			//  myLogger.info("Entry: " + fullUrl);
 			  if(fullUrl.endsWith(ref)) {
@@ -842,4 +857,49 @@ private void subjectToMedicalManagementAdjudication(
 	  }
 	  return providerEntry;
   }
+
+
+  public String getOutputString(HttpServletRequest theRequest, HttpServletResponse theResponse, IBaseResource resource) {
+
+    String accept = theRequest.getHeader("Accept");
+    String outputString;
+
+    if (accept.equals("application/fhir+xml")) {
+      theResponse.setContentType("application/fhir+xml");
+      outputString = xparser.encodeResourceToString(resource);
+    } else {
+      theResponse.setContentType("application/json");
+      outputString = jparser.encodeResourceToString(resource);
+    }
+
+    return outputString;
+
+  }
+
+  /**
+   * Sends an OperationOutcome response with the provided exception details and a 500 status
+   * 
+   * @param theRequest  the request with the resource
+   * @param theResponse the response
+   * @param ex exception to turn into an OperationOutcome 500 response
+   * @throws IOException response writer exception
+   */
+  public void handleError(HttpServletRequest theRequest, HttpServletResponse theResponse, Exception ex) throws IOException {
+    OperationOutcome oo = new OperationOutcome();
+    OperationOutcome.OperationOutcomeIssueComponent ooic = new OperationOutcome.OperationOutcomeIssueComponent();
+    ooic.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+    ooic.setCode(OperationOutcome.IssueType.EXCEPTION);
+    CodeableConcept cc = new CodeableConcept();
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    ex.printStackTrace(pw);
+    pw.close();
+    cc.setText(sw.toString());
+    ooic.setDetails(cc);
+    oo.addIssue(ooic);
+    String outputString = getOutputString(theRequest, theResponse, oo);
+    theResponse.setStatus(500);
+    theResponse.getWriter().write(outputString);
+  }
+
 }
