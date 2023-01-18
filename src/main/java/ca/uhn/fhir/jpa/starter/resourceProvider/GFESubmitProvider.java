@@ -153,13 +153,13 @@ public class GFESubmitProvider implements IResourceProvider {
           myLogger.info("Found patient family name: {}", familyName);
 
           // Patient last name of "Coffee" will return adjudication error response
-          if (familyName.equals("coffee")) {
+          if (familyName.toLowerCase().equals("coffee")) {
             adjudicationErrorResponse(theRequest, theResponse, bundle);
             return;
           }
 
           // Patient last name of "Private" will return "PCT AEOB Complete" response instead of bundle
-          if (familyName.equals("private")) {
+          if (familyName.toLowerCase().equals("private")) {
             aeobCompleteResponse(theRequest, theResponse, bundle);
             return;
           }
@@ -383,8 +383,8 @@ public class GFESubmitProvider implements IResourceProvider {
 
 	    Bundle.BundleEntryComponent providerEntry = addProviderReference(gfeBundle, claim, aeob);
 	    
-	    List<Extension> gfeExts = addExtensions(gfeBundle, claim, providerEntry);
-	    aeob.setExtension(gfeExts);
+	    addExtensions(gfeBundle, claim, providerEntry, aeob);
+	    
 	    
 	    
 	    addBenefitPeriod(aeob);
@@ -459,8 +459,7 @@ public class GFESubmitProvider implements IResourceProvider {
 	    gfeBundleEntry.setResource(gfeBundle);
 	    aeobBundle.addEntry(gfeBundleEntry);
 	    
-	    for (Extension ex : claim
-	        .getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeProviderAssignedIdentifier")) {
+	    for (Extension ex : claim.getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeProviderAssignedIdentifier")) {
 	      aeob.addExtension(ex);
 	    }
 	    if (claim.getMeta().getProfile().get(0)
@@ -488,8 +487,8 @@ private void addBenefitPeriod(ExplanationOfBenefit aeob) {
 	aeob.getBenefitPeriod().setEnd(cal.getTime());
 }
 
-private List<Extension> addExtensions(Bundle gfeBundle, Claim claim, Bundle.BundleEntryComponent providerEntry) {
-	List<Extension> gfeExts = new ArrayList<>();
+private void addExtensions(Bundle gfeBundle, Claim claim, Bundle.BundleEntryComponent providerEntry, ExplanationOfBenefit aeob) {
+	
 	Extension gfeReference = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeReference");
 	gfeReference.setValue(new Reference("Bundle/" + gfeBundle.getId()));
 	if (providerEntry != null) {
@@ -501,14 +500,14 @@ private List<Extension> addExtensions(Bundle gfeBundle, Claim claim, Bundle.Bund
 	    		myLogger.info("Unable to resolve Claim.provider reference in GFE Bundle");
 	    }
 	}
-	gfeExts.add(gfeReference);
+	aeob.addExtension(gfeReference);
 	Calendar cal = Calendar.getInstance();
 	
 	cal.add(Calendar.MONTH, 6);
 	Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate",
 	    new DateType(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)));
-	gfeExts.add(expirationDate);
-	return gfeExts;
+	aeob.addExtension(expirationDate);
+	return;
 }
 
 private void addProcessNote(ExplanationOfBenefit aeob) {
@@ -580,6 +579,9 @@ private void addUniqueClaimIdentifier(ExplanationOfBenefit aeob) {
 
 private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, double eligibleAmountPercent,
 		double coType, double cost, Claim.ItemComponent claimItem) {
+	
+	ExplanationOfBenefit.ItemComponent eobItem = new ExplanationOfBenefit.ItemComponent();
+    
 	// Calulate the net for the claim item if it is not available
       Money netValue = new Money();
       if (claimItem.getNet() == null) {
@@ -593,7 +595,6 @@ private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, do
           claimItem.setNet(netValue);
         }
       }
-      ExplanationOfBenefit.ItemComponent eobItem = new ExplanationOfBenefit.ItemComponent();
       // extensions - includes estimated service date
       
       
