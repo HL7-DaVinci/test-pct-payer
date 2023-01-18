@@ -480,11 +480,11 @@ public class GFESubmitProvider implements IResourceProvider {
 
 private void addBenefitPeriod(ExplanationOfBenefit aeob) {
 	Calendar cal = Calendar.getInstance();
-	cal.set(1, Calendar.MONTH);
-	cal.set(1, Calendar.DAY_OF_YEAR);
+	cal.set(Calendar.MONTH,1);
+	cal.set(Calendar.DAY_OF_YEAR, 1);
 	aeob.getBenefitPeriod().setStart(cal.getTime());
-	cal.set(12, Calendar.MONTH);
-	cal.set(31, Calendar.DAY_OF_MONTH);
+	cal.set(Calendar.MONTH,12);
+	cal.set(Calendar.DAY_OF_MONTH,31);
 	aeob.getBenefitPeriod().setEnd(cal.getTime());
 }
 
@@ -595,7 +595,12 @@ private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, do
       }
       ExplanationOfBenefit.ItemComponent eobItem = new ExplanationOfBenefit.ItemComponent();
       // extensions - includes estimated service date
-      eobItem.setExtension(claimItem.getExtension());
+      
+      
+      for (Extension e : claimItem.getExtension()) {
+    	  	eobItem.addExtension(e);
+    	  	this.myLogger.info("Adding item extension: " + e.getUrl());
+      }
 
       // sequence
       eobItem.setSequence(claimItem.getSequence());
