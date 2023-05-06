@@ -907,7 +907,7 @@ private void subjectToMedicalManagementAdjudication(
   private CodeableConcept createCodeableConcept(String code, String system) {
 		Coding c = new Coding();
 		c.setCode("1");
-		c.setSystem("https://x12.org/codes/service-type-codes");
+		c.setSystem(system);
 		CodeableConcept cc = new CodeableConcept(c);
 		return cc;
   }
