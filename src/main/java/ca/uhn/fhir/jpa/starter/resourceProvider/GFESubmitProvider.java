@@ -644,6 +644,7 @@ private double processItem(Claim claim, List<ExplanationOfBenefit.ItemComponent>
       // made more easy with a set or algorithms or data driven, also for adding
       // subjectToMedicalMgmt
       // Hard codes, which could be improved.
+      
       adj1Category.addCoding().setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS")
           .setCode("memberliability").setDisplay("Member Liability");
       eobItem1Adjudication.setCategory(adj1Category);
@@ -736,12 +737,12 @@ private void subjectToMedicalManagementAdjudication(
                           "concurrent-review", "Concurrent Review")));
         } else if (codeType == 1) {
           medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "prior-auth",
-                  "Prior Authorization"));
+              new CodeableConcept().addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "prior-auth",
+                  "Prior Authorization")));
         } else if (codeType == 2) {
           medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                  "step-therapy", "Step Therapy"));
+              new CodeableConcept().addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
+                  "step-therapy", "Step Therapy")));
         } else {
           medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
               new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "fail-first",
