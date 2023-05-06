@@ -59,7 +59,9 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
  * Class for processing the gfe-submit operation
  */
 public class GFESubmitProvider implements IResourceProvider {
-  private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.getName());
+  private static final String SERVICE_DESCRIPTION_EXTENSION = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/serviceDescription";
+
+private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.getName());
 
   private String baseUrl = "https://pct-payer.davinci.hl7.org";
 
@@ -680,12 +682,12 @@ private double processItem(Claim claim, List<ExplanationOfBenefit.ItemComponent>
       if (coType < 2) {
         cost = addCoPayOrCoInsurance(coType, cost, claimItem, eobItemAdjudications);
       }
-      eobItem.addExtension(claimItem.getExtensionByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/serviceDescription"));
+      if (eobItem.hasExtension(SERVICE_DESCRIPTION_EXTENSION) == false)
+      	eobItem.addExtension(claimItem.getExtensionByUrl(SERVICE_DESCRIPTION_EXTENSION));
       eobItem.setAdjudication(eobItemAdjudications);
       if (eobItem.hasServiced() == false) {
-    	  	if (claim.hasBillablePeriod()) {
-    	  		eobItem.setServiced(claim.getBillablePeriod());
-    	  	}
+    	  	if (claimItem.hasServiced()) eobItem.setServiced(claimItem.getServiced());
+    	  	else if (claim.hasBillablePeriod()) eobItem.setServiced(claim.getBillablePeriod());
       }
       eobItems.add(eobItem);
 	return cost;
