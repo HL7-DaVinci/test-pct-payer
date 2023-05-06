@@ -23,6 +23,8 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
+import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitBalanceComponent;
+import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitComponent;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.NoteComponent;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
@@ -72,7 +74,7 @@ public class GFESubmitProvider implements IResourceProvider {
   @Autowired
   AppProperties appProperties;
 
-  private Integer simulatedDelaySeconds = 60;
+  private Integer simulatedDelaySeconds = 10;
 
   @Override
   public Class<Claim> getResourceType() {
@@ -409,10 +411,8 @@ public class GFESubmitProvider implements IResourceProvider {
 	
 	    // Eligible
 	    addEligible(eligibleAmount, eobTotals);
-	
 	    aeob.setTotal(eobTotals);
-	
-	    
+		addBenefitBalance(aeob);
 	    
 	    myLogger.info("Saving AEOB");
 	    	aeob = saveAeob(aeob);
@@ -450,7 +450,7 @@ private void addAeobToBundle(ExplanationOfBenefit aeob, Bundle aeobBundle) {
 	myLogger.info("Adding AEOB to AEOB Bundle");
 	Bundle.BundleEntryComponent aeobEntry = new Bundle.BundleEntryComponent();
 
-	aeobEntry.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getId().split("/_history")[0]);
+	aeobEntry.setFullUrl("http://example.org/fhir/Bundle/" + aeobBundle.getId());
 	aeobEntry.setResource(aeob);
 	aeobBundle.addEntry(aeobEntry);
 }
@@ -483,10 +483,10 @@ private double addItems(Claim claim, ExplanationOfBenefit aeob, double eligibleA
 	myLogger.info("Processing claim items");
 	List<ExplanationOfBenefit.ItemComponent> eobItems = new ArrayList<>();
     double coType = rand.nextInt(3);
-	List<Claim.ItemComponent> gfeClaimItems = claim.getItem();
+//	List<Claim.ItemComponent> gfeClaimItems = claim.getItem();
 	double cost = 0;
-	for (Claim.ItemComponent claimItem : gfeClaimItems) {
-	  cost = processItem(eobItems, eligibleAmountPercent, coType, cost, claimItem);
+	for (Claim.ItemComponent claimItem : claim.getItem()) {
+	  cost = processItem(claim, eobItems, eligibleAmountPercent, coType, cost, claimItem);
 	}
 	aeob.setItem(eobItems);
 	return cost;
@@ -592,7 +592,7 @@ private void addUniqueClaimIdentifier(ExplanationOfBenefit aeob) {
     ids.add(id);
 }
 
-private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, double eligibleAmountPercent,
+private double processItem(Claim claim, List<ExplanationOfBenefit.ItemComponent> eobItems, double eligibleAmountPercent,
 		double coType, double cost, Claim.ItemComponent claimItem) {
 	
 	ExplanationOfBenefit.ItemComponent eobItem = new ExplanationOfBenefit.ItemComponent();
@@ -679,8 +679,13 @@ private double processItem(List<ExplanationOfBenefit.ItemComponent> eobItems, do
       if (coType < 2) {
         cost = addCoPayOrCoInsurance(coType, cost, claimItem, eobItemAdjudications);
       }
-
+      eobItem.addExtension(claimItem.getExtensionByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/serviceDescription"));
       eobItem.setAdjudication(eobItemAdjudications);
+      if (eobItem.hasServiced() == false) {
+    	  	if (claim.hasBillablePeriod()) {
+    	  		eobItem.setServiced(claim.getBillablePeriod());
+    	  	}
+      }
       eobItems.add(eobItem);
 	return cost;
 }
@@ -872,12 +877,39 @@ private void subjectToMedicalManagementAdjudication(
         aeob.setCreated(new Date());
         // set the aeob values based on the gfe
         convertGFEtoAEOB(gfeBundle, claim, aeob, aeobBundle);
+
       }
       aeobBundle.addEntry(e);
     }
   }
 
-  /**
+  private void addBenefitBalance(ExplanationOfBenefit aeob) {
+	
+		BenefitBalanceComponent bbc = aeob.addBenefitBalance();
+		bbc.setCategory(createCodeableConcept("1", "https://x12.org/codes/service-type-codes"));
+		bbc.setUnit(createCodeableConcept("individual", "http://terminology.hl7.org/CodeSystem/benefit-unit"));
+		bbc.setTerm(createCodeableConcept("annual", "http://terminology.hl7.org/CodeSystem/benefit-term"));
+		BenefitComponent financial = bbc.addFinancial();
+		financial.setType(createCodeableConcept("allowed", "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTFinancialType"));
+		Money allowed = new Money();
+		allowed.setValue(5000);
+		allowed.setCurrency("USD");
+		financial.setAllowed(allowed);
+		Money used = new Money();
+		used.setValue(5000);
+		used.setCurrency("USD");
+		financial.setUsed(used);
+  }
+  
+  private CodeableConcept createCodeableConcept(String code, String system) {
+		Coding c = new Coding();
+		c.setCode("1");
+		c.setSystem("https://x12.org/codes/service-type-codes");
+		CodeableConcept cc = new CodeableConcept(c);
+		return cc;
+  }
+
+/**
    * Parse the resource and create the new aeob bundle. Send the initial bundle in
    * the return
    * 
