@@ -518,12 +518,6 @@ private void addExtensions(Bundle gfeBundle, Claim claim, Bundle.BundleEntryComp
 	    }
 	}
 	aeob.addExtension(gfeReference);
-	Calendar cal = Calendar.getInstance();
-	
-	cal.add(Calendar.MONTH, 6);
-	Extension expirationDate = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/expirationDate",
-	    new DateType(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)));
-	aeob.addExtension(expirationDate);
 	return;
 }
 
@@ -739,16 +733,16 @@ private void subjectToMedicalManagementAdjudication(
                           "concurrent-review", "Concurrent Review")));
         } else if (codeType == 1) {
           medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new CodeableConcept().addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "prior-auth",
-                  "Prior Authorization")));
+              new CodeableConcept().addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", 
+                  "prior-auth", "Prior Authorization")));
         } else if (codeType == 2) {
           medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
               new CodeableConcept().addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
                   "step-therapy", "Step Therapy")));
         } else {
           medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-              new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", "fail-first",
-                  "Fail First"));
+              new CodeableConcept().addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS", 
+                  "fail-first", "Fail-First")));
         }
 
         eobItem2Adjudication.addExtension(medMgmtExt);
