@@ -518,6 +518,11 @@ private void addExtensions(Bundle gfeBundle, Claim claim, Bundle.BundleEntryComp
 	    }
 	}
 	aeob.addExtension(gfeReference);
+
+  Extension serviceExtension = new Extension(SERVICE_DESCRIPTION_EXTENSION);
+  serviceExtension.setValue(new StringType("Example service"));
+  aeob.addExtension(serviceExtension);
+  
 	return;
 }
 
