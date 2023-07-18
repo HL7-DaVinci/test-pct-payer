@@ -126,6 +126,7 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
   @Operation(name = "$gfe-submit-poll-status", manualResponse = true, manualRequest = true, idempotent = true)
   public void getPollStatus(HttpServletRequest theRequest, HttpServletResponse theResponse, @OperationParam(name="_bundleId") String bundleId) throws IOException {
 
+    theResponse.setHeader("Access-Control-Allow-Origin", "*");
 
     // Attempt to fetch bundle
     Bundle bundle = client.read().resource(Bundle.class).withId(bundleId).execute();
@@ -139,6 +140,7 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
     // If bundle was created less than the set number of simluated delay seconds we'll return the "in progress" 202 Accepted status
     if (Instant.now().isBefore(bundle.getTimestamp().toInstant().plusSeconds(simulatedDelaySeconds))) {
       theResponse.setStatus(202);
+      theResponse.setHeader("Access-Control-Expose-Headers", "Retry-After");
       theResponse.setHeader("Retry-After", simulatedDelaySeconds.toString());
       return;
     }
@@ -926,7 +928,7 @@ private void subjectToMedicalManagementAdjudication(
     theResponse.setHeader("Access-Control-Allow-Origin", "*");
     theResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
     theResponse.setHeader("Access-Control-Allow-Headers",
-        "X-Requested-With,Origin,Content-Type, Accept, Authorization");
+        "X-Requested-With, Origin, Content-Type, Accept, Authorization");
     myLogger.info("Set the headers");
 
     String outputString = "";
