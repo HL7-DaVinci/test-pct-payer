@@ -99,6 +99,11 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
       return null;
     }
   }
+  /* RG: removing the isSupported() override, as there is no need to restrict resource types on a server used for Connectathon testing. 
+         Production servers may choose otherwise, if so feel free to uncomment this.
+  */
+  
+  /*
   @Override
   protected boolean isSupported(String resourceType) {
       return resourceType.startsWith("Bundle")||
@@ -116,5 +121,6 @@ public class FhirServerConfigR4 extends BaseJavaConfigR4 {
         resourceType.startsWith("StructureDefinition") ||
         resourceType.startsWith("Organization");
   }
+  */
 
 }
