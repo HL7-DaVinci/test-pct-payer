@@ -347,3 +347,11 @@ see the `-distroless` suffix in the image tags.
 To add a custom operation, refer to the documentation in the core hapi-fhir libraries [here](https://hapifhir.io/hapi-fhir/docs/server_plain/rest_operations_operations.html).
 
 Within `hapi-fhir-jpaserver-starter`, create a generic class (that does not extend or implement any classes or interfaces), add the `@Operation` as a method within the generic class, and then register the class as a provider using `RestfulServer.registerProvider()`.
+
+## Questions and Contributions
+Questions about the project can be asked in the [Da Vinci PCT stream on the FHIR Zulip Chat](https://chat.fhir.org/#narrow/stream/301151-Da-Vinci-PCT).
+
+This project welcomes Pull Requests. Any issues identified with the RI should be submitted via the [GitHub issue tracker](https://github.com/HL7-DaVinci/test-pct-payer/issues).
+
+As of October 1, 2022, The Lantana Consulting Group is responsible for the management and maintenance of this Reference Implementation.
+In addition to posting on FHIR Zulip Chat channel mentioned above you can contact [Corey Spears](mailto:corey.spears@lantanagroup.com) for questions or requests.
