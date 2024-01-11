@@ -4,24 +4,33 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+
+import java.util.Map;
+import java.util.HashMap;
+
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Claim;
+import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Coverage;
-import org.hl7.fhir.r4.model.DateType;
+
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitBalanceComponent;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitComponent;
@@ -29,6 +38,7 @@ import org.hl7.fhir.r4.model.ExplanationOfBenefit.NoteComponent;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.Money;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Organization;
@@ -37,6 +47,7 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UrlType;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryResponseComponent;
 import org.hl7.fhir.r4.model.Bundle.BundleType;
@@ -60,6 +71,7 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
  */
 public class GFESubmitProvider implements IResourceProvider {
   private static final String SERVICE_DESCRIPTION_EXTENSION = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/serviceDescription";
+  private static final String DATA_ABSENT_REASON_EXTENSION = "http://hl7.org/fhir/StructureDefinition/data-absent-reason";
 
 private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.getName());
 
@@ -442,22 +454,188 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
     return aeobBundle;
   }
 
-private void addGfeBundleToAeobBundle(Bundle gfeBundle, Bundle aeobBundle) {
-	myLogger.info("Adding GFE Bundle to AEOB Bundle");
-	Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
-	gfeBundleEntry.setFullUrl("http://example.org/fhir/Bundle/" + gfeBundle.getId());
-	gfeBundleEntry.setResource(gfeBundle);
-	aeobBundle.addEntry(gfeBundleEntry);
-}
+  private void addGfeBundleToAeobBundle(Bundle gfeBundle, Bundle aeobBundle) {
+    myLogger.info("Adding GFE Bundle to AEOB Bundle");
+    Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
+    gfeBundleEntry.setFullUrl("http://example.org/fhir/Bundle/" + gfeBundle.getId());
+    gfeBundleEntry.setResource(gfeBundle);
+    aeobBundle.addEntry(gfeBundleEntry);
+  }
 
-private void addAeobToBundle(ExplanationOfBenefit aeob, Bundle aeobBundle) {
-	myLogger.info("Adding AEOB to AEOB Bundle");
-	Bundle.BundleEntryComponent aeobEntry = new Bundle.BundleEntryComponent();
+  private void addAeobToBundle(ExplanationOfBenefit aeob, Bundle aeobBundle) {
+    myLogger.info("Adding AEOB to AEOB Bundle");
+    Bundle.BundleEntryComponent aeobEntry = new Bundle.BundleEntryComponent();
 
-	aeobEntry.setFullUrl("http://example.org/fhir/Bundle/" + aeobBundle.getId());
-	aeobEntry.setResource(aeob);
-	aeobBundle.addEntry(aeobEntry);
-}
+    aeobEntry.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob.getIdElement().getIdPart());
+    aeobEntry.setResource(aeob);
+    aeobBundle.addEntry(aeobEntry);
+  }
+
+  /**
+   * Add AEOB Summary EOB to the AOEB Bundle
+   * 
+   * @param aeobBundle the bundle to add to summary to
+   * @return the complete aeob bundle
+   */
+  public Bundle AddAEOBSummarytoAEOBBundle(Bundle aeobBundle) {
+    myLogger.info("Summarizing AEOB Bundle");
+    try {
+      ExplanationOfBenefit aeob_summary = new ExplanationOfBenefit();
+      Meta aeob_summary_meta = new Meta();
+      aeob_summary_meta.setVersionId("1");
+      aeob_summary_meta.setLastUpdated(new Date());
+      aeob_summary_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-summary");
+      aeob_summary.setMeta(aeob_summary_meta);
+      aeob_summary.setId("PCT-AEOB-Summary");
+
+      Extension outOfNetworkProviderInfo = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/inNetworkProviderOptionsLink");
+	    outOfNetworkProviderInfo.setValue(new UrlType("http://example.com/out-of-networks.html"));
+      aeob_summary.addExtension(outOfNetworkProviderInfo);
+
+      Extension serviceExtension = new Extension(SERVICE_DESCRIPTION_EXTENSION);
+      serviceExtension.setValue(new StringType("Example service - Should this really be required for a summary? How would the payer summarize a service description across all EOBs?"));
+      
+      CodeableConcept eobType = new CodeableConcept();
+      Coding c = new Coding();
+      c.setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAEOBTypeSummaryCS");
+      c.setCode("eob-summary");
+      c.setDisplay("Explanation of Benefit Summary");
+      eobType.getCoding().add(c);
+      aeob_summary.setType(eobType);
+
+      aeob_summary.setUse(ExplanationOfBenefit.Use.PREDETERMINATION);
+
+      aeob_summary.setCreated(aeob_summary_meta.getLastUpdated());
+
+      Extension providerAbsentReason = new Extension(DATA_ABSENT_REASON_EXTENSION);
+      Coding darCoding = new Coding();
+	    darCoding.setCode("not-applicable");
+      providerAbsentReason.setValue(new CodeType("not-applicable"));
+      aeob_summary.getProvider().addExtension(providerAbsentReason);
+
+      aeob_summary.setOutcome(ExplanationOfBenefit.RemittanceOutcome.COMPLETE);
+
+      Map<String, ExplanationOfBenefit.TotalComponent> totals_map = new HashMap<String, ExplanationOfBenefit.TotalComponent>();
+
+      for (BundleEntryComponent e : aeobBundle.getEntry()) {
+        IBaseResource bundleEntry = (IBaseResource) e.getResource();
+        if (bundleEntry.fhirType().equals("ExplanationOfBenefit")) {
+          // This should be a gfe
+          ExplanationOfBenefit aeob = (ExplanationOfBenefit) bundleEntry;
+          
+          
+          // initialize the summary aeob with data from the first found instance of each element 
+          //  (it may be that any individual aeob may not have the data, but for these elements, if any contain the data, it needs to be expressed into the summary)
+          if(!aeob_summary.hasPatient() && aeob.hasPatient())
+          {
+            aeob_summary.setPatient(aeob.getPatient());
+          }
+
+          // billablePeriod (need start to be earliest and end to be latest)
+          if(!aeob_summary.hasBillablePeriod() && aeob.hasBillablePeriod())
+          {
+            aeob_summary.setBillablePeriod(aeob.getBillablePeriod());
+          }
+          else{
+            if(aeob.getBillablePeriod().hasStart())
+            {
+              if(!aeob_summary.getBillablePeriod().hasStart())
+              {
+                aeob_summary.getBillablePeriod().setStart(aeob.getBillablePeriod().getStart());
+              }
+              else if(aeob_summary.getBillablePeriod().getStart().compareTo(aeob.getBillablePeriod().getStart()) > 0)
+              {
+                  aeob_summary.getBillablePeriod().setStart(aeob.getBillablePeriod().getStart());
+                
+              }
+            }
+
+            if(aeob.getBillablePeriod().hasEnd())
+            {
+              if(!aeob_summary.getBillablePeriod().hasEnd())
+              {
+                aeob_summary.getBillablePeriod().setEnd(aeob.getBillablePeriod().getEnd());
+              }
+              else if(aeob_summary.getBillablePeriod().getEnd().compareTo(aeob.getBillablePeriod().getEnd()) < 0)
+              {
+                  aeob_summary.getBillablePeriod().setEnd(aeob.getBillablePeriod().getEnd());
+                
+              }
+            }
+          }
+
+          if(!aeob_summary.hasInsurer() && aeob.hasInsurer())
+          {
+            aeob_summary.setInsurer(aeob.getInsurer());
+          }
+
+          if(!aeob_summary.hasInsurance() && aeob.hasInsurance())
+          {
+            aeob_summary.setInsurance(aeob.getInsurance());
+          }
+
+          if(!aeob_summary.hasBenefitPeriod() && aeob.hasBenefitPeriod())
+          {
+            aeob_summary.setBenefitPeriod(aeob.getBenefitPeriod());
+          }
+
+          // Add all process notes. This is being done just for testing. Unlikely something that should generally be done, particularly in the case of duplicates. 
+          // May want to remove duplicates for cleanliness
+          if(aeob.hasProcessNote())
+          {
+            for (ExplanationOfBenefit.NoteComponent processNote : aeob.getProcessNote()) {
+              aeob_summary.addProcessNote(processNote);
+            }
+          }
+
+
+          
+           // Add up totals
+           for ( ExplanationOfBenefit.TotalComponent total : aeob.getTotal()){
+              //totals_dict
+              String total_category = new String();
+              total_category = "";
+              
+              if (total.hasCategory() && total.getCategory().hasCoding())
+              {
+                for (Coding coding : total.getCategory().getCoding())
+                {
+                  if(coding.hasSystem() && coding.getSystem().equals("http://terminology.hl7.org/CodeSystem/adjudication"))
+                  {
+                    total_category = coding.getCode();
+                  }
+                }
+                if(!total_category.equals("")){
+                  // Found a category to add to dict or to sum up in dict
+                  if(!totals_map.containsKey(total_category))
+                  {
+                    totals_map.put(total_category, total);
+                  }
+                  else{
+                    totals_map.get(total_category).getAmount().setValue(totals_map.get(total_category).getAmount().getValue().doubleValue() + total.getAmount().getValue().doubleValue());
+                  }
+                }
+              }
+           }
+           // TODO Benefit balance
+           // Find Lowest balance and save or find the top benefit ballance and subtract the totals?
+
+        }
+        
+      }
+      for( String key : totals_map.keySet()){
+        aeob_summary.addTotal(totals_map.get(key));
+      }
+      // Add AEOB Summary to Bundle
+      Bundle.BundleEntryComponent summary_aeobBundleEntry = new Bundle.BundleEntryComponent();
+      summary_aeobBundleEntry.setFullUrl("http://example.org/fhir/ExplanationOfBenefit/" + aeob_summary.getId());
+      summary_aeobBundleEntry.setResource(aeob_summary);
+      aeobBundle.getEntry().add(0, summary_aeobBundleEntry);
+    } catch (Exception e) {
+    		myLogger.info("Error: " + e.getMessage());
+    }
+    return aeobBundle; 
+  }
 
 private List<ExplanationOfBenefit.TotalComponent> addTotals(Claim claim, ExplanationOfBenefit aeob,
 		double eligibleAmountPercent, double cost, Money eligibleAmount) {
@@ -885,6 +1063,8 @@ private void subjectToMedicalManagementAdjudication(
       }
       aeobBundle.addEntry(e);
     }
+    // TODO Add AEOB Summary
+    AddAEOBSummarytoAEOBBundle(aeobBundle);
   }
 
   private void addBenefitBalance(ExplanationOfBenefit aeob) {
