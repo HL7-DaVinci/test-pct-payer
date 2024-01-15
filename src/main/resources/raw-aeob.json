@@ -19,12 +19,6 @@
     ]
   },
   "use": "predetermination",
-  "priority": {
-    "coding": [ {
-      "system" : "http://terminology.hl7.org/CodeSystem/processpriority",
-      "code": "normal"
-    } ]
-  },
   "outcome": "complete",
   "insurance": [ {
     "focal": true,

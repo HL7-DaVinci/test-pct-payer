@@ -34,7 +34,9 @@ import org.hl7.fhir.r4.model.Coverage;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitBalanceComponent;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitComponent;
+import org.hl7.fhir.r4.model.ExplanationOfBenefit.ExplanationOfBenefitStatus;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.NoteComponent;
+import org.hl7.fhir.r4.model.codesystems.ExplanationofbenefitStatus;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
@@ -43,6 +45,7 @@ import org.hl7.fhir.r4.model.Money;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
@@ -428,13 +431,14 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
 	    // Eligible
 	    addEligible(eligibleAmount, eobTotals);
 	    aeob.setTotal(eobTotals);
-		addBenefitBalance(aeob);
+		  addBenefitBalance(aeob);
 	    
 	    myLogger.info("Saving AEOB");
 	    	aeob = saveAeob(aeob);
 	    addAeobToBundle(aeob, aeobBundle);
 	    
-	    addGfeBundleToAeobBundle(gfeBundle, aeobBundle);
+      // THis is unnecessary because this function gets called for each claim. This call would add a GFE bundle for each claim in the GFEBundle.
+	    //addGfeBundleToAeobBundle(gfeBundle, aeobBundle);
 	    
 	    for (Extension ex : claim.getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeProviderAssignedIdentifier")) {
 	      aeob.addExtension(ex);
@@ -459,6 +463,21 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
     Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
     gfeBundleEntry.setFullUrl("http://example.org/fhir/Bundle/" + gfeBundle.getId());
     gfeBundleEntry.setResource(gfeBundle);
+
+    if(!gfeBundle.hasMeta())
+    {
+      Meta gfeBundle_meta = new Meta();
+      gfeBundle_meta.setVersionId("1");
+      gfeBundle_meta.setLastUpdated(new Date());
+      gfeBundle_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle");
+      gfeBundle.setMeta(gfeBundle_meta);
+    }
+    else{
+      Meta gfeBundle_meta = gfeBundle.getMeta();
+      if(!gfeBundle_meta.hasProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle")){
+        gfeBundle_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle");
+      }
+    }
     aeobBundle.addEntry(gfeBundleEntry);
   }
 
@@ -477,7 +496,7 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
    * @param aeobBundle the bundle to add to summary to
    * @return the complete aeob bundle
    */
-  public Bundle AddAEOBSummarytoAEOBBundle(Bundle aeobBundle) {
+  public Bundle AddAEOBSummarytoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle) {
     myLogger.info("Summarizing AEOB Bundle");
     try {
       ExplanationOfBenefit aeob_summary = new ExplanationOfBenefit();
@@ -495,6 +514,7 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
       Extension serviceExtension = new Extension(SERVICE_DESCRIPTION_EXTENSION);
       serviceExtension.setValue(new StringType("Example service - Should this really be required for a summary? How would the payer summarize a service description across all EOBs?"));
       
+      aeob_summary.setStatus(ExplanationOfBenefitStatus.ACTIVE);
       CodeableConcept eobType = new CodeableConcept();
       Coding c = new Coding();
       c.setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAEOBTypeSummaryCS");
@@ -531,39 +551,26 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
             aeob_summary.setPatient(aeob.getPatient());
           }
 
-          // billablePeriod (need start to be earliest and end to be latest)
-          if(!aeob_summary.hasBillablePeriod() && aeob.hasBillablePeriod())
-          {
-            aeob_summary.setBillablePeriod(aeob.getBillablePeriod());
-          }
-          else{
-            if(aeob.getBillablePeriod().hasStart())
-            {
-              if(!aeob_summary.getBillablePeriod().hasStart())
-              {
-                aeob_summary.getBillablePeriod().setStart(aeob.getBillablePeriod().getStart());
-              }
-              else if(aeob_summary.getBillablePeriod().getStart().compareTo(aeob.getBillablePeriod().getStart()) > 0)
-              {
-                  aeob_summary.getBillablePeriod().setStart(aeob.getBillablePeriod().getStart());
-                
-              }
-            }
+          // billablePeriod (need start to be earliest and end to be latest item service date)
+          // billablePeriod (need start to be earliest and end to be latest item service date)
+          for (BundleEntryComponent gfe_bundle_entry : gfeBundle.getEntry()) {
+            IBaseResource gfe_entry = (IBaseResource) gfe_bundle_entry.getResource();
+            if (gfe_entry.fhirType().equals("Claim")) {
+              Claim gfe_claim = (Claim) gfe_entry;
+              for (Claim.ItemComponent claim_item : gfe_claim.getItem()) {
+                if(claim_item.hasServicedDateType())
+                {
+                  UpdateSummaryBillablePeriod(aeob_summary, claim_item.getServicedDateType().getValue(), claim_item.getServicedDateType().getValue());
+                }
+                else if(claim_item.hasServicedPeriod())
+                {
+                  UpdateSummaryBillablePeriod(aeob_summary, claim_item.getServicedPeriod().getStart(), claim_item.getServicedPeriod().getEnd());
+                }
 
-            if(aeob.getBillablePeriod().hasEnd())
-            {
-              if(!aeob_summary.getBillablePeriod().hasEnd())
-              {
-                aeob_summary.getBillablePeriod().setEnd(aeob.getBillablePeriod().getEnd());
-              }
-              else if(aeob_summary.getBillablePeriod().getEnd().compareTo(aeob.getBillablePeriod().getEnd()) < 0)
-              {
-                  aeob_summary.getBillablePeriod().setEnd(aeob.getBillablePeriod().getEnd());
-                
               }
             }
           }
-
+          
           if(!aeob_summary.hasInsurer() && aeob.hasInsurer())
           {
             aeob_summary.setInsurer(aeob.getInsurer());
@@ -636,6 +643,55 @@ private final Logger myLogger = LoggerFactory.getLogger(GFESubmitProvider.class.
     }
     return aeobBundle; 
   }
+
+
+  private void UpdateSummaryBillablePeriod(ExplanationOfBenefit eob, Date start_date, Date end_date) {
+    Period period = new Period();
+    if(start_date != null)
+    {
+      period.setStart(start_date);
+    }
+    if(end_date != null)
+    {
+      period.setEnd(end_date);
+    }
+    
+    if(!eob.hasBillablePeriod())
+    {
+      eob.setBillablePeriod(period);
+    }
+    else{
+      if(start_date != null)
+      {
+        if(!eob.getBillablePeriod().hasStart())
+        {
+          eob.getBillablePeriod().setStart(period.getStart());
+        }
+        else if(eob.getBillablePeriod().getStart().compareTo(period.getStart()) > 0)
+        {
+          eob.getBillablePeriod().setStart(period.getStart());
+          
+        }
+      }
+
+      if(end_date != null)
+      {
+        
+        if(!eob.getBillablePeriod().hasEnd())
+        {
+          eob.getBillablePeriod().setEnd(period.getEnd());
+        }
+        else if(eob.getBillablePeriod().getEnd().compareTo(period.getEnd()) < 0)
+        {
+          eob.getBillablePeriod().setEnd(period.getEnd());
+          
+        }
+      }
+    }
+    return;
+  }
+
+
 
 private List<ExplanationOfBenefit.TotalComponent> addTotals(Claim claim, ExplanationOfBenefit aeob,
 		double eligibleAmountPercent, double cost, Money eligibleAmount) {
@@ -1048,6 +1104,7 @@ private void subjectToMedicalManagementAdjudication(
   }
 
   public void convertGFEBundletoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle) {
+    
     for (BundleEntryComponent e : gfeBundle.getEntry()) {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
       if (bundleEntry.fhirType().equals("Claim")) {
@@ -1061,10 +1118,18 @@ private void subjectToMedicalManagementAdjudication(
         convertGFEtoAEOB(gfeBundle, claim, aeob, aeobBundle);
 
       }
-      aeobBundle.addEntry(e);
+      else{
+        // The claims do not need to individual
+        aeobBundle.addEntry(e);
+      }
+      
+      // TODO Make sure the individual aeob references are working right
+      // TODO Make sure the individual AEOB network stuff is working
+      //aeobBundle.addEntry(e);
     }
     // TODO Add AEOB Summary
-    AddAEOBSummarytoAEOBBundle(aeobBundle);
+    AddAEOBSummarytoAEOBBundle(gfeBundle, aeobBundle);
+    addGfeBundleToAeobBundle(gfeBundle, aeobBundle);
   }
 
   private void addBenefitBalance(ExplanationOfBenefit aeob) {
