@@ -1,3 +1,5 @@
+# This branch uses an old version of HAPI, was before the STU2 work and is placed here for archiving purposes.
+
 # PCT Payer Server
 
 This server is based on the HAPI FHIR JPA Starter server with modifications to support Patient Cost
