@@ -21,14 +21,14 @@ In order to use this sample, you should have:
 You can customize HAPI by telling HAPI to look for the configuration file in a different location, eg.:
 
 ```
-docker run -p 8090:8080 -v $(pwd)/yourLocalFolder:/configs -e "--spring.config.location=file:///configs/another.application.yaml" hapiproject/hapi:latest
+docker run -p 8090:8083 -v $(pwd)/yourLocalFolder:/configs -e "--spring.config.location=file:///configs/another.application.yaml" hapiproject/hapi:latest
 ```
 Here, the configuration file (*another.application.yaml*) is placed locally in the folder *yourLocalFolder*.
 
 
 
 ```
-docker run -p 8090:8080 -e "--spring.config.location=classpath:/another.application.yaml" hapiproject/hapi:latest
+docker run -p 8090:8083 -e "--spring.config.location=classpath:/another.application.yaml" hapiproject/hapi:latest
 ```
 Here, the configuration file (*another.application.yaml*) is part of the compiled set of resources.
 
@@ -40,7 +40,7 @@ services:
   web:
     image: "hapiproject/hapi:latest"
     ports:
-      - "8090:8080"
+      - "8090:8083"
     configs:
       - source: hapi
         target: /data/hapi/application.yaml
@@ -59,6 +59,8 @@ volumes:
 ## Running locally
 
 The easiest way to run this server entirely depends on your environment requirements. At least, the following 4 ways are supported:
+
+Note that running it on windows may require the use of WSL as there is a name file length issue. Running in VS Code in debug seems to work without issue.
 
 ### Using jetty
 ```bash
@@ -88,14 +90,14 @@ Server will then be accessible at http://localhost:8888/ and eg. http://localhos
 ```bash
 mvn clean spring-boot:run -Pboot
 ```
-Server will then be accessible at http://localhost:8080/ and eg. http://localhost:8080/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
+Server will then be accessible at http://localhost:8083/ and eg. http://localhost:8083/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
 
 ```yaml
     tester:
       -
           id: home
           name: Local Tester
-          server_address: 'http://localhost:8080/fhir'
+          server_address: 'http://localhost:8083/fhir'
           refuse_to_fetch_third_party_urls: false
           fhir_version: R4
 ```
@@ -104,45 +106,45 @@ Server will then be accessible at http://localhost:8080/ and eg. http://localhos
 ```bash
 mvn clean package spring-boot:repackage -Pboot && java -jar target/ROOT.war
 ```
-Server will then be accessible at http://localhost:8080/ and eg. http://localhost:8080/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
+Server will then be accessible at http://localhost:8083/ and eg. http://localhost:8083/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
 
 ```yaml
     tester:
       -
           id: home
           name: Local Tester
-          server_address: 'http://localhost:8080/fhir'
+          server_address: 'http://localhost:8083/fhir'
           refuse_to_fetch_third_party_urls: false
           fhir_version: R4
 ```
 ### Using Spring Boot and Google distroless
 ```bash
-mvn clean package com.google.cloud.tools:jib-maven-plugin:dockerBuild -Dimage=distroless-hapi && docker run -p 8080:8080 distroless-hapi
+mvn clean package com.google.cloud.tools:jib-maven-plugin:dockerBuild -Dimage=distroless-hapi && docker run -p 8083:8083 distroless-hapi
 ```
-Server will then be accessible at http://localhost:8080/ and eg. http://localhost:8080/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
+Server will then be accessible at http://localhost:8083/ and eg. http://localhost:8083/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
 
 ```yaml
     tester:
       -
           id: home
           name: Local Tester
-          server_address: 'http://localhost:8080/fhir'
+          server_address: 'http://localhost:8083/fhir'
           refuse_to_fetch_third_party_urls: false
           fhir_version: R4
 ```
 
 ### Using the Dockerfile and multistage build
 ```bash
-./build-docker-image.sh && docker run -p 8080:8080 hapi-fhir/hapi-fhir-jpaserver-starter:latest
+./build-docker-image.sh && docker run -p 8083:8083 hapi-fhir/hapi-fhir-jpaserver-starter:latest
 ```
-Server will then be accessible at http://localhost:8080/ and eg. http://localhost:8080/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
+Server will then be accessible at http://localhost:8083/ and eg. http://localhost:8083/fhir/metadata. Remember to adjust you overlay configuration in the application.yaml to eg.
 
 ```yaml
     tester:
       -
           id: home
           name: Local Tester
-          server_address: 'http://localhost:8080/fhir'
+          server_address: 'http://localhost:8083/fhir'
           refuse_to_fetch_third_party_urls: false
           fhir_version: R4
 ```
@@ -213,20 +215,20 @@ mvn clean install
 
 This will create a file called `ROOT.war` in your `target` directory. This should be installed in your Web Container according to the instructions for your particular container. For example, if you are using Tomcat, you will want to copy this file to the `webapps/` directory.
 
-Again, browse to the following link to use the server (note that the port 8080 may not be correct depending on how your server is configured).
+Again, browse to the following link to use the server (note that the port 8083 may not be correct depending on how your server is configured).
 
-[http://localhost:8080/](http://localhost:8080/)
+[http://localhost:8083/](http://localhost:8083/)
 
-You will then be able access the JPA server e.g. using http://localhost:8080/fhir/metadata.
+You will then be able access the JPA server e.g. using http://localhost:8083/fhir/metadata.
 
-If you would like it to be hosted at eg. hapi-fhir-jpaserver, eg. http://localhost:8080/hapi-fhir-jpaserver/ or http://localhost:8080/hapi-fhir-jpaserver/fhir/metadata - then rename the WAR file to ```hapi-fhir-jpaserver.war``` and adjust the overlay configuration accordingly e.g.
+If you would like it to be hosted at eg. hapi-fhir-jpaserver, eg. http://localhost:8083/hapi-fhir-jpaserver/ or http://localhost:8083/hapi-fhir-jpaserver/fhir/metadata - then rename the WAR file to ```hapi-fhir-jpaserver.war``` and adjust the overlay configuration accordingly e.g.
 
 ```yaml
     tester:
       -
           id: home
           name: Local Tester
-          server_address: 'http://localhost:8080/hapi-fhir-jpaserver/fhir'
+          server_address: 'http://localhost:8083/hapi-fhir-jpaserver/fhir'
           refuse_to_fetch_third_party_urls: false
           fhir_version: R4
 ```
@@ -236,10 +238,10 @@ If you would like it to be hosted at eg. hapi-fhir-jpaserver, eg. http://localho
 
 Docker compose is a simple option to build and deploy container. To deploy with docker compose, you should build the project
 with `mvn clean install` and then bring up the containers with `docker-compose up -d --build`. The server can be
-reached at http://localhost:8080/.
+reached at http://localhost:8083/.
 
 In order to use another port, change the `ports` parameter
-inside `docker-compose.yml` to `8888:8080`, where 8888 is a port of your choice.
+inside `docker-compose.yml` to `8888:8083`, where 8888 is a port of your choice.
 
 The docker compose set also includes my MySQL database, if you choose to use MySQL instead of H2, change the following
 properties in application.yaml:
@@ -286,7 +288,7 @@ Run the configuration.
 - Select your server, and click the green triangle (or the bug if you want to debug)
 - Wait for the console output to stop
 
-Point your browser (or fiddler, or what have you) to `http://localhost:8080/hapi/baseDstu3/Patient`
+
 
 It is important to use MySQL5Dialect when using MySQL version 5+.
 
@@ -298,7 +300,7 @@ The server may be configured with subscription support by enabling properties in
 
 - `hapi.fhir.subscription.email.*` - Enables email subscriptions. Note that you must also provide the connection details for a usable SMTP server.
 
-- `hapi.fhir.subscription.websocket_enabled` - Enables websocket subscriptions. With this enabled, your server will accept incoming websocket connections on the following URL (this example uses the default context path and port, you may need to tweak depending on your deployment environment): [ws://localhost:8080/websocket](ws://localhost:8080/websocket)
+- `hapi.fhir.subscription.websocket_enabled` - Enables websocket subscriptions. With this enabled, your server will accept incoming websocket connections on the following URL (this example uses the default context path and port, you may need to tweak depending on your deployment environment): [ws://localhost:8083/websocket](ws://localhost:8083/websocket)
 
 ## Enabling CQL
 

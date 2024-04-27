@@ -1,0 +1,188 @@
+{
+  "generator-reference-implementation": {
+    "directory": "test-pct-payer",
+    "name": "PCT Payer Server RI",
+    "package": "https://hl7.org/fhir/us/davinci-pct/2024May/package.tgz",
+    "hapi": {
+      "packageBase": "com.lantanagroup",
+      "applicationClassName": "PctPayerServerRiApplication"
+    },
+    "version": "0.0.1-SNAPSHOT",
+    "title": "Reference Implementation",
+    "operations": [
+      {
+        "id": "GFE-retrieve",
+        "url": "http://hl7.org/fhir/us/davinci-pct/OperationDefinition/GFE-retrieve",
+        "name": "GFERetrieve",
+        "code": "gfe-retrieve",
+        "system": false,
+        "type": true,
+        "instance": false,
+        "className": "GfeRetrieveOperation",
+        "packagePath": "com.lantanagroup.providers.GfeRetrieveOperation",
+        "methodName": "gfeRetrieve",
+        "modelPackageVersion": "r4",
+        "inputParameters": [
+          {
+            "name": "request",
+            "use": "in",
+            "min": 1,
+            "max": "1",
+            "documentation": "A reference to a GFE Coordination Task.",
+            "type": "Reference",
+            "targetProfile": [
+              "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-coordination-task"
+            ],
+            "dataType": "Reference",
+            "methodParameterName": "theRequest"
+          }
+        ],
+        "outputType": {
+          "name": "return",
+          "use": "out",
+          "min": 1,
+          "max": "1",
+          "documentation": "A GFE Request Collection Bundle containing the GFE Bundles of the submitted GFE Bundles by the GFE Contributors.",
+          "type": "Bundle",
+          "dataType": "Bundle"
+        }
+      },
+      {
+        "id": "GFE-submit",
+        "url": "http://hl7.org/fhir/us/davinci-pct/OperationDefinition/GFE-submit",
+        "name": "GFESubmit",
+        "code": "gfe-submit",
+        "resource": [
+          "Claim"
+        ],
+        "system": false,
+        "type": true,
+        "instance": false,
+        "resourceDataTypes": [
+          "Claim"
+        ],
+        "className": "GfeSubmitProvider",
+        "packagePath": "com.lantanagroup.providers.GfeSubmitProvider",
+        "methodName": "gfeSubmit",
+        "modelPackageVersion": "r4",
+        "inputParameters": [
+          {
+            "name": "resource",
+            "use": "in",
+            "min": 1,
+            "max": "1",
+            "documentation": "A Bundle containing a single or multiple GFE resources plus referenced resources.",
+            "type": "Bundle",
+            "dataType": "Bundle",
+            "methodParameterName": "theResource"
+          }
+        ],
+        "outputType": {
+          "name": "return",
+          "use": "out",
+          "min": 0,
+          "max": "1",
+          "documentation": "When successful, this will return a Bundle of type batch-submit; When there is an error calling $gfe-submit (4xx, 5xx HTTP code) then an OperationOutcome must be returned per the [async pattern](https://hl7.org/fhir/R5/async-bundle.html).",
+          "type": "OperationOutcome",
+          "dataType": "OperationOutcome"
+        }
+      }
+    ],
+    "servers": [
+      {
+        "commonPackagePath": "com.lantanagroup.common",
+        "providerPackagePath": "com.lantanagroup.providers",
+        "serverPackagePath": "com.lantanagroup.servers.davincipctcoordinationplatform",
+        "destinationPath": "./src/main/java/com/lantanagroup/servers/davincipctcoordinationplatform",
+        "id": "davincipctcoordinationplatform",
+        "configClassName": "DavinciPctCoordinationPlatformConfig",
+        "propertiesClassName": "DavinciPctCoordinationPlatformProperties",
+        "port": 8080,
+        "fhirVersion": "R4",
+        "features": [],
+        "customCapabilityStatement": true,
+        "operations": [
+          "GFE-retrieve"
+        ],
+        "implementationGuides": [
+          {
+            "id": "hl_7_fhir_us_davinci_pct",
+            "name": "hl7.fhir.us.davinci-pct",
+            "version": "2.0.0-ballot",
+            "packageUrl": "https://hl7.org/fhir/us/davinci-pct/2024May/package.tgz"
+          }
+        ]
+      },
+      {
+        "commonPackagePath": "com.lantanagroup.common",
+        "providerPackagePath": "com.lantanagroup.providers",
+        "serverPackagePath": "com.lantanagroup.servers.davincipctcoordinationrequester",
+        "destinationPath": "./src/main/java/com/lantanagroup/servers/davincipctcoordinationrequester",
+        "id": "davincipctcoordinationrequester",
+        "configClassName": "DavinciPctCoordinationRequesterConfig",
+        "propertiesClassName": "DavinciPctCoordinationRequesterProperties",
+        "port": 8081,
+        "fhirVersion": "R4",
+        "features": [],
+        "customCapabilityStatement": true,
+        "operations": [
+          "GFE-retrieve"
+        ],
+        "implementationGuides": [
+          {
+            "id": "hl_7_fhir_us_davinci_pct",
+            "name": "hl7.fhir.us.davinci-pct",
+            "version": "2.0.0-ballot",
+            "packageUrl": "https://hl7.org/fhir/us/davinci-pct/2024May/package.tgz"
+          }
+        ]
+      },
+      {
+        "commonPackagePath": "com.lantanagroup.common",
+        "providerPackagePath": "com.lantanagroup.providers",
+        "serverPackagePath": "com.lantanagroup.servers.davincipctgfecontributor",
+        "destinationPath": "./src/main/java/com/lantanagroup/servers/davincipctgfecontributor",
+        "id": "davincipctgfecontributor",
+        "configClassName": "DavinciPctGfeContributorConfig",
+        "propertiesClassName": "DavinciPctGfeContributorProperties",
+        "port": 8082,
+        "fhirVersion": "R4",
+        "features": [],
+        "customCapabilityStatement": true,
+        "operations": [],
+        "implementationGuides": [
+          {
+            "id": "hl_7_fhir_us_davinci_pct",
+            "name": "hl7.fhir.us.davinci-pct",
+            "version": "2.0.0-ballot",
+            "packageUrl": "https://hl7.org/fhir/us/davinci-pct/2024May/package.tgz"
+          }
+        ]
+      },
+      {
+        "commonPackagePath": "com.lantanagroup.common",
+        "providerPackagePath": "com.lantanagroup.providers",
+        "serverPackagePath": "com.lantanagroup.servers.davincipct",
+        "destinationPath": "./src/main/java/com/lantanagroup/servers/davincipct",
+        "id": "davincipct",
+        "configClassName": "DavinciPctConfig",
+        "propertiesClassName": "DavinciPctProperties",
+        "port": 8083,
+        "fhirVersion": "R4",
+        "features": [],
+        "customCapabilityStatement": true,
+        "operations": [
+          "GFE-submit"
+        ],
+        "implementationGuides": [
+          {
+            "id": "hl_7_fhir_us_davinci_pct",
+            "name": "hl7.fhir.us.davinci-pct",
+            "version": "2.0.0-ballot",
+            "packageUrl": "https://hl7.org/fhir/us/davinci-pct/2024May/package.tgz"
+          }
+        ]
+      }
+    ]
+  }
+}
