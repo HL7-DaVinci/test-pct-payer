@@ -90,6 +90,7 @@ public class GfeSubmitProvider {
     OperationOutcome outcome = new OperationOutcome();
 
     logger.info("Received GFE Submit");
+    theResponse.setHeader("Access-Control-Allow-Origin", "*");
 
     try {
       handleSubmit(theBundleResource, theRequestDetails, theRequest, theResponse);
