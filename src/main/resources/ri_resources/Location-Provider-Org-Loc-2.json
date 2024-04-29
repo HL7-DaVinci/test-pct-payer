@@ -1,0 +1,21 @@
+{
+  "resourceType": "Location",
+  "id": "Provider-Org-Loc-2",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-location"
+    ]
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource \"Provider-Org-Loc-2\" </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-location.html\">PCT Location</a></p></div><p><b>status</b>: active</p><p><b>name</b>: Boston Radiology Center</p><p><b>address</b>: 32 Fruit Street, Boston MA 02114</p><p><b>managingOrganization</b>: <a href=\"Organization-org1002.html\">Organization/org1002</a> \"Boston Radiology Center\"</p></div>"
+  },
+  "status": "active",
+  "name": "Boston Radiology Center",
+  "address": {
+    "text": "32 Fruit Street, Boston MA 02114"
+  },
+  "managingOrganization": {
+    "reference": "Organization/org1002"
+  }
+}

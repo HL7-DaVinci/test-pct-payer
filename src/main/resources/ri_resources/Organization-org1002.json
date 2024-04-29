@@ -1,0 +1,59 @@
+{
+  "resourceType" : "Organization",
+  "id" : "org1002",
+  "meta" : {
+    "profile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-organization"]
+  },
+  "text" : {
+    "status" : "additional",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><a name=\"org1002\"></a><a name=\"hcorg1002\"></a></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Organization &quot;org1002&quot;</p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-organization.html\">PCT Organization</a></p></div><p><b>identifier</b>: National provider identifier/1234568095, Tax ID number/TAX-3211001</p><p><b>active</b>: true</p><p><b>type</b>: Healthcare Provider <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\">(<a href=\"http://terminology.hl7.org/5.3.0/CodeSystem-organization-type.html\">Organization type</a>#prov)</span></p><p><b>name</b>: Boston Radiology Center</p><p><b>telecom</b>: ph: 781-232-3200(WORK)</p><p><b>address</b>: 32 Fruit Street Boston MA 02114 US</p></div>"
+  },
+  "identifier" : [{
+    "type" : {
+      "coding" : [{
+        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
+        "code" : "NPI"
+      }]
+    },
+    "system" : "http://hl7.org/fhir/sid/us-npi",
+    "value" : "1234568095"
+  },
+  {
+    "type" : {
+      "coding" : [{
+        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
+        "code" : "TAX"
+      }]
+    },
+    "system" : "urn:oid:2.16.840.1.113883.4.4",
+    "value" : "TAX-3211001"
+  }],
+  "active" : true,
+  "type" : [{
+    "coding" : [{
+      "system" : "http://terminology.hl7.org/CodeSystem/organization-type",
+      "code" : "prov",
+      "display" : "Healthcare Provider"
+    }]
+  }],
+  "name" : "Boston Radiology Center",
+  "telecom" : [{
+    "system" : "phone",
+    "value" : "781-232-3200",
+    "use" : "work"
+  }],
+  "address" : [{
+    "extension" : [{
+      "url" : "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/countrySubdivisionCode",
+      "valueCoding" : {
+        "system" : "urn:iso:std:iso:3166:-2",
+        "code" : "US-MA"
+      }
+    }],
+    "line" : ["32 Fruit Street"],
+    "city" : "Boston",
+    "state" : "MA",
+    "postalCode" : "02114",
+    "country" : "US"
+  }]
+}
