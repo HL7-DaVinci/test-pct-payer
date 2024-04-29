@@ -16,6 +16,11 @@ davincipct:
     driverClassName: org.h2.Driver
   # enforce_referential_integrity_on_delete: false
   # enforce_referential_integrity_on_write: false
+   cors:
+       allow_Credentials: true
+       # These are allowed_origin patterns, see: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/cors/CorsConfiguration.html#setAllowedOriginPatterns-java.util.List-
+       allowed_origin:
+         - '*'
   implementationguides:
     hl_7_fhir_us_davinci_pct:
       installMode: STORE_AND_INSTALL
