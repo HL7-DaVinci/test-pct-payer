@@ -1,0 +1,42 @@
+{
+  "resourceType" : "Practitioner",
+  "id" : "prac001",
+  "meta" : {
+    "profile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-practitioner"]
+  },
+  "text" : {
+    "status" : "extensions",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: Practitioner</b><a name=\"prac001\"> </a><a name=\"hcprac001\"> </a></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Practitioner &quot;prac001&quot; </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-practitioner.html\">PCT Practitioner</a></p></div><p><b>PCTEndpoint</b>: <a href=\"Endpoint-endpoint001.html\">Endpoint/endpoint001</a></p><p><b>identifier</b>: National provider identifier/1234567893</p><p><b>active</b>: true</p><p><b>name</b>: Patricia\tPrimary</p><p><b>telecom</b>: ph: 781-232-3231</p><p><b>address</b>: 32 Fruit Street, Boston MA 02114</p><p><b>gender</b>: female</p></div>"
+  },
+  "extension" : [{
+    "url" : "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/endpoint",
+    "valueReference" : {
+      "reference" : "Endpoint/endpoint001"
+    }
+  }],
+  "identifier" : [{
+    "type" : {
+      "coding" : [{
+        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
+        "code" : "NPI"
+      }]
+    },
+    "system" : "http://hl7.org/fhir/sid/us-npi",
+    "value" : "1234567893"
+  }],
+  "active" : true,
+  "name" : [{
+    "text" : "Patricia\tPrimary",
+    "family" : "Primary",
+    "given" : ["Patricia"],
+    "prefix" : ["Dr."]
+  }],
+  "telecom" : [{
+    "system" : "phone",
+    "value" : "781-232-3231"
+  }],
+  "address" : [{
+    "text" : "32 Fruit Street, Boston MA 02114"
+  }],
+  "gender" : "female"
+}

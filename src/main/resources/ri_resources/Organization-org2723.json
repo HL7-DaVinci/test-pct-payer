@@ -1,0 +1,53 @@
+{
+    "resourceType": "Organization",
+    "id": "org2723",
+    "meta": {
+        "lastUpdated": "2022-02-18T22:07:41.801+00:00",
+        "profile": [
+            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-organization"
+        ]
+    },
+    "identifier": [
+        {
+            "type": {
+            "coding": [
+                {
+                "system": "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTOrgIdentifierTypeCS",
+                "code": "ETIN",
+                "display": "Electronic Transmitter Identification Number"
+                }
+            ]
+            },
+            "value": "ETIN-3208472"
+        }
+    ],
+    "active": true,
+    "type": [
+        {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+                    "code": "pay",
+                    "display": "Payer"
+                }
+            ]
+        }
+    ],
+    "name": "Florida Blue",
+    "telecom": [
+        {
+            "system": "email",
+            "value": "support@floridablue.com"
+        }
+    ],
+    "address": [
+        {
+            "line": [
+                "P.O. Box 45074"
+            ],
+            "city": "Jacksonville",
+            "state": "FL",
+            "postalCode": "32232-5074"
+        }
+    ]
+}

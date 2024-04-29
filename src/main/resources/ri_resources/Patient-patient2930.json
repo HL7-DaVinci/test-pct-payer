@@ -1,0 +1,44 @@
+{
+    "resourceType": "Patient",
+    "id": "patient2930",
+    "meta": {
+        "lastUpdated": "2022-02-18T21:58:32.938+00:00",
+        "source": "MANUAL",
+        "profile": [
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+        ]
+    },
+    "identifier": [
+        {
+            "system": "https://www.edifecs.com/fhir/CodeSystems/unique-member-id",
+            "value": "H13936781"
+        },
+        {
+            "use": "usual",
+            "system": "https://fhir.collablynk.com/edifecs/fhir/R4/",
+            "value": "2930"
+        }
+    ],
+    "name": [
+        {
+            "family": "Bingman",
+            "given": [
+                "Sydney"
+            ]
+        }
+    ],
+    "gender": "male",
+    "birthDate": "1955-03-01",
+    "address": [
+        {
+            "use": "home",
+            "type": "physical",
+            "line": [
+                "480 E EVERGREEN AVE"
+            ],
+            "city": "LONGWOOD",
+            "state": "FL",
+            "postalCode": "327505599"
+        }
+    ]
+}

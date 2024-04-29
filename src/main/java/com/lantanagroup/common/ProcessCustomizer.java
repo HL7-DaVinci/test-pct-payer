@@ -1,44 +1,25 @@
 package com.lantanagroup.common;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
-import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
-import com.apicatalog.jsonld.loader.FileLoader;
 import com.lantanagroup.servers.davincipct.DavinciPctProperties;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import ca.uhn.fhir.rest.server.exceptions.ForbiddenOperationException;
-import ca.uhn.fhir.rest.server.exceptions.UnclassifiedServerFailureException;
-import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
-import ca.uhn.fhir.rest.api.RequestTypeEnum;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.interceptor.api.Hook;
 import ca.uhn.fhir.interceptor.api.Interceptor;
 import ca.uhn.fhir.interceptor.api.Pointcut;
 import ca.uhn.fhir.parser.IParser;
-import ca.uhn.fhir.rest.api.MethodOutcome;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.hl7.fhir.r4.model.*;
 
-import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
-import ca.uhn.fhir.rest.param.*;
-import ca.uhn.fhir.rest.api.server.IBundleProvider;
-
-// TODO, no need to use client for updating. Codnsider moving to Dao transactions.
-// Also switch over to a common framework for preloading resources.
+// TODO switch over to a common framework for preloading resources.
+// TODO Handle resource loading reference dependencies. Currently can't load a resource with a reference to a resource not yet on the server.
 
 @Interceptor
 public class ProcessCustomizer {
@@ -51,111 +32,125 @@ public class ProcessCustomizer {
     protected FhirContext fhirContext;
     protected DaoRegistry theDaoRegistry;
     protected String key;
-    private IGenericClient client;
     private boolean dataLoaded;
 
     private IParser jparser;
-    private final String[] organizations = {
-            "ri_resources/Organization-org1001.json",
-    };
-    private final String[] patients = {
-            "ri_resources/Patient-patient1001.json"
-    };
-    private final String[] contracts = {
-            "ri_resources/Contract-contract1001.json"
-    };
-    private final String[] coverages = {
-            "ri_resources/Coverage-coverage1001.json"
-    };
-
+    
     public ProcessCustomizer(FhirContext fhirContext, DaoRegistry theDaoRegistry, String key) {
         dataLoaded = false;
         this.fhirContext = fhirContext;
         this.theDaoRegistry = theDaoRegistry;
         this.key = key;
-        client = null;
 
         jparser = fhirContext.newJsonParser();
         jparser.setPrettyPrint(true);
 
     }
 
-  @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_PROCESSED)
-   public boolean incomingRequestPreProcessed(RequestDetails theRequestDetails, HttpServletRequest theRequest, HttpServletResponse theResponse) {
-      //String[] parts = theRequest.getRequestURI().toString().split("/");
-      // Here is where the Claim should be evaluated
-      if (!dataLoaded) {
-        
-        //client = fhirContext.newRestfulGenericClient(theRequestDetails.getFhirServerBase() + "/fhir");
-        //String test = theRequest.getScheme() + "://" + theRequest.getServerName() + ":" + theRequest.getServerPort() + theRequest.getContextPath();
-        client = fhirContext.newRestfulGenericClient(theRequest.getScheme() + "://" + theRequest.getServerName() + ":" + theRequest.getServerPort() + "/fhir");
-        dataLoaded = true;
-        logger.info("First request made to Server");
-        logger.info("Loading all data");
-        for (String filename: organizations) {
-            loadDataOrganization(filename);
-        }
-        logger.info("Loaded Organizations");
-        for (String filename: patients) {
-           loadDataPatient(filename);
-        }
-        logger.info("Loaded Patients");
-        for (String filename: contracts) {
-           loadDataContract(filename);
-        }
-        logger.info("Loaded Contracts");
-        for (String filename: coverages) {
-           loadDataCoverage(filename);
-        }
-        logger.info("Loaded Coverage");
-      }
-      return true;
-  }
+    // @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_PROCESSED)
+    @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_HANDLER_SELECTED)
+    public boolean incomingRequestPreProcessed(RequestDetails theRequestDetails) {
 
-    public void loadDataOrganization(String resource) {
-        try {
-            String p = util.loadResource(resource);
-            Organization r = jparser.parseResource(Organization.class, p);
-            logger.info("Uploading resource: {} ", resource);
-            MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
-        } catch (Exception e) {
-            logger.info(e.toString());
-            logger.info("Failure to update the Organization");
+        if (!dataLoaded) {
+            dataLoaded = true;
+            logger.info("First request made to Server");
+            logger.info("Loading all data");
+
+            for (String filename : getServerResources("ri_resources", "Organization-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(Organization.class).update(
+                            jparser.parseResource(Organization.class, util.loadResource(filename)), theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the Organization: " + e.getMessage());
+                }
+            }
+            for (String filename : getServerResources("ri_resources", "Patient-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(Patient.class).update(
+                            jparser.parseResource(Patient.class, util.loadResource(filename)), theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the Patient: " + e.getMessage());
+                }
+            }
+
+            for (String filename : getServerResources("ri_resources", "Practitioner-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(Practitioner.class).update(
+                            jparser.parseResource(Practitioner.class, util.loadResource(filename)), theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the Practitioner: " + e.getMessage());
+                }
+            }
+            for (String filename : getServerResources("ri_resources", "Contract-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(Contract.class).update(
+                            jparser.parseResource(Contract.class, util.loadResource(filename)), theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the Contract: " + e.getMessage());
+                }
+            }
+            for (String filename : getServerResources("ri_resources", "Coverage-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(Coverage.class).update(
+                            jparser.parseResource(Coverage.class, util.loadResource(filename)), theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the Coverage: " + e.getMessage());
+                }
+            }
+            for (String filename : getServerResources("ri_resources", "Location-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(Location.class).update(
+                            jparser.parseResource(Location.class, util.loadResource(filename)), theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the Location: " + e.getMessage());
+                }
+            }
+            for (String filename : getServerResources("ri_resources", "PractitionerRole-*.json")) {
+                try {
+                    System.out.println("Uploading resource " + filename);
+                    theDaoRegistry.getResourceDao(PractitionerRole.class).update(
+                            jparser.parseResource(PractitionerRole.class, util.loadResource(filename)),
+                            theRequestDetails);
+                } catch (Exception e) {
+                    System.out.println("Failure to update the PractitionerRole: " + e.getMessage());
+                }
+            }
+            logger.info("Loaded Coverage");
         }
+        return true;
     }
 
-    public void loadDataPatient(String resource) {
-        try {
-            String p = util.loadResource(resource);
-            Patient r = jparser.parseResource(Patient.class, p);
-            logger.info("Uploading resource " + resource);
-            MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
-        } catch (Exception e) {
-            logger.info("Failure to update the Patient");
-        }
-    }
+    public List<String> getServerResources(String path, String pattern) {
+        List<String> files = new ArrayList<>();
 
-    public void loadDataContract(String resource) {
-        try {
-            String p = util.loadResource(resource);
-            Contract r = jparser.parseResource(Contract.class, p);
-            logger.info("Uploading resource " + resource);
-            MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
-        } catch (Exception e) {
-            logger.info("Failure to update the Contract");
+        String localPath = path;
+        if (!localPath.substring(localPath.length() - 1, localPath.length() - 1).equals("/")) {
+            localPath = localPath + "/";
         }
-    }
 
-    public void loadDataCoverage(String resource) {
         try {
-            String p = util.loadResource(resource);
-            Coverage r = jparser.parseResource(Coverage.class, p);
-            logger.info("Uploading resource " + resource);
-            MethodOutcome outcome = client.update().resource(r).prettyPrint().encodedJson().execute();
-        } catch (Exception e) {
-            logger.info("Failure to update the Coverage");
-        }
-    }
 
+            ClassLoader cl = this.getClass().getClassLoader();
+            ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
+
+            org.springframework.core.io.Resource[] resources = resolver
+                    .getResources("classpath*:" + localPath + pattern);
+
+            for (org.springframework.core.io.Resource resource : resources) {
+                files.add(localPath + resource.getFilename());
+                logger.info(localPath + resource.getFilename());
+            }
+        } catch (Exception e) {
+            logger.info("Error retrieving file names from " + localPath + pattern);
+        }
+
+        return files;
+    }
 
 }

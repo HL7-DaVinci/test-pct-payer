@@ -1,0 +1,91 @@
+{
+    "resourceType": "Coverage",
+    "id": "coverage2931",
+    "meta": {
+        "profile": [
+            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-coverage"
+        ]
+    },
+    "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource &quot;coverage1001&quot; </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-coverage.html\">PCT Coverage</a></p></div><p><b>status</b>: active</p><p><b>subscriber</b>: <a href=\"Patient-patient1001.html\">Patient/patient1001</a> &quot; BETTERHALF&quot;</p><p><b>subscriberId</b>: PFP123450000</p><p><b>beneficiary</b>: <a href=\"Patient-patient1001.html\">Patient/patient1001</a> &quot; BETTERHALF&quot;</p><p><b>relationship</b>: Self <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/2.1.0/CodeSystem-subscriber-relationship.html\">SubscriberPolicyholder Relationship Codes</a>#self)</span></p><p><b>period</b>: 2021-01-01 --&gt; 2022-01-01</p><p><b>payor</b>: <a href=\"Organization-org1001.html\">Organization/org1001</a> &quot;Umbrella Insurance Company&quot;</p><h3>Classes</h3><table class=\"grid\"><tr><td>-</td><td><b>Type</b></td><td><b>Value</b></td><td><b>Name</b></td></tr><tr><td>*</td><td>Plan <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/2.1.0/CodeSystem-coverage-class.html\">Coverage Class Codes</a>#plan)</span></td><td>Premim Family Plus</td><td>Premim Family Plus Plan</td></tr></table><h3>CostToBeneficiaries</h3><table class=\"grid\"><tr><td>-</td><td><b>Type</b></td><td><b>Value[x]</b></td></tr><tr><td>*</td><td>Copay Percentage <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/2.1.0/CodeSystem-coverage-copay-type.html\">Coverage Copay Type Codes</a>#copaypct)</span></td><td>20</td></tr></table><p><b>contract</b>: <a href=\"Contract-contract1001.html\">Contract/contract1001</a></p></div>"
+    },
+    "identifier": [
+        {
+            "use": "usual",
+            "system": "https://pct-ehr.davinci.hl7.org/fhir",
+            "value": "2931"
+        }
+    ],
+    "status": "active",
+    "subscriber": {
+        "reference": "Patient/patient2930",
+        "display": "Sydney Bingman"
+    },
+    "subscriberId": "H13936781",
+    "beneficiary": {
+        "reference": "Patient/patient2930",
+        "display": "Sydney Bingman"
+    },
+    "relationship": {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+                "code": "self",
+                "display": "Self"
+            }
+        ]
+    },
+    "period": {
+        "start": "2022-01-01",
+        "end": "2023-01-01"
+    },
+    "payor": [
+        {
+            "reference": "Organization/org2723"
+        }
+    ],
+    "class": [
+        {
+            "type": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                        "code": "plan",
+                        "display": "Plan"
+                    }
+                ]
+            },
+            "value": "Premium Family Plus",
+            "name": "Premium Family Plus Plan"
+        },
+        {
+            "type": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                        "code": "group"
+                    }
+                ]
+            },
+            "value": "Blue Care HMO",
+            "name": "Blue Care HMO"
+        }
+    ],
+    "costToBeneficiary": [
+        {
+            "type": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
+                        "code": "copaypct",
+                        "display": "Copay Percentage"
+                    }
+                ]
+            },
+            "valueQuantity": {
+                "value": 30
+            }
+        }
+    ]
+}
