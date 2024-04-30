@@ -43,14 +43,15 @@ import ca.uhn.fhir.rest.api.server.RequestDetails;
 //import ca.uhn.fhir.rest.api.server.ResponseDetails;
 
 
-// TODO java.lang.IllegalStateException: getWriter() has already been called for this response
-// TODO Cannot call reset() after response has been committed
 // TODO Function documentation 
 // TODO Refactor response handling (currently using servlett, but is that the current preferred method?)
 
 public class GfeSubmitProvider {
   private static final String SERVICE_DESCRIPTION_EXTENSION = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/serviceDescription";
   private static final String DATA_ABSENT_REASON_EXTENSION = "http://hl7.org/fhir/StructureDefinition/data-absent-reason";
+  private static final String PCT_GFE_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle";
+  private static final String PCT_GFE_MISSING_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-missing-bundle";
+  private static final String PCT_GFE_COLLECTION_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-collection-bundle";
 
   private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GfeSubmitProvider.class);
   private FhirContext theFhirContext;
@@ -81,16 +82,14 @@ public class GfeSubmitProvider {
 
   // #region Operations
 
-  @Operation(name = "$gfe-submit", type = Claim.class)
-  public OperationOutcome gfeSubmit(
+  @Operation(name = "$gfe-submit", type = Claim.class, manualResponse = true)
+  public void gfeSubmit(
       @OperationParam(name = "resource", min = 1, max = 1, type = Bundle.class) Bundle theBundleResource,
       RequestDetails theRequestDetails,
       HttpServletRequest theRequest,
       HttpServletResponse theResponse) {
-    OperationOutcome outcome = new OperationOutcome();
 
     logger.info("Received GFE Submit");
-    theResponse.setHeader("Access-Control-Allow-Origin", "*");
 
     try {
       handleSubmit(theBundleResource, theRequestDetails, theRequest, theResponse);
@@ -100,21 +99,15 @@ public class GfeSubmitProvider {
       e.printStackTrace();
     }
 
-    return outcome;
   }
 
-  // @Operation(name = "$gfe-submit-poll-status", manualResponse = true,
-  // manualRequest = true, idempotent = true)
-  // public void getPollStatus(HttpServletRequest theRequest, HttpServletResponse
-  // theResponse, @OperationParam(name="_bundleId") String bundleId) throws
-  // IOException {
+  
   @Operation(name = "$gfe-submit-poll-status", type = Claim.class, manualResponse = true, manualRequest = true, idempotent = true)
   public void getPollStatus(
       @OperationParam(name = "_bundleId", min = 1, max = 1) String bundleId,
       RequestDetails theRequestDetails,
       HttpServletRequest theRequest,
       HttpServletResponse theResponse) throws IOException {
-    theResponse.setHeader("Access-Control-Allow-Origin", "*");
 
     // Attempt to fetch bundle
     Bundle bundle = null;
@@ -271,8 +264,6 @@ public class GfeSubmitProvider {
       handleError(theRequest, theResponse, ex);
     }
 
-    theResponse.getWriter().close();
-
   }
 
   /**
@@ -391,18 +382,25 @@ public class GfeSubmitProvider {
 
     for (BundleEntryComponent e : gfeBundle.getEntry()) {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
-      if (bundleEntry.fhirType().equals("Claim")) {
-        // This should be a gfe
-        Claim claim = (Claim) bundleEntry;
-        // load the base aeob
-        String eob = util.loadResource("templates/raw-aeob.json");
-        ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
-        aeob.setCreated(new Date());
-        // set the aeob values based on the gfe
-        convertGFEtoAEOB(gfeBundle, claim, aeob, aeobBundle, theRequestDetails);
 
-      } else {
-        // The claims do not need to individual
+      // Claim type should be converted to AEOB
+      if (bundleEntry.fhirType().equals("Claim")) {
+        claimToAEOB((Claim) bundleEntry, gfeBundle, aeobBundle, theRequestDetails);
+      }
+
+      // If the entry is a bundle, process the claims in the bundle
+      else if (bundleEntry.fhirType().equals("Bundle")) {
+        Bundle innerBundle = (Bundle) bundleEntry;
+        for (BundleEntryComponent innerEntry : innerBundle.getEntry()) {
+          IBaseResource innerBundleEntry = (IBaseResource) innerEntry.getResource();
+          if (innerBundleEntry.fhirType().equals("Claim")) {
+            claimToAEOB((Claim) innerBundleEntry, gfeBundle, aeobBundle, theRequestDetails);
+          }
+        }
+      }
+
+      // Add all other resources to the return bundle
+      else {
         aeobBundle.addEntry(e);
       }
 
@@ -411,9 +409,33 @@ public class GfeSubmitProvider {
       // aeobBundle.addEntry(e);
     }
     // TODO Add AEOB Summary
-    AddAEOBSummarytoAEOBBundle(gfeBundle, aeobBundle,theRequestDetails);
-    addGfeBundleToAeobBundle(gfeBundle, aeobBundle, theRequestDetails);
+    addAEOBSummarytoAEOBBundle(gfeBundle, aeobBundle,theRequestDetails);
+
+    // Copy GFE bundle(s) to AEOB Bundle
+    // If this is a collection bundle, add all the GFE bundles
+    if (gfeBundle.getMeta().getProfile().get(0).equals(PCT_GFE_COLLECTION_BUNDLE_PROFILE)) {
+      for (BundleEntryComponent e : gfeBundle.getEntry()) {
+        IBaseResource bundleEntry = (IBaseResource) e.getResource();
+        if (bundleEntry.fhirType().equals("Bundle")) {
+          addGfeBundleToAeobBundle((Bundle) bundleEntry, aeobBundle, theRequestDetails);
+        }
+      }
+    } 
+    else {
+      addGfeBundleToAeobBundle(gfeBundle, aeobBundle, theRequestDetails);
+    }
   }
+
+
+  public void claimToAEOB(Claim claim, Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
+    // load the base aeob
+    String eob = util.loadResource("templates/raw-aeob.json");
+    ExplanationOfBenefit aeob = jparser.parseResource(ExplanationOfBenefit.class, eob);
+    aeob.setCreated(new Date());
+    // set the aeob values based on the gfe
+    convertGFEtoAEOB(gfeBundle, claim, aeob, aeobBundle, theRequestDetails);
+  }
+
 
   /**
    * Modify the aeob with new extensions and all the resources from the gfe to the
@@ -648,7 +670,7 @@ public class GfeSubmitProvider {
    * @param aeobBundle the bundle to add to summary to
    * @return the complete aeob bundle
    */
-  public Bundle AddAEOBSummarytoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
+  public Bundle addAEOBSummarytoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
     logger.info("Summarizing AEOB Bundle");
     try {
       ExplanationOfBenefit aeob_summary = new ExplanationOfBenefit();
@@ -829,19 +851,19 @@ public class GfeSubmitProvider {
   private void addGfeBundleToAeobBundle(Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
     logger.info("Adding GFE Bundle to AEOB Bundle");
     Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
-    gfeBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getId());
+    gfeBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getIdPart());
     gfeBundleEntry.setResource(gfeBundle);
 
     if (!gfeBundle.hasMeta()) {
       Meta gfeBundle_meta = new Meta();
       gfeBundle_meta.setVersionId("1");
       gfeBundle_meta.setLastUpdated(new Date());
-      gfeBundle_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle");
+      gfeBundle_meta.addProfile(PCT_GFE_BUNDLE_PROFILE);
       gfeBundle.setMeta(gfeBundle_meta);
     } else {
       Meta gfeBundle_meta = gfeBundle.getMeta();
-      if (!gfeBundle_meta.hasProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle")) {
-        gfeBundle_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle");
+      if (!gfeBundle_meta.hasProfile(PCT_GFE_BUNDLE_PROFILE)) {
+        gfeBundle_meta.addProfile(PCT_GFE_BUNDLE_PROFILE);
       }
     }
     aeobBundle.addEntry(gfeBundleEntry);
