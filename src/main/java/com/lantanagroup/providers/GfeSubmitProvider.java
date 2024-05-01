@@ -61,7 +61,7 @@ public class GfeSubmitProvider {
   private IFhirResourceDao<Organization> theOrganizationDao;
   private IFhirResourceDao<ExplanationOfBenefit> theExplanationOfBenefitDao;
 
-  private Integer simulatedDelaySeconds = 60;
+  private Integer simulatedDelaySeconds = 15;
   private IParser jparser;
   private IParser xparser;
   private Random rand;
@@ -380,6 +380,7 @@ public class GfeSubmitProvider {
 
   public void convertGFEBundletoAEOBBundle(Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
 
+    boolean isCollectionBundle = false;
     for (BundleEntryComponent e : gfeBundle.getEntry()) {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
 
@@ -394,6 +395,7 @@ public class GfeSubmitProvider {
         for (BundleEntryComponent innerEntry : innerBundle.getEntry()) {
           IBaseResource innerBundleEntry = (IBaseResource) innerEntry.getResource();
           if (innerBundleEntry.fhirType().equals("Claim")) {
+            isCollectionBundle = true;
             claimToAEOB((Claim) innerBundleEntry, gfeBundle, aeobBundle, theRequestDetails);
           }
         }
@@ -409,11 +411,14 @@ public class GfeSubmitProvider {
       // aeobBundle.addEntry(e);
     }
     // TODO Add AEOB Summary
-    addAEOBSummarytoAEOBBundle(gfeBundle, aeobBundle,theRequestDetails);
+    addAEOBSummarytoAEOBBundle(gfeBundle, aeobBundle, theRequestDetails);
 
     // Copy GFE bundle(s) to AEOB Bundle
     // If this is a collection bundle, add all the GFE bundles
-    if (gfeBundle.getMeta().getProfile().get(0).equals(PCT_GFE_COLLECTION_BUNDLE_PROFILE)) {
+    // Can't be sure a profile will be provided. Context needs to be sent in from caller.
+    //if (gfeBundle.getMeta().getProfile().get(0).equals(PCT_GFE_COLLECTION_BUNDLE_PROFILE)) {
+    if(isCollectionBundle)
+    {
       for (BundleEntryComponent e : gfeBundle.getEntry()) {
         IBaseResource bundleEntry = (IBaseResource) e.getResource();
         if (bundleEntry.fhirType().equals("Bundle")) {
