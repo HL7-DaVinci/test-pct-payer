@@ -1017,6 +1017,8 @@ public class GfeSubmitProvider {
     if (providerEntry != null) {
       logger.info("Adding provider");
       Reference provRef = claim.getProvider();
+      // Add the provider resource to the bundle (this will ensure it's contained)
+      gfeBundle.addEntry(providerEntry);  // Adding the provider to the Bundle as a contained resource
       aeob.setProvider(new Reference(provRef.getReference()));
     }
     return providerEntry;
