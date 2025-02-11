@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ca.uhn.fhir.context.FhirContext;
@@ -18,14 +17,12 @@ import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDao;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
-//import ca.uhn.fhir.rest.server.exceptions.NotImplementedOperationException;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
+import java.math.BigDecimal;
+import java.util.stream.Collectors;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-//import org.hl7.fhir.instance.model.api.IIdType;
 import ca.uhn.fhir.parser.IParser;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Bundle.*;
@@ -33,14 +30,7 @@ import org.hl7.fhir.r4.model.ExplanationOfBenefit.ExplanationOfBenefitStatus;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.NoteComponent;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitBalanceComponent;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.BenefitComponent;
-
-//import com.apicatalog.jsonld.loader.FileLoader;
-//import com.lantanagroup.common.ProcessCustomizer;
-
-//import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
-//import ca.uhn.fhir.rest.api.server.ResponseDetails;
-//import ca.uhn.fhir.rest.api.server.ResponseDetails;
 
 
 // TODO Function documentation 
@@ -48,8 +38,10 @@ import ca.uhn.fhir.rest.api.server.RequestDetails;
 
 public class GfeSubmitProvider {
   private static final String SERVICE_DESCRIPTION_EXTENSION = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/serviceDescription";
+  private static final String OUT_OF_NETWORK_PROVIDER_INFO_EXTENSION = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/inNetworkProviderOptionsLink";
   private static final String DATA_ABSENT_REASON_EXTENSION = "http://hl7.org/fhir/StructureDefinition/data-absent-reason";
   private static final String PCT_GFE_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle";
+  private static final String PCT_GFE_SUMMARY_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-summary";
   private static final String PCT_GFE_MISSING_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-missing-bundle";
   private static final String PCT_GFE_COLLECTION_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-collection-bundle";
 
@@ -57,7 +49,6 @@ public class GfeSubmitProvider {
   private FhirContext theFhirContext;
   private IFhirResourceDao<Bundle> theBundleDao;
   private IFhirResourceDao<Practitioner> thePractitionerDao;
-  private IFhirResourceDao<PractitionerRole> thePractitionerRoleDao;
   private IFhirResourceDao<Organization> theOrganizationDao;
   private IFhirResourceDao<ExplanationOfBenefit> theExplanationOfBenefitDao;
 
@@ -70,7 +61,6 @@ public class GfeSubmitProvider {
     this.theFhirContext = ctx;
     theBundleDao = daoRegistry.getResourceDao(Bundle.class);
     thePractitionerDao = daoRegistry.getResourceDao(Practitioner.class);
-    thePractitionerRoleDao = daoRegistry.getResourceDao(PractitionerRole.class);
     theOrganizationDao = daoRegistry.getResourceDao(Organization.class);
     theExplanationOfBenefitDao = daoRegistry.getResourceDao(ExplanationOfBenefit.class);
 
@@ -237,7 +227,7 @@ public class GfeSubmitProvider {
       Bundle returnBundle = new Bundle();
       returnBundle.setType(BundleType.COLLECTION);
       //Identifier identifier = new Identifier().setSystem(theRequestDetails.getFhirServerBase() + "/documentIDs").setValue(UUID.randomUUID().toString());
-      
+
       //String uuid = UUID.randomUUID().toString();
       //identifier.setValue(uuid);
       returnBundle.setIdentifier(new Identifier().setSystem(theRequestDetails.getFhirServerBase() + "/documentIDs").setValue(UUID.randomUUID().toString()));
@@ -286,30 +276,21 @@ public class GfeSubmitProvider {
       //String resource = jparser.encodeResourceToString(bundleEntry);
       if (bundleEntry.fhirType().equals("Patient")) {
         Patient patient = (Patient) bundleEntry;
-        aeob.setPatient(new Reference(patient.getId()));
+        aeob.setPatient(new Reference(patient.getIdElement().getResourceType()+"/"+patient.getIdElement().getIdPart()));
       } else if (bundleEntry.fhirType().equals("Organization")) {
         Organization org = (Organization) bundleEntry;
         if (org.getType().get(0).getCoding().get(0).getCode().equals("pay")
             && (claim.getInsurer().getReference().contains(org.getId())
                 || org.getId().contains(claim.getInsurer().getReference()))) {
-          aeob.setInsurer(new Reference(org.getId()));
-        } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")
-            && (claim.getProvider().getReference().contains(org.getId())
+          aeob.setInsurer(new Reference(org.getIdElement().getResourceType()+"/"+org.getIdElement().getIdPart()));
+        } else if (claim.getProvider().getReference().contains("Organization")  && (claim.getProvider().getReference().contains(org.getId())
                 || org.getId().contains(claim.getProvider().getReference()))) {
-          aeob.setProvider(new Reference(org.getId()));
-        } else if (org.getType().get(0).getCoding().get(0).getCode().equals("institutional-submitter")) {
-          for (Extension ex : claim
-              .getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeSubmitter")) {
-            if (((Reference) ex.getValue()).getReference().contains(org.getId())) {
-              aeob.setProvider(new Reference(org.getId()));
-              break;
-            }
-          }
+          aeob.setProvider(new Reference(org.getIdElement().getResourceType()+"/"+org.getIdElement().getIdPart()));
         }
-
-      } else if (bundleEntry.fhirType().equals("Coverage")) {
+      }
+      else if (bundleEntry.fhirType().equals("Coverage")) {
         Coverage cov = (Coverage) bundleEntry;
-        aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
+        aeob.getInsurance().get(0).setCoverage(new Reference(cov.getIdElement().getResourceType()+"/"+cov.getIdElement().getIdPart()));
       }
     }
 
@@ -336,7 +317,7 @@ public class GfeSubmitProvider {
       //String resource = jparser.encodeResourceToString(bundleEntry);
       if (bundleEntry.fhirType().equals("Patient")) {
         Patient patient = (Patient) bundleEntry;
-        aeob.setPatient(new Reference(patient.getId()));
+        aeob.setPatient(new Reference(patient.getIdElement().getResourceType() + "/" + patient.getIdElement().getIdPart()));
       } else if (bundleEntry.fhirType().equals("Organization")) {
         Organization org = (Organization) bundleEntry;
         logger.info("Found Organization");
@@ -349,28 +330,27 @@ public class GfeSubmitProvider {
             && (claim.getInsurer().getReference().contains(org.getId())
                 || org.getId().contains(claim.getInsurer().getReference()))) {
           logger.info("Adding Insurer");
-          aeob.setInsurer(new Reference(org.getId()));
-        } else if (org.getType().get(0).getCoding().get(0).getCode().equals("prov")
-            && claim.getProvider().getReference().contains("Organization")
+          aeob.setInsurer(new Reference(org.getIdElement().getResourceType() + "/" + org.getIdElement().getIdPart()));
+        } else if (claim.getProvider().getReference().contains("Organization")
             && (claim.getProvider().getReference().contains(org.getId())
                 || org.getId().contains(claim.getProvider().getReference()))) {
           // Provider
           logger.info("Adding Provider with Organization");
 
-          aeob.setProvider(new Reference(org.getId()));
+          aeob.setProvider(new Reference(org.getIdElement().getResourceType() + "/" + org.getIdElement().getIdPart()));
         }
       } else if (bundleEntry.fhirType().equals("Coverage")) {
         Coverage cov = (Coverage) bundleEntry;
-        aeob.getInsurance().get(0).setCoverage(new Reference(cov.getId()));
-      } else if (bundleEntry.fhirType().equals("PractitionerRole")) {
-        PractitionerRole pr = (PractitionerRole) bundleEntry;
-        if (claim.getProvider().getReference().contains("PractitionerRole")
+        aeob.getInsurance().get(0).setCoverage(new Reference(cov.getIdElement().getResourceType() + "/" + cov.getIdElement().getIdPart()));
+      } else if (bundleEntry.fhirType().equals("Practitioner")) {
+        Practitioner pr = (Practitioner) bundleEntry;
+        if (claim.getProvider().getReference().contains("Practitioner")
             && (claim.getProvider().getReference().contains(pr.getId())
                 || pr.getId().contains(claim.getProvider().getReference()))) {
 
-          logger.info("Adding Provider by PractitionerRole");
+          logger.info("Adding Provider by Practitioner");
 
-          aeob.setProvider(new Reference(pr.getId()));
+          aeob.setProvider(new Reference(pr.getIdElement().getResourceType() + "/" + pr.getIdElement().getIdPart()));
         }
       }
     }
@@ -396,7 +376,7 @@ public class GfeSubmitProvider {
           IBaseResource innerBundleEntry = (IBaseResource) innerEntry.getResource();
           if (innerBundleEntry.fhirType().equals("Claim")) {
             isCollectionBundle = true;
-            claimToAEOB((Claim) innerBundleEntry, gfeBundle, aeobBundle, theRequestDetails);
+            claimToAEOB((Claim) innerBundleEntry, innerBundle, aeobBundle, theRequestDetails);
           }
         }
       }
@@ -422,12 +402,14 @@ public class GfeSubmitProvider {
       for (BundleEntryComponent e : gfeBundle.getEntry()) {
         IBaseResource bundleEntry = (IBaseResource) e.getResource();
         if (bundleEntry.fhirType().equals("Bundle")) {
-          addGfeBundleToAeobBundle((Bundle) bundleEntry, aeobBundle, theRequestDetails);
+          Claim gfeSummary = createGFESummary((Bundle) bundleEntry, theRequestDetails);
+          addGfeBundleToAeobBundle((Bundle) bundleEntry, gfeSummary, aeobBundle, theRequestDetails);
         }
       }
-    } 
+    }
     else {
-      addGfeBundleToAeobBundle(gfeBundle, aeobBundle, theRequestDetails);
+      // Need gfeSummary here ?
+      addGfeBundleToAeobBundle(gfeBundle, null, aeobBundle, theRequestDetails);
     }
   }
 
@@ -496,10 +478,11 @@ public class GfeSubmitProvider {
       // call would add a GFE bundle for each claim in the GFEBundle.
       // addGfeBundleToAeobBundle(gfeBundle, aeobBundle);
 
-      for (Extension ex : claim
+      // This extension could not be found in profile. Commenting it.
+      /*for (Extension ex : claim
           .getExtensionsByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeProviderAssignedIdentifier")) {
         aeob.addExtension(ex);
-      }
+      }*/
       if (claim.getMeta().getProfile().get(0)
           .equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/pct-gfe-Institutional")) {
         convertInstitutional(claim, gfeBundle, aeob);
@@ -686,18 +669,18 @@ public class GfeSubmitProvider {
       aeob_summary.setMeta(aeob_summary_meta);
       aeob_summary.setId("PCT-AEOB-Summary");
 
-      Extension outOfNetworkProviderInfo = new Extension(
-          "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/inNetworkProviderOptionsLink");
-      outOfNetworkProviderInfo.setValue(new UrlType("http://example.com/out-of-networks.html"));
-      aeob_summary.addExtension(outOfNetworkProviderInfo);
-
       Extension serviceExtension = new Extension(SERVICE_DESCRIPTION_EXTENSION);
       serviceExtension.setValue(new StringType(
-          "Example service - Should this really be required for a summary? How would the payer summarize a service description across all EOBs?"));
+          "Example service"));
+      aeob_summary.addExtension(serviceExtension);
+
+      Extension outOfNetworkProviderInfo = new Extension(OUT_OF_NETWORK_PROVIDER_INFO_EXTENSION);
+      outOfNetworkProviderInfo.setValue(new UrlType("http://example.com/out-of-network.html"));
+      aeob_summary.addExtension(outOfNetworkProviderInfo);
 
       aeob_summary.setStatus(ExplanationOfBenefitStatus.ACTIVE);
 
-      aeob_summary.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAEOBTypeSummaryCS", "eob-summary", "Explanation of Benefit Summary")));
+      aeob_summary.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTEstimateTypeSummaryCSTemporaryTrialUse", "estimate-summary", "Estimate Summary")));
 
       aeob_summary.setUse(ExplanationOfBenefit.Use.PREDETERMINATION);
 
@@ -735,13 +718,15 @@ public class GfeSubmitProvider {
             IBaseResource gfe_entry = (IBaseResource) gfe_bundle_entry.getResource();
             if (gfe_entry.fhirType().equals("Claim")) {
               Claim gfe_claim = (Claim) gfe_entry;
-              for (Claim.ItemComponent claim_item : gfe_claim.getItem()) {
-                if (claim_item.hasServicedDateType()) {
-                  UpdateSummaryBillablePeriod(aeob_summary, claim_item.getServicedDateType().getValue(),
-                      claim_item.getServicedDateType().getValue());
-                } else if (claim_item.hasServicedPeriod()) {
-                  UpdateSummaryBillablePeriod(aeob_summary, claim_item.getServicedPeriod().getStart(),
-                      claim_item.getServicedPeriod().getEnd());
+              processSummaryBillablePeriod(gfe_claim, aeob_summary);
+            }
+            else if (gfe_entry instanceof Bundle) {
+              Bundle gfe_bundle = (Bundle) gfe_entry;
+              for (BundleEntryComponent entry : gfe_bundle.getEntry()) {
+                IBaseResource entry_resource = (IBaseResource) entry.getResource();
+                if (entry_resource.fhirType().equals("Claim")) {
+                  Claim gfe_claim = (Claim) entry_resource;
+                  processSummaryBillablePeriod(gfe_claim, aeob_summary);
                 }
 
               }
@@ -795,9 +780,9 @@ public class GfeSubmitProvider {
               }
             }
           }
-          // TODO Benefit balance
           // Find Lowest balance and save or find the top benefit ballance and subtract
           // the totals?
+          aeob_summary.setBenefitBalance(addAEOBSummaryBenefitBalance(aeobBundle));
 
         }
 
@@ -814,6 +799,97 @@ public class GfeSubmitProvider {
       logger.info("Error: " + e.getMessage());
     }
     return aeobBundle;
+  }
+
+  private void processSummaryBillablePeriod(Claim claim, ExplanationOfBenefit aeobSummary) {
+    for (Claim.ItemComponent claim_item : claim.getItem()) {
+      if (claim_item.hasServicedDateType()) {
+        UpdateSummaryBillablePeriod(aeobSummary, claim_item.getServicedDateType().getValue(),
+                claim_item.getServicedDateType().getValue());
+      } else if (claim_item.hasServicedPeriod()) {
+        UpdateSummaryBillablePeriod(aeobSummary, claim_item.getServicedPeriod().getStart(),
+                claim_item.getServicedPeriod().getEnd());
+      }
+    }
+  }
+
+  /**
+   * Add GFE Summary to the GFE Bundle
+   *
+   * @param gfeBundle the bundle to add to summary to
+   * @return the GFE Summary Claim Resource
+   */
+  public Claim createGFESummary(Bundle gfeBundle, RequestDetails theRequestDetails) {
+    logger.info("Summarizing GFE Bundle");
+    Claim gfe_summary = new Claim();
+      try {
+          gfe_summary.setId("PCT-GFE-Summary");
+          gfe_summary.getMeta().addProfile(PCT_GFE_SUMMARY_PROFILE);
+
+          Extension outOfNetworkProviderInfo = new Extension(OUT_OF_NETWORK_PROVIDER_INFO_EXTENSION);
+          outOfNetworkProviderInfo.setValue(new UrlType("http://example.com/out-of-network.html"));
+          gfe_summary.addExtension(outOfNetworkProviderInfo);
+
+
+          gfe_summary.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTEstimateTypeSummaryCSTemporaryTrialUse", "estimate-summary", "Estimate Summary")));
+
+          gfe_summary.setUse(Claim.Use.PREDETERMINATION);
+
+          gfe_summary.setCreated(new Date());
+
+          Extension providerAbsentReason = new Extension(DATA_ABSENT_REASON_EXTENSION);
+          providerAbsentReason.setValue(new CodeType("not-applicable"));
+          gfe_summary.getProvider().addExtension(providerAbsentReason);
+          BigDecimal total_amount = new BigDecimal(0);
+
+          for (BundleEntryComponent e : gfeBundle.getEntry()) {
+              IBaseResource bundleEntry = (IBaseResource) e.getResource();
+              if (bundleEntry.fhirType().equals("Claim")) {
+                  Claim claimEntry = (Claim) bundleEntry;
+
+                  // initialize the summary gfe with data from the first found instance of each
+                  // element
+                  // (it may be that any individual gfe may not have the data, but for these
+                  // elements, if any contain the data, it needs to be expressed into the summary)
+
+                  if (!gfe_summary.hasStatus() && claimEntry.hasStatus()) {
+                    gfe_summary.setStatus(claimEntry.getStatus());
+                  }
+
+                  if (!gfe_summary.hasPriority() && claimEntry.hasPriority()) {
+                    gfe_summary.setPriority(claimEntry.getPriority());
+                  }
+
+                  if (!gfe_summary.hasPatient() && claimEntry.hasPatient()) {
+                      gfe_summary.setPatient(claimEntry.getPatient());
+                  }
+
+                  if (!gfe_summary.hasSupportingInfo() && claimEntry.hasSupportingInfo()) {
+                      gfe_summary.setSupportingInfo(claimEntry.getSupportingInfo());
+                  }
+
+                  if (!gfe_summary.hasInsurer() && claimEntry.hasInsurer()) {
+                      gfe_summary.setInsurer(claimEntry.getInsurer());
+                  }
+
+                  if (!gfe_summary.hasInsurance() && claimEntry.hasInsurance()) {
+                      gfe_summary.setInsurance(claimEntry.getInsurance());
+                  }
+
+                  if (!gfe_summary.hasDiagnosis() && claimEntry.hasDiagnosis()) {
+                      gfe_summary.setDiagnosis(claimEntry.getDiagnosis());
+                  }
+
+                  if (claimEntry.hasTotal()) {
+                    total_amount = total_amount.add(claimEntry.getTotal().getValue());
+                  }
+              }
+          }
+        gfe_summary.setTotal(new Money().setValue(total_amount).setCurrency("USD"));
+      } catch (Exception e) {
+          logger.info("Error: " + e.getMessage());
+      }
+      return gfe_summary;
   }
 
   private void UpdateSummaryBillablePeriod(ExplanationOfBenefit eob, Date start_date, Date end_date) {
@@ -853,9 +929,19 @@ public class GfeSubmitProvider {
 
   // #region GFE-Submit Operation Bundle Add Elements
 
-  private void addGfeBundleToAeobBundle(Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
+  private void addGfeBundleToAeobBundle(Bundle gfeBundle, Claim gfeSummary, Bundle aeobBundle, RequestDetails theRequestDetails) {
     logger.info("Adding GFE Bundle to AEOB Bundle");
-    Bundle.BundleEntryComponent gfeBundleEntry = new Bundle.BundleEntryComponent();
+
+    // Add GFE Summary to GFE Bundle
+    if( gfeSummary != null) {
+      BundleEntryComponent summary_aeobBundleEntry = new BundleEntryComponent();
+      summary_aeobBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Claim/" + gfeSummary.getId());
+      summary_aeobBundleEntry.setResource(gfeSummary);
+      gfeBundle.addEntry(summary_aeobBundleEntry);
+    }
+
+    // Add GFE Bundle to AEOB Bundle
+    Bundle.BundleEntryComponent gfeBundleEntry = new BundleEntryComponent();
     gfeBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getIdPart());
     gfeBundleEntry.setResource(gfeBundle);
 
@@ -934,7 +1020,7 @@ public class GfeSubmitProvider {
       ExplanationOfBenefit aeob, RequestDetails theRequestDetails) {
 
     Extension gfeReference = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeReference");
-    gfeReference.setValue(new Reference("Bundle/" + gfeBundle.getId()));
+    gfeReference.setValue(new Reference(gfeBundle.getId()));
     if (providerEntry != null) {
       IBaseResource providerResource = providerEntry.getResource();
       if (getClaimProvider(claim, gfeBundle) != null) {
@@ -942,9 +1028,6 @@ public class GfeSubmitProvider {
         switch(providerResource.fhirType()){
           case "Practitioner":
             thePractitionerDao.update((Practitioner)providerResource, theRequestDetails);
-            break;
-          case "PractitionerRole":
-            thePractitionerRoleDao.update((PractitionerRole)providerResource,theRequestDetails);
             break;
           case "Organization":
             theOrganizationDao.update((Organization)providerResource, theRequestDetails);
@@ -965,6 +1048,10 @@ public class GfeSubmitProvider {
     serviceExtension.setValue(new StringType("Example service"));
     aeob.addExtension(serviceExtension);
 
+    Extension outOfNetworkProviderInfo = new Extension(OUT_OF_NETWORK_PROVIDER_INFO_EXTENSION);
+    outOfNetworkProviderInfo.setValue(new UrlType("http://example.com/out-of-network.html"));
+    aeob.addExtension(outOfNetworkProviderInfo);
+
     return;
   }
 
@@ -976,10 +1063,10 @@ public class GfeSubmitProvider {
     // cc.addCoding(c);
 
     Extension processNoteClass = new Extension(
-        "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/processNoteClass", new CodeableConcept(new Coding("disclaimer", "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAEOBProcessNoteCS", "Disclaimer")));
+        "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/processNoteClass", new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAEOBProcessNoteCS", "disclaimer", "Disclaimer")));
     NoteComponent note = aeob.addProcessNote();
     note.addExtension(processNoteClass);
-    note.setText("Estimate only...");
+    note.setText("processNote disclaimer text");
   }
 
   private void addClaimIdentifierReference(Claim claim, ExplanationOfBenefit aeob) {
@@ -1033,9 +1120,68 @@ public class GfeSubmitProvider {
     // c.setDisplay("Unique Claim ID");
 
     //idType.getCoding().add(c);
-    id.setType(new CodeableConcept(new Coding("uc", "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTIdentifierType", "Unique Claim ID")));
+    id.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTIdentifierType", "uc", "Unique Claim ID")));
     id.setValue("urn:uuid:" + UUID.randomUUID().toString());
     ids.add(id);
+  }
+
+  private List<BenefitBalanceComponent> addAEOBSummaryBenefitBalance(Bundle aeobBundle) {
+    Map<String, BenefitBalanceComponent> summaryBenefitBalanceCategoryMap = new HashMap();
+
+    // Traverse all AEOB's to summarize BenefitBalance
+    for (BundleEntryComponent entry : aeobBundle.getEntry()) {
+      IBaseResource bundleEntry = (IBaseResource) entry.getResource();
+      if (bundleEntry.fhirType().equals("ExplanationOfBenefit")) {
+
+        ExplanationOfBenefit aeob = (ExplanationOfBenefit) bundleEntry;
+        // Loop through all benefit balance
+        for(BenefitBalanceComponent benefitBalance : aeob.getBenefitBalance()){
+          String category = benefitBalance.getCategory().getText();
+          BigDecimal remainingBalance = null;
+
+          BenefitBalanceComponent summaryBenefitBalance = summaryBenefitBalanceCategoryMap.get(category);
+          if( summaryBenefitBalance == null ){
+            summaryBenefitBalance = new BenefitBalanceComponent();
+            summaryBenefitBalance.setUnit(benefitBalance.getUnit());
+            summaryBenefitBalance.setTerm(benefitBalance.getTerm());
+            summaryBenefitBalance.setCategory(benefitBalance.getCategory());
+            summaryBenefitBalanceCategoryMap.put(category, summaryBenefitBalance);
+          }
+          // Loop through all benefit balance
+          for(BenefitComponent benefitComponent : benefitBalance.getFinancial()){
+
+            // Check if this already exists
+           BenefitComponent summaryBenefitComponent = null;
+            for(BenefitComponent existingSummaryBenefitComponent : summaryBenefitBalance.getFinancial()){
+                if( existingSummaryBenefitComponent.equals(benefitComponent)){
+                  summaryBenefitComponent = existingSummaryBenefitComponent;
+                  break;
+                }
+            }
+            if( summaryBenefitComponent == null ){
+              summaryBenefitComponent = new BenefitComponent();
+              summaryBenefitComponent.setType(benefitComponent.getType());
+              summaryBenefitComponent.setAllowed(new Money().setValue(BigDecimal.ZERO));
+              summaryBenefitComponent.setUsed(new Money().setValue(BigDecimal.ZERO));
+            }
+            if(benefitComponent.getAllowedMoney()!=null && benefitComponent.getAllowedMoney().getValue()!=null){
+              summaryBenefitComponent.setAllowed(new Money().setValue(summaryBenefitComponent.getAllowedMoney().getValue().add(benefitComponent.getAllowedMoney().getValue())).setCurrency("USD"));
+            }
+            if(benefitComponent.getUsedMoney()!=null && benefitComponent.getUsedMoney().getValue()!=null){
+              summaryBenefitComponent.setUsed(new Money().setValue(summaryBenefitComponent.getUsedMoney().getValue().add(benefitComponent.getUsedMoney().getValue())).setCurrency("USD"));
+            }
+            remainingBalance = summaryBenefitComponent.getAllowedMoney().getValue().subtract(summaryBenefitComponent.getUsedMoney().getValue());
+            Extension remainingBalanceExtension = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/remaining-benefit");
+            remainingBalanceExtension.setValue(new Money().setValue(remainingBalance).setCurrency("USD"));
+            summaryBenefitComponent.addExtension(remainingBalanceExtension);
+            if(!summaryBenefitBalance.getFinancial().contains(summaryBenefitComponent)){
+              summaryBenefitBalance.addFinancial(summaryBenefitComponent);
+            }
+          }
+        }
+      }
+    }
+    return summaryBenefitBalanceCategoryMap.values().stream().collect(Collectors.toList());
   }
 
   private void addBenefitBalance(ExplanationOfBenefit aeob) {
