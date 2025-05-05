@@ -758,24 +758,16 @@ public class GfeSubmitProvider {
           // Add up totals
           for (ExplanationOfBenefit.TotalComponent total : aeob.getTotal()) {
             // totals_dict
-            String total_category = new String();
-            total_category = "";
-
             if (total.hasCategory() && total.getCategory().hasCoding()) {
               for (Coding coding : total.getCategory().getCoding()) {
                 if (coding.hasSystem()
                     && coding.getSystem().equals("http://terminology.hl7.org/CodeSystem/adjudication")) {
-                  total_category = coding.getCode();
-                }
-              }
-              if (!total_category.equals("")) {
-                // Found a category to add to dict or to sum up in dict
-                if (!totals_map.containsKey(total_category)) {
-                  totals_map.put(total_category, total);
-                } else {
-                  totals_map.get(total_category).getAmount()
-                      .setValue(totals_map.get(total_category).getAmount().getValue().doubleValue()
-                          + total.getAmount().getValue().doubleValue());
+                  if (!totals_map.containsKey(coding.getCode())) {
+                    CodeableConcept category = total.getCategory();
+                    totals_map.put(coding.getCode(), new ExplanationOfBenefit.TotalComponent(category, new Money().setValue(BigDecimal.ZERO)));
+                  }
+                  totals_map.get(coding.getCode()).getAmount()
+                            .setValue(totals_map.get(coding.getCode()).getAmount().getValue().add(total.getAmount().getValue()).doubleValue());
                 }
               }
             }
