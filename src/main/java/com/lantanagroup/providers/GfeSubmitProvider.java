@@ -224,26 +224,31 @@ public class GfeSubmitProvider {
       // }
 
       logger.info("Converting GFE Bundle to AEOB Bundle");
-      Bundle returnBundle = new Bundle();
-      returnBundle.setType(BundleType.COLLECTION);
+      Bundle returnAEOBBundle = new Bundle();
+      returnAEOBBundle.setType(BundleType.COLLECTION);
+
+      Meta aeob_bundle_meta = new Meta();
+      aeob_bundle_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-bundle");
+      returnAEOBBundle.setMeta(aeob_bundle_meta);
+
       //Identifier identifier = new Identifier().setSystem(theRequestDetails.getFhirServerBase() + "/documentIDs").setValue(UUID.randomUUID().toString());
 
       //String uuid = UUID.randomUUID().toString();
       //identifier.setValue(uuid);
-      returnBundle.setIdentifier(new Identifier().setSystem(theRequestDetails.getFhirServerBase() + "/documentIDs").setValue(UUID.randomUUID().toString()));
-      returnBundle.setTimestamp(new Date());
+      returnAEOBBundle.setIdentifier(new Identifier().setSystem(theRequestDetails.getFhirServerBase() + "/documentIDs").setValue(UUID.randomUUID().toString()));
+      returnAEOBBundle.setTimestamp(new Date());
 
       try {
-        convertGFEBundletoAEOBBundle(theBundleResource, returnBundle, theRequestDetails);
+        convertGFEBundletoAEOBBundle(theBundleResource, returnAEOBBundle, theRequestDetails);
       } catch (Exception e) {
         logger.info("Error converting GFE Bundle to AEOB Bundle: " + e.getMessage());
       }
 
       logger.info("Storing AEOB Bundle");
       // updateBundle(returnBundle);
-      theBundleDao.create(returnBundle, theRequestDetails);
+      theBundleDao.create(returnAEOBBundle, theRequestDetails);
 
-      outputString = theRequestDetails.getFhirServerBase() + "/Claim/$gfe-submit-poll-status?_bundleId=" + returnBundle.getIdElement().getIdPart();
+      outputString = theRequestDetails.getFhirServerBase() + "/Claim/$gfe-submit-poll-status?_bundleId=" + returnAEOBBundle.getIdElement().getIdPart();
 
       logger.info("Returning 202 with Content-Location header");
       theResponse.setStatus(202);
@@ -365,7 +370,7 @@ public class GfeSubmitProvider {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
 
       // Claim type should be converted to AEOB
-      if (bundleEntry.fhirType().equals("Claim")) {
+      if (bundleEntry.fhirType().equals("Claim") && !isGFESummary((Claim) bundleEntry)) {
         claimToAEOB((Claim) bundleEntry, gfeBundle, aeobBundle, theRequestDetails);
       }
 
@@ -374,7 +379,7 @@ public class GfeSubmitProvider {
         Bundle innerBundle = (Bundle) bundleEntry;
         for (BundleEntryComponent innerEntry : innerBundle.getEntry()) {
           IBaseResource innerBundleEntry = (IBaseResource) innerEntry.getResource();
-          if (innerBundleEntry.fhirType().equals("Claim")) {
+          if (innerBundleEntry.fhirType().equals("Claim") && !isGFESummary((Claim) innerBundleEntry)) {
             isCollectionBundle = true;
             claimToAEOB((Claim) innerBundleEntry, innerBundle, aeobBundle, theRequestDetails);
           }
@@ -402,14 +407,12 @@ public class GfeSubmitProvider {
       for (BundleEntryComponent e : gfeBundle.getEntry()) {
         IBaseResource bundleEntry = (IBaseResource) e.getResource();
         if (bundleEntry.fhirType().equals("Bundle")) {
-          Claim gfeSummary = createGFESummary((Bundle) bundleEntry, theRequestDetails);
-          addGfeBundleToAeobBundle((Bundle) bundleEntry, gfeSummary, aeobBundle, theRequestDetails);
+          addGfeBundleToAeobBundle((Bundle) bundleEntry, aeobBundle, theRequestDetails);
         }
       }
     }
     else {
-      // Need gfeSummary here ?
-      addGfeBundleToAeobBundle(gfeBundle, null, aeobBundle, theRequestDetails);
+      addGfeBundleToAeobBundle(gfeBundle, aeobBundle, theRequestDetails);
     }
   }
 
@@ -423,6 +426,13 @@ public class GfeSubmitProvider {
     convertGFEtoAEOB(gfeBundle, claim, aeob, aeobBundle, theRequestDetails);
   }
 
+
+  public boolean isGFESummary(Claim claim){
+    if(claim.hasMeta() && claim.getMeta().hasProfile() && claim.getMeta().getProfile().get(0).getValue().equals(PCT_GFE_SUMMARY_PROFILE)){
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Modify the aeob with new extensions and all the resources from the gfe to the
@@ -716,7 +726,7 @@ public class GfeSubmitProvider {
           // date)
           for (BundleEntryComponent gfe_bundle_entry : gfeBundle.getEntry()) {
             IBaseResource gfe_entry = (IBaseResource) gfe_bundle_entry.getResource();
-            if (gfe_entry.fhirType().equals("Claim")) {
+            if (gfe_entry.fhirType().equals("Claim") && !isGFESummary((Claim)gfe_entry)) {
               Claim gfe_claim = (Claim) gfe_entry;
               processSummaryBillablePeriod(gfe_claim, aeob_summary);
             }
@@ -724,7 +734,7 @@ public class GfeSubmitProvider {
               Bundle gfe_bundle = (Bundle) gfe_entry;
               for (BundleEntryComponent entry : gfe_bundle.getEntry()) {
                 IBaseResource entry_resource = (IBaseResource) entry.getResource();
-                if (entry_resource.fhirType().equals("Claim")) {
+                if (entry_resource.fhirType().equals("Claim") && !isGFESummary((Claim)entry_resource)) {
                   Claim gfe_claim = (Claim) entry_resource;
                   processSummaryBillablePeriod(gfe_claim, aeob_summary);
                 }
@@ -921,16 +931,8 @@ public class GfeSubmitProvider {
 
   // #region GFE-Submit Operation Bundle Add Elements
 
-  private void addGfeBundleToAeobBundle(Bundle gfeBundle, Claim gfeSummary, Bundle aeobBundle, RequestDetails theRequestDetails) {
+  private void addGfeBundleToAeobBundle(Bundle gfeBundle, Bundle aeobBundle, RequestDetails theRequestDetails) {
     logger.info("Adding GFE Bundle to AEOB Bundle");
-
-    // Add GFE Summary to GFE Bundle
-    if( gfeSummary != null) {
-      BundleEntryComponent summary_aeobBundleEntry = new BundleEntryComponent();
-      summary_aeobBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Claim/" + gfeSummary.getId());
-      summary_aeobBundleEntry.setResource(gfeSummary);
-      gfeBundle.addEntry(summary_aeobBundleEntry);
-    }
 
     // Add GFE Bundle to AEOB Bundle
     Bundle.BundleEntryComponent gfeBundleEntry = new BundleEntryComponent();
