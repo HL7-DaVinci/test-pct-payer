@@ -128,6 +128,20 @@ public class GfeSubmitProvider {
     for (BundleEntryComponent entry : bundle.getEntry()) {
 
       Resource res = entry.getResource();
+
+      // The gfe bundle meta is missing after AEOB bundle save. Adding profile manually before returning the response.
+      if (res.fhirType().equals("Bundle")) {
+        if (!res.hasMeta()) {
+          Meta gfeBundle_meta = new Meta();
+          gfeBundle_meta.addProfile(PCT_GFE_BUNDLE_PROFILE);
+          res.setMeta(gfeBundle_meta);
+        } else {
+          if (!res.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)) {
+            res.getMeta().addProfile(PCT_GFE_BUNDLE_PROFILE);
+          }
+        }
+      }
+
       if (res.fhirType().equals("Patient")) {
 
         String familyName = "";
@@ -813,85 +827,6 @@ public class GfeSubmitProvider {
                 claim_item.getServicedPeriod().getEnd());
       }
     }
-  }
-
-  /**
-   * Add GFE Summary to the GFE Bundle
-   *
-   * @param gfeBundle the bundle to add to summary to
-   * @return the GFE Summary Claim Resource
-   */
-  public Claim createGFESummary(Bundle gfeBundle, RequestDetails theRequestDetails) {
-    logger.info("Summarizing GFE Bundle");
-    Claim gfe_summary = new Claim();
-      try {
-          gfe_summary.setId("PCT-GFE-Summary");
-          gfe_summary.getMeta().addProfile(PCT_GFE_SUMMARY_PROFILE);
-
-          Extension outOfNetworkProviderInfo = new Extension(OUT_OF_NETWORK_PROVIDER_INFO_EXTENSION);
-          outOfNetworkProviderInfo.setValue(new UrlType("http://example.com/out-of-network.html"));
-          gfe_summary.addExtension(outOfNetworkProviderInfo);
-
-
-          gfe_summary.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTEstimateTypeSummaryCSTemporaryTrialUse", "estimate-summary", "Estimate Summary")));
-
-          gfe_summary.setUse(Claim.Use.PREDETERMINATION);
-
-          gfe_summary.setCreated(new Date());
-
-          Extension providerAbsentReason = new Extension(DATA_ABSENT_REASON_EXTENSION);
-          providerAbsentReason.setValue(new CodeType("not-applicable"));
-          gfe_summary.getProvider().addExtension(providerAbsentReason);
-          BigDecimal total_amount = new BigDecimal(0);
-
-          for (BundleEntryComponent e : gfeBundle.getEntry()) {
-              IBaseResource bundleEntry = (IBaseResource) e.getResource();
-              if (bundleEntry.fhirType().equals("Claim")) {
-                  Claim claimEntry = (Claim) bundleEntry;
-
-                  // initialize the summary gfe with data from the first found instance of each
-                  // element
-                  // (it may be that any individual gfe may not have the data, but for these
-                  // elements, if any contain the data, it needs to be expressed into the summary)
-
-                  if (!gfe_summary.hasStatus() && claimEntry.hasStatus()) {
-                    gfe_summary.setStatus(claimEntry.getStatus());
-                  }
-
-                  if (!gfe_summary.hasPriority() && claimEntry.hasPriority()) {
-                    gfe_summary.setPriority(claimEntry.getPriority());
-                  }
-
-                  if (!gfe_summary.hasPatient() && claimEntry.hasPatient()) {
-                      gfe_summary.setPatient(claimEntry.getPatient());
-                  }
-
-                  if (!gfe_summary.hasSupportingInfo() && claimEntry.hasSupportingInfo()) {
-                      gfe_summary.setSupportingInfo(claimEntry.getSupportingInfo());
-                  }
-
-                  if (!gfe_summary.hasInsurer() && claimEntry.hasInsurer()) {
-                      gfe_summary.setInsurer(claimEntry.getInsurer());
-                  }
-
-                  if (!gfe_summary.hasInsurance() && claimEntry.hasInsurance()) {
-                      gfe_summary.setInsurance(claimEntry.getInsurance());
-                  }
-
-                  if (!gfe_summary.hasDiagnosis() && claimEntry.hasDiagnosis()) {
-                      gfe_summary.setDiagnosis(claimEntry.getDiagnosis());
-                  }
-
-                  if (claimEntry.hasTotal()) {
-                    total_amount = total_amount.add(claimEntry.getTotal().getValue());
-                  }
-              }
-          }
-        gfe_summary.setTotal(new Money().setValue(total_amount).setCurrency("USD"));
-      } catch (Exception e) {
-          logger.info("Error: " + e.getMessage());
-      }
-      return gfe_summary;
   }
 
   private void UpdateSummaryBillablePeriod(ExplanationOfBenefit eob, Date start_date, Date end_date) {
