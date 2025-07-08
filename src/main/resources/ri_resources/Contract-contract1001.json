@@ -1,26 +1,22 @@
 {
-  "resourceType": "Contract",
-  "id": "contract1001",
-  "text": {
-    "status": "generated",
-    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><p><b>applies</b>: 2021-01-01 --&gt; 2022-01-01</p><p><b>subject</b>: <a href=\"Patient-patient1001.html\">Generated Summary: Member Number: 12345, Employee number: 667788; Eve Betterhalf; Phone: 781-949-4949; gender: female; birthDate: 1955-07-23; <span title=\"Codes: {http://terminology.hl7.org/CodeSystem/v3-MaritalStatus U}\">unmarried</span></a></p><p><b>type</b>: <span title=\"Codes: {http://terminology.hl7.org/CodeSystem/contract-type healthinsurance}\">Health Insurance</span></p></div>"
+  "resourceType" : "Contract",
+  "id" : "contract1001",
+  "text" : {
+    "status" : "generated",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p class=\"res-header-id\"><b>Generated Narrative: Contract contract1001</b></p><a name=\"contract1001\"> </a><a name=\"hccontract1001\"> </a><a name=\"contract1001-en-US\"> </a><p><b>applies</b>: 2021-01-01 --&gt; 2022-01-01</p><p><b>subject</b>: <a href=\"Bundle-PCT-AEOB-Packet-1.html#urn-uuid-9c05d948-b931-4bff-8766-18b99b0650d4\">Bundle: identifier = http://example.com/identifiers/bundle#59688475-2324-3242-1234568; type = document; timestamp = 2025-01-10 11:01:00+0500</a></p><p><b>type</b>: <span title=\"Codes:{http://terminology.hl7.org/CodeSystem/contract-type healthinsurance}\">Health Insurance</span></p></div>"
   },
-  "applies": {
-    "start": "2021-01-01",
-    "end": "2022-01-01"
+  "applies" : {
+    "start" : "2021-01-01",
+    "end" : "2022-01-01"
   },
-  "subject": [
-    {
-      "reference": "Patient/patient1001"
-    }
-  ],
-  "type": {
-    "coding": [
-      {
-        "system": "http://terminology.hl7.org/CodeSystem/contract-type",
-        "code": "healthinsurance",
-        "display": "Health Insurance"
-      }
-    ]
+  "subject" : [{
+    "reference" : "Patient/9c05d948-b931-4bff-8766-18b99b0650d4"
+  }],
+  "type" : {
+    "coding" : [{
+      "system" : "http://terminology.hl7.org/CodeSystem/contract-type",
+      "code" : "healthinsurance",
+      "display" : "Health Insurance"
+    }]
   }
 }

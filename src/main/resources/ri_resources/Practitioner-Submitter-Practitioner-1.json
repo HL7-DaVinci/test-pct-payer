@@ -6,15 +6,9 @@
   },
   "text" : {
     "status" : "generated",
-    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: Practitioner</b><a name=\"Submitter-Practitioner-1\"> </a><a name=\"hcSubmitter-Practitioner-1\"> </a></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Practitioner &quot;Submitter-Practitioner-1&quot; </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-practitioner.html\">PCT Practitioner</a></p></div><p><b>identifier</b>: National provider identifier/6456789016, Electronic Transmitter Identification Number/ETIN-20020001</p><p><b>active</b>: true</p><p><b>name</b>: Nora Ologist</p><p><b>telecom</b>: ph: 860-547-3301(WORK), <a href=\"mailto:csender@GFEServiceHelp.com\">csender@GFEServiceHelp.com</a></p></div>"
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p class=\"res-header-id\"><b>Generated Narrative: Practitioner Submitter-Practitioner-1</b></p><a name=\"Submitter-Practitioner-1\"> </a><a name=\"hcSubmitter-Practitioner-1\"> </a><a name=\"Submitter-Practitioner-1-en-US\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-practitioner.html\">PCT Practitioner</a></p></div><p><b>identifier</b>: <a href=\"http://terminology.hl7.org/5.0.0/NamingSystem-npi.html\" title=\"National Provider Identifier\">NPI</a>/6456789016, Electronic Transmitter Identification Number/ETIN-20020001</p><p><b>active</b>: true</p><p><b>name</b>: Nora Ologist</p><p><b>telecom</b>: ph: 860-547-3301(Work), <a href=\"mailto:csender@GFEServiceHelp.com\">csender@GFEServiceHelp.com</a></p></div>"
   },
   "identifier" : [{
-    "type" : {
-      "coding" : [{
-        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
-        "code" : "NPI"
-      }]
-    },
     "system" : "http://hl7.org/fhir/sid/us-npi",
     "value" : "6456789016"
   },

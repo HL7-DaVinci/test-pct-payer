@@ -24,9 +24,9 @@ davincipct:
   implementationguides:
     hl_7_fhir_us_davinci_pct:
       installMode: STORE_AND_INSTALL
-      packageUrl: https://hl7.org/fhir/us/davinci-pct/2024May/package.tgz
+      packageUrl: https://build.fhir.org/ig/HL7/davinci-pct/package.tgz
       name: hl7.fhir.us.davinci-pct
-      version: 2.0.0-ballot
+      version: 2.0.0-draft
       fetchDependencies: false
       reloadExisting: false
     uscore:

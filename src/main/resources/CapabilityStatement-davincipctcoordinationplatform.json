@@ -1,1173 +1,907 @@
 {
-  "resourceType": "CapabilityStatement",
-  "id": "davinci-pct-coordination-platform",
-  "meta": {
-    "versionId": "1",
-    "lastUpdated": "2024-03-23T19:21:32.176+00:00"
+  "resourceType" : "CapabilityStatement",
+  "id" : "davinci-pct-coordination-platform",
+  "meta" : {
+    "versionId" : "1",
+    "lastUpdated" : "2024-03-23T19:21:32.176+00:00"
   },
-  "text": {
-    "status": "extensions",
-    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h2 id=\"title\">Patient Cost Transparency Implementation Guide Coordination Platform Capability Statement</h2><ul><li>Implementation Guide Version: 2.0.0-ballot</li><li>FHIR Version: 4.0.1</li><li>Supported Formats: <strong>SHALL</strong> support <code>json</code>, <strong>SHOULD</strong> support <code>xml</code></li><li>Supported Patch Formats: </li><li>Published on: 2024-03-23 14:21:32-0500</li><li>Published by: HL7 International / Financial Management</li></ul><blockquote class=\"impl-note\"><p><strong>Note to Implementers: FHIR Capabilities</strong></p><p>Any FHIR capability may be 'allowed' by the system unless explicitly marked as &quot;SHALL NOT&quot;. A few items are marked as MAY in the Implementation Guide to highlight their potential relevance to the use case.</p></blockquote><h2 id=\"rest\">FHIR RESTful Capabilities</h2><div class=\"panel panel-default\"><div class=\"panel-heading\"><h3 id=\"mode1\" class=\"panel-title\">Mode: <code>server</code></h3></div><div class=\"panel-body\"><div class=\"lead\"><em>Summary of System-wide Interactions</em></div></div></div><h3 id=\"resourcesCap1\">Capabilities by Resource/Profile</h3><h4 id=\"resourcesSummary1\">Summary</h4><p>The summary table lists the resources that are part of this configuration, and for each resource it lists:</p><ul><li>The relevant profiles (if any)</li><li>The interactions supported by each resource (<b><span class=\"bg-info\">R</span></b>ead, <b><span class=\"bg-info\">S</span></b>earch, <b><span class=\"bg-info\">U</span></b>pdate, and <b><span class=\"bg-info\">C</span></b>reate, are always shown, while <b><span class=\"bg-info\">VR</span></b>ead, <b><span class=\"bg-info\">P</span></b>atch, <b><span class=\"bg-info\">D</span></b>elete, <b><span class=\"bg-info\">H</span></b>istory on <b><span class=\"bg-info\">I</span></b>nstance, or <b><span class=\"bg-info\">H</span></b>istory on <b><span class=\"bg-info\">T</span></b>ype are only present if at least one of the resources has support for them.</li><li><span>The required, recommended, and some optional search parameters (if any). </span></li><li>The linked resources enabled for <code>_include</code></li><li>The other resources enabled for <code>_revinclude</code></li><li>The operations on the resource (if any)</li></ul><div class=\"table-responsive\"><table class=\"table table-condensed table-hover\"><thead><tr><th><b>Resource Type</b></th><th><b>Profile</b></th><th class=\"text-center\"><b title=\"GET a resource (read interaction)\">R</b></th><th class=\"text-center\"><b title=\"GET past versions of resources (vread interaction)\">V-R</b></th><th class=\"text-center\"><b title=\"GET all set of resources of the type (search interaction)\">S</b></th><th class=\"text-center\"><b title=\"PUT a new resource version (update interaction)\">U</b></th><th class=\"text-center\"><b title=\"PATCH a new resource version (patch interaction)\">P</b></th><th class=\"text-center\"><b title=\"POST a new resource (create interaction)\">C</b></th><th class=\"text-center\"><b title=\"DELETE a resource (delete interaction)\">D</b></th><th class=\"text-center\"><b title=\"GET changes to a resource (history interaction on instance)\">H-I</b></th><th class=\"text-center\"><b title=\"GET changes for all resources of the type (history interaction on type)\">H-T</b></th><th><b title=\"Required and recommended search parameters\">Searches</b></th><th><code><b>_include</b></code></th><th><code><b>_revinclude</b></code></th><th><b>Operations</b></th></tr></thead><tbody><tr><td><a href=\"#Task1-1\">Task</a></td><td>Supported profiles:<br/>  <a href=\"StructureDefinition-davinci-pct-gfe-contributor-task.html\">PCT GFE Contributor Task</a></td><td>y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td>_id, code, part-of, owner, requester, task-requested-period, status, identifier, _lastUpdated, code+status, code+status+owner, code+status+requester, part-of+owner</td><td/><td/><td/></tr><tr><td><a href=\"#Bundle1-2\">Bundle</a></td><td>Supported profiles:<br/>  <a href=\"StructureDefinition-davinci-pct-gfe-coordination-bundle.html\">PCT GFE Coordination Bundle</a><br/>  <a href=\"StructureDefinition-davinci-pct-gfe-collection-bundle.html\">PCT GFE Collection Bundle</a><br/>  <a href=\"StructureDefinition-davinci-pct-gfe-information-bundle.html\">PCT GFE Information Bundle</a><br/>  <a href=\"StructureDefinition-davinci-pct-gfe-bundle.html\">PCT GFE Bundle</a><br/>  <a href=\"StructureDefinition-davinci-pct-gfe-missing-bundle.html\">PCT GFE Missing Bundle</a></td><td>y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td>_id</td><td/><td/><td/></tr><tr><td><a href=\"#Organization1-3\">Organization</a></td><td>Supported profiles:<br/>  <a href=\"StructureDefinition-davinci-pct-organization.html\">PCT Organization</a></td><td>y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td>_id, active, identifier, name, address, active+name</td><td/><td/><td/></tr><tr><td><a href=\"#Practitioner1-4\">Practitioner</a></td><td>Supported profiles:<br/>  <a href=\"StructureDefinition-davinci-pct-practitioner.html\">PCT Practitioner</a></td><td>y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td>_id, identifier, name, address, telecom, active+name</td><td/><td/><td/></tr><tr><td><a href=\"#PractitionerRole1-5\">PractitionerRole</a></td><td>Supported profiles:<br/>  <a href=\"http://hl7.org/fhir/us/davinci-hrex/STU1/StructureDefinition-hrex-practitionerrole.html\">HRex PractitionerRole Profile</a></td><td>y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td class=\"text-center\">y</td><td>_id, specialty, role, organization, practitioner, telecom, active+name, active+specialty, active+role</td><td/><td/><td><code>$gfe-retrieve</code></td></tr></tbody></table></div><hr/><div class=\"panel panel-default\"><div class=\"panel-heading\"><h4 id=\"Task1-1\" class=\"panel-title\"><span style=\"float: right;\">Resource Conformance: SHALL</span>Task</h4></div><div class=\"panel-body\"><div class=\"container\"><div class=\"row\"><div class=\"col-lg-4\"><span class=\"lead\">Core FHIR Resource</span><br/><a href=\"http://hl7.org/fhir/R4/task.html\">Task</a></div><div class=\"col-lg-4\"><span class=\"lead\">Reference Policy</span><br/></div><div class=\"col-lg-4\"><span class=\"lead\">Interaction summary</span><br/><ul><li><strong>SHALL</strong> support <code>create</code>, <code>search-type</code>, <code>read</code>, <code>update</code>.</li><li><strong>MAY</strong> support <code>vread</code>, <code>patch</code>, <code>delete</code>, <code>history-instance</code>, <code>history-type</code>.</li></ul></div></div><p/><div class=\"row\"><div class=\"col-6\"><span class=\"lead\">Supported Profiles</span><p><a href=\"StructureDefinition-davinci-pct-gfe-contributor-task.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-contributor-task</a></p></div></div><p/><div class=\"row\"><div class=\"col-lg-7\"><span class=\"lead\">Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/resource.html#search\">_id</a></td><td><code>token</code></td><td><div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">code</a></td><td><code>token</code></td><td><div><p>Search by task type. For Patient Cost Transparency, this is the either the Coordination Task (gfe-coordination-task) or the GFE Contributor Task (gfe-contributor-task)</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">part-of</a></td><td><code>reference</code></td><td><div><p>Search by task this task is part of. For Patient Cost Transparency, this is used for searching for Contributor Tasks that are part of a Coordination Task</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">owner</a></td><td><code>reference</code></td><td><div><p>Search by task owner. For Patient Cost Transparency, this is the provider assigned to the Task. Usually a GFE Contributor</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">requester</a></td><td><code>reference</code></td><td><div><p>Search by task requester. For Patient Cost Transparency, this is the provider that is the GFE Coordination requester</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">status</a></td><td><code>token</code></td><td><div><p>Search by task status</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"SearchParameter-task-requested-period.html\">task-requested-period</a></td><td><code>date</code></td><td><div><p>Search for a task by when the task should be performed. For Patient Cost Transparency, this is when the GFE Bundle should be provided by</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">identifier</a></td><td><code>token</code></td><td><div><p>Search for a task instance by its business identifier</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/resource.html#search\">_lastUpdated</a></td><td><code>date</code></td><td><div><p>Allows filtering for only records that have changed since last query</p>\n</div></td></tr></tbody></table></div><div class=\"col-lg-5\"><span class=\"lead\">Combined Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameters</th><th>Types</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">code</a>+<a href=\"http://hl7.org/fhir/R4/task.html#search\">status</a></td><td><code>token</code>+<code>token</code></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">code</a>+<a href=\"http://hl7.org/fhir/R4/task.html#search\">status</a>+<a href=\"http://hl7.org/fhir/R4/task.html#search\">owner</a></td><td><code>token</code>+<code>token</code>+<code>reference</code></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">code</a>+<a href=\"http://hl7.org/fhir/R4/task.html#search\">status</a>+<a href=\"http://hl7.org/fhir/R4/task.html#search\">requester</a></td><td><code>token</code>+<code>token</code>+<code>reference</code></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/task.html#search\">part-of</a>+<a href=\"http://hl7.org/fhir/R4/task.html#search\">owner</a></td><td><code>reference</code>+<code>reference</code></td></tr></tbody></table></div></div></div></div></div><div class=\"panel panel-default\"><div class=\"panel-heading\"><h4 id=\"Bundle1-2\" class=\"panel-title\"><span style=\"float: right;\">Resource Conformance: SHALL</span>Bundle</h4></div><div class=\"panel-body\"><div class=\"container\"><div class=\"row\"><div class=\"col-lg-4\"><span class=\"lead\">Core FHIR Resource</span><br/><a href=\"http://hl7.org/fhir/R4/bundle.html\">Bundle</a></div><div class=\"col-lg-4\"><span class=\"lead\">Reference Policy</span><br/></div><div class=\"col-lg-4\"><span class=\"lead\">Interaction summary</span><br/><ul><li><strong>SHALL</strong> support <code>create</code>, <code>search-type</code>, <code>read</code>, <code>update</code>.</li><li><strong>MAY</strong> support <code>vread</code>, <code>patch</code>, <code>delete</code>, <code>history-instance</code>, <code>history-type</code>.</li></ul></div></div><p/><div class=\"row\"><div class=\"col-6\"><span class=\"lead\">Supported Profiles</span><p><a href=\"StructureDefinition-davinci-pct-gfe-coordination-bundle.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-coordination-bundle</a><br/><a href=\"StructureDefinition-davinci-pct-gfe-collection-bundle.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-collection-bundle</a><br/><a href=\"StructureDefinition-davinci-pct-gfe-information-bundle.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-information-bundle</a><br/><a href=\"StructureDefinition-davinci-pct-gfe-bundle.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle</a><br/><a href=\"StructureDefinition-davinci-pct-gfe-missing-bundle.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-missing-bundle</a></p></div></div><p/><div class=\"row\"><div class=\"col-lg-7\"><span class=\"lead\">Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/resource.html#search\">_id</a></td><td><code>token</code></td><td><div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></td></tr></tbody></table></div><div class=\"col-lg-5\"> </div></div></div></div></div><div class=\"panel panel-default\"><div class=\"panel-heading\"><h4 id=\"Organization1-3\" class=\"panel-title\"><span style=\"float: right;\">Resource Conformance: SHALL</span>Organization</h4></div><div class=\"panel-body\"><div class=\"container\"><div class=\"row\"><div class=\"col-lg-4\"><span class=\"lead\">Core FHIR Resource</span><br/><a href=\"http://hl7.org/fhir/R4/organization.html\">Organization</a></div><div class=\"col-lg-4\"><span class=\"lead\">Reference Policy</span><br/></div><div class=\"col-lg-4\"><span class=\"lead\">Interaction summary</span><br/><ul><li><strong>SHALL</strong> support <code>search-type</code>, <code>read</code>.</li><li><strong>MAY</strong> support <code>create</code>, <code>vread</code>, <code>update</code>, <code>patch</code>, <code>delete</code>, <code>history-instance</code>, <code>history-type</code>.</li></ul></div></div><p/><div class=\"row\"><div class=\"col-6\"><span class=\"lead\">Supported Profiles</span><p><a href=\"StructureDefinition-davinci-pct-organization.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-organization</a></p></div></div><p/><div class=\"row\"><div class=\"col-lg-7\"><span class=\"lead\">Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/resource.html#search\">_id</a></td><td><code>token</code></td><td><div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/organization.html#search\">active</a></td><td><code>token</code></td><td><div><p>Any identifier for the organization (not the accreditation issuer's identifier)</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/organization.html#search\">identifier</a></td><td><code>token</code></td><td><div><p>Any identifier for the organization (not the accreditation issuer's identifier)</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/organization.html#search\">name</a></td><td><code>string</code></td><td><div><p>A portion of the organization's name or alias</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/organization.html#search\">address</a></td><td><code>string</code></td><td><div><p>A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text</p>\n</div></td></tr></tbody></table></div><div class=\"col-lg-5\"><span class=\"lead\">Combined Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameters</th><th>Types</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/organization.html#search\">active</a>+<a href=\"http://hl7.org/fhir/R4/organization.html#search\">name</a></td><td><code>token</code>+<code>string</code></td></tr></tbody></table></div></div></div></div></div><div class=\"panel panel-default\"><div class=\"panel-heading\"><h4 id=\"Practitioner1-4\" class=\"panel-title\"><span style=\"float: right;\">Resource Conformance: SHALL</span>Practitioner</h4></div><div class=\"panel-body\"><div class=\"container\"><div class=\"row\"><div class=\"col-lg-4\"><span class=\"lead\">Core FHIR Resource</span><br/><a href=\"http://hl7.org/fhir/R4/practitioner.html\">Practitioner</a></div><div class=\"col-lg-4\"><span class=\"lead\">Reference Policy</span><br/></div><div class=\"col-lg-4\"><span class=\"lead\">Interaction summary</span><br/><ul><li><strong>SHALL</strong> support <code>search-type</code>, <code>read</code>.</li><li><strong>MAY</strong> support <code>create</code>, <code>vread</code>, <code>update</code>, <code>patch</code>, <code>delete</code>, <code>history-instance</code>, <code>history-type</code>.</li></ul></div></div><p/><div class=\"row\"><div class=\"col-6\"><span class=\"lead\">Supported Profiles</span><p><a href=\"StructureDefinition-davinci-pct-practitioner.html\">http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-practitioner</a></p></div></div><p/><div class=\"row\"><div class=\"col-lg-7\"><span class=\"lead\">Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/resource.html#search\">_id</a></td><td><code>token</code></td><td><div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/practitioner.html#search\">identifier</a></td><td><code>token</code></td><td><div><p>A practitioner's Identifier</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/practitioner.html#search\">name</a></td><td><code>string</code></td><td><div><p>A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/practitioner.html#search\">address</a></td><td><code>string</code></td><td><div><p>A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/practitioner.html#search\">telecom</a></td><td><code>token</code></td><td><div><p>The value in any kind of contact.</p>\n</div></td></tr></tbody></table></div><div class=\"col-lg-5\"><span class=\"lead\">Combined Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameters</th><th>Types</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td>active+<a href=\"http://hl7.org/fhir/R4/practitioner.html#search\">name</a></td><td><code>&lt;unknown&gt;</code>+<code>string</code></td></tr></tbody></table></div></div></div></div></div><div class=\"panel panel-default\"><div class=\"panel-heading\"><h4 id=\"PractitionerRole1-5\" class=\"panel-title\"><span style=\"float: right;\">Resource Conformance: SHALL</span>PractitionerRole</h4></div><div class=\"panel-body\"><div class=\"container\"><div class=\"row\"><div class=\"col-lg-4\"><span class=\"lead\">Core FHIR Resource</span><br/><a href=\"http://hl7.org/fhir/R4/practitionerrole.html\">PractitionerRole</a></div><div class=\"col-lg-4\"><span class=\"lead\">Reference Policy</span><br/></div><div class=\"col-lg-4\"><span class=\"lead\">Interaction summary</span><br/><ul><li><strong>SHALL</strong> support <code>search-type</code>, <code>read</code>.</li><li><strong>MAY</strong> support <code>create</code>, <code>vread</code>, <code>update</code>, <code>patch</code>, <code>delete</code>, <code>history-instance</code>, <code>history-type</code>.</li></ul></div></div><p/><div class=\"row\"><div class=\"col-6\"><span class=\"lead\">Supported Profiles</span><p><a href=\"http://hl7.org/fhir/us/davinci-hrex/STU1/StructureDefinition-hrex-practitionerrole.html\">http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-practitionerrole</a></p></div></div><p/><div class=\"row\"><div class=\"col-lg-7\"><span class=\"lead\">Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameter</th><th>Type</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/resource.html#search\">_id</a></td><td><code>token</code></td><td><div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">specialty</a></td><td><code>token</code></td><td><div><p>Practitioner that is able to provide the defined services for the organization</p>\n</div></td></tr><tr><td><b>SHALL</b></td><td><a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">role</a></td><td><code>token</code></td><td><div><p>The practitioner can perform this role at for the organization</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">organization</a></td><td><code>reference</code></td><td><div><p>The identity of the organization the practitioner represents / acts on behalf of</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">practitioner</a></td><td><code>reference</code></td><td><div><p>Practitioner that is able to provide the defined services for the organization.</p>\n</div></td></tr><tr><td><b>SHOULD</b></td><td><a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">telecom</a></td><td><code>token</code></td><td><div><p>The value in any kind of contact.</p>\n</div></td></tr></tbody></table></div><div class=\"col-lg-5\"><span class=\"lead\">Combined Search Parameters</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Parameters</th><th>Types</th></tr></thead><tbody><tr><td><b>SHOULD</b></td><td>active+name</td><td><code>&lt;unknown&gt;</code>+<code>&lt;unknown&gt;</code></td></tr><tr><td><b>SHOULD</b></td><td>active+<a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">specialty</a></td><td><code>&lt;unknown&gt;</code>+<code>token</code></td></tr><tr><td><b>SHOULD</b></td><td>active+<a href=\"http://hl7.org/fhir/R4/practitionerrole.html#search\">role</a></td><td><code>&lt;unknown&gt;</code>+<code>token</code></td></tr></tbody></table></div></div><div class=\"row\"><div class=\"col-12\"><span class=\"lead\">Extended Operations</span><table class=\"table table-condensed table-hover\"><thead><tr><th>Conformance</th><th>Operation</th><th>Documentation</th></tr></thead><tbody><tr><td><b>SHALL</b></td><td><a href=\"OperationDefinition-GFE-retrieve.html\">$gfe-retrieve</a></td><td><div><p>This operation is used by an entity to retrieve a GFE Collection Bundle containing the GFE Bundle(s) and other referenced resources based on a GFE Coordination Task. The only input parameter is the single reference to the GFE Coordination Task resource. The only output is a GFE Collection Bundle. If the task reference is to a Coordination Task, this will return the GFE Collection Bundle. If this task reference is for a GFE Contributor Task, it returns the GFE Bundle, if present. If the Task reference points to a Task resource that is neither a Coordination Task or a GFE Contributor Task, the response is an HTTP error <code>400 - Bad Request</code>. If a Task is not found, the response is an HTTP error <code>400 - Bad Request</code>. If a GFE Bundle does not exist for an associated GFE Contributor Task, in place of a GFE Bundle, a GFE Missing Bundle is provided in its place (either directly ina response if the referenced task was a GFE Contributor Task or inside the GFE Collection Bundle if the referenced task was a Coordination Task.)</p>\n</div></td></tr></tbody></table></div></div></div></div></div></div>"
+  "text" : {
+    "status" : "extensions",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\">\n      <!-- TODO \n    Jurisdiction \n    Prohibited extension - http://hl7.org/fhir/StructureDefinition/capabilitystatement-prohibited -->\n      <!-- set include_symbols = false to turn off confonrmance symbols and legen, true to turn on -->\n  \n  \n  <h2 id=\"title\">Patient Cost Transparency Implementation Guide Coordination Platform Capability Statement</h2>\n  <ul>\n    <li><b>Title:</b>Patient Cost Transparency Implementation Guide Coordination Platform Capability Statement</li>\n    <li><b>Implementation Guide Version:</b> 2.0.0-draft</li>\n    <li><b>FHIR Version:</b> 4.0.1</li>\n    <li><b>Intended Use:</b> Requirements</li>\n    <li><b>Supported Formats: </b> \n\n    \n      \n      \n        <strong>SHALL</strong> support \n      \n      json;\n    \n      \n      \n        <strong>SHOULD</strong> support \n      \n      xml;\n    \n\n    </li>\n    \n    <li><b>Published:</b> 2024-03-23 14:21:32-0500</li>\n  \n    <li><b>Published by:</b> HL7 International / Financial Management</li>\n    <li><b>Status:</b> Active</li>\n    <li><b>Copyright:</b> <div><p>Used by permission of HL7 International, all rights reserved Creative Commons License</p>\n</div></li>\n  </ul>\n  <br/>\n\n\n\n  \n    <strong>Description:</strong> <div><div><p>Coordination Platform Capability Statement for the Da Vinci Patient Cost Transparency Implementation Guide</p>\n</div></div>\n  \n  <br/>\n  \n  \n\n\n  \n    <h3>Support and Requirements for Other Artifacts</h3>\n    \n    \n      <tr>\n        <th>Imports other capabilities:</th>\n        <td>\n          <ul>\n            \n              <li>\n                \n                <a href=\"http://hl7.org/fhir/us/core/STU3.1.1/CapabilityStatement-us-core-server.html\">US Core Server CapabilityStatement</a>\n              </li>\n            \n          </ul>\n        </td>\n      </tr>\n    \n    \n  \n\n  <br/>\n      <!-- TODO - Make this a summary of capabilities, including system wide and each paradigm -->\n  <p>\n    <b>Jump to:</b>\n  </p>\n  <ul>\n    \n      <li><a href=\"#Server\">REST Server</a></li>\n    \n    \n    \n  </ul>\n\n\n\n      <!-- REST Capabilities -->\n  \n    <br/>\n    <a name=\"Server\"> </a>\n    <h3 id=\"behavior\">FHIR Server RESTful Capabilities</h3>\n    \n\n        <!-- REST Security -->\n    \n\n        <!-- REST System wide Capabilities -->\n    \n      <h3>System-wide Server Capabilities</h3>\n    \n          <!-- REST System wide interactions -->\n      \n\n          <!-- REST System wide operations -->\n      \n\n\n          <!-- REST System wide search parameters -->\n      \n    \n\n\n\n        <!-- Resource Capabilities -->\n    \n\n      <h4>Summary of Resource/Profile Capabilities</h4>\n          <!-- TODO need include conformance verb legend -->\n      <p><i>♦ = <b>SHALL</b> expectation</i>; <i>⋄ = <b>SHOULD</b> expectation</i>; <i>▿ = <b>MAY</b> expectation</i>;</p>\n      <table class=\"grid\">\n        <thead>\n          <tr>\n            <th>Resource Type</th>\n            <th>Supported Interactions</th>\n            <th>Supported Profiles</th>\n            <th>Supported Searches</th>\n            <th>Supported <code>_includes</code></th>\n            <th>Supported <code>_revincludes</code></th>\n            <th>Supported Operations</th>\n          </tr>\n        </thead>\n        <tbody>\n          \n          <tr>\n            <td>\n              <a href=\"#Server_Task\"><span style=\"white-space: nowrap;\">Task<span title=\"null\"><sup/></span></span></a>\n            </td>\n\n                <!-- Supported Interactions -->\n            <td>\n              \n                \n                <span style=\"white-space: nowrap;\">create<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">search-type<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">read<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">vread<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">update<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">patch<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">delete<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-instance<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-type<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n              \n            </td>\n\n                <!-- Supported Profiles -->\n            <td>\n              \n                <a href=\"StructureDefinition-davinci-pct-gfe-contributor-task.html\">PCT GFE Contributor Task</a><span title=\"SHALL\"><sup>♦</sup></span>,\n                \n                \n              \n            </td>\n\n                <!-- Supported Searches will need to do some sort of mapping instead of join to get the expectations printed out -->\n            <td>\n              \n                \n                  <span style=\"white-space: nowrap;\">_id<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">code<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">part-of<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">owner<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">requester<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">task-requested-period<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">status<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">identifier<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">_lastUpdated<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">code</span>+<span style=\"white-space: nowrap;\">status</span>+<span title=\"SHALL\"><sup>♦</sup></span>, \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">code</span>+<span style=\"white-space: nowrap;\">status</span>+<span style=\"white-space: nowrap;\">owner</span>+<span title=\"SHALL\"><sup>♦</sup></span>, \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">code</span>+<span style=\"white-space: nowrap;\">status</span>+<span style=\"white-space: nowrap;\">requester</span>+<span title=\"SHALL\"><sup>♦</sup></span>, \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">part-of</span>+<span style=\"white-space: nowrap;\">owner</span>+<span title=\"SHALL\"><sup>♦</sup></span>, \n                  \n                \n              \n            </td>\n\n                <!-- Supported _includes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported _revincludes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported Operations -->\n            <td>\n              \n            </td>\n          </tr>\n          \n          <tr>\n            <td>\n              <a href=\"#Server_Bundle\"><span style=\"white-space: nowrap;\">Bundle<span title=\"null\"><sup/></span></span></a>\n            </td>\n\n                <!-- Supported Interactions -->\n            <td>\n              \n                \n                <span style=\"white-space: nowrap;\">create<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">search-type<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">read<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">vread<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">update<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">patch<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">delete<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-instance<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-type<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n              \n            </td>\n\n                <!-- Supported Profiles -->\n            <td>\n              \n                <a href=\"StructureDefinition-davinci-pct-gfe-coordination-bundle.html\">PCT GFE Coordination Bundle</a><span title=\"SHOULD, SHOULD, SHALL, SHOULD, SHALL\"><sup/></span>,\n                \n                \n                <a href=\"StructureDefinition-davinci-pct-gfe-packet.html\">PCT GFE Packet</a><span title=\"SHOULD, SHOULD, SHALL, SHOULD, SHALL\"><sup/></span>,\n                \n                \n                <a href=\"StructureDefinition-davinci-pct-gfe-information-bundle.html\">PCT GFE Information Bundle</a><span title=\"SHOULD, SHOULD, SHALL, SHOULD, SHALL\"><sup/></span>,\n                \n                \n                <a href=\"StructureDefinition-davinci-pct-gfe-bundle.html\">PCT GFE Bundle</a><span title=\"SHOULD, SHOULD, SHALL, SHOULD, SHALL\"><sup/></span>,\n                \n                \n                <a href=\"StructureDefinition-davinci-pct-gfe-missing-bundle.html\">PCT GFE Missing Bundle</a><span title=\"SHOULD, SHOULD, SHALL, SHOULD, SHALL\"><sup/></span>,\n                \n                \n              \n            </td>\n\n                <!-- Supported Searches will need to do some sort of mapping instead of join to get the expectations printed out -->\n            <td>\n              \n                \n                  <span style=\"white-space: nowrap;\">_id<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                \n              \n            </td>\n\n                <!-- Supported _includes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported _revincludes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported Operations -->\n            <td>\n              \n            </td>\n          </tr>\n          \n          <tr>\n            <td>\n              <a href=\"#Server_Organization\"><span style=\"white-space: nowrap;\">Organization<span title=\"null\"><sup/></span></span></a>\n            </td>\n\n                <!-- Supported Interactions -->\n            <td>\n              \n                \n                <span style=\"white-space: nowrap;\">create<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">search-type<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">read<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">vread<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">update<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">patch<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">delete<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-instance<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-type<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n              \n            </td>\n\n                <!-- Supported Profiles -->\n            <td>\n              \n                <a href=\"StructureDefinition-davinci-pct-organization.html\">PCT Organization</a><span title=\"SHALL\"><sup>♦</sup></span>,\n                \n                \n              \n            </td>\n\n                <!-- Supported Searches will need to do some sort of mapping instead of join to get the expectations printed out -->\n            <td>\n              \n                \n                  <span style=\"white-space: nowrap;\">_id<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">active<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">identifier<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">name<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">address<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">active</span>+<span style=\"white-space: nowrap;\">name</span>+<span title=\"SHALL\"><sup>♦</sup></span>, \n                  \n                \n              \n            </td>\n\n                <!-- Supported _includes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported _revincludes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported Operations -->\n            <td>\n              \n            </td>\n          </tr>\n          \n          <tr>\n            <td>\n              <a href=\"#Server_Practitioner\"><span style=\"white-space: nowrap;\">Practitioner<span title=\"null\"><sup/></span></span></a>\n            </td>\n\n                <!-- Supported Interactions -->\n            <td>\n              \n                \n                <span style=\"white-space: nowrap;\">create<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">search-type<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">read<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">vread<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">update<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">patch<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">delete<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-instance<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-type<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n              \n            </td>\n\n                <!-- Supported Profiles -->\n            <td>\n              \n                <a href=\"StructureDefinition-davinci-pct-practitioner.html\">PCT Practitioner</a><span title=\"SHALL\"><sup>♦</sup></span>,\n                \n                \n              \n            </td>\n\n                <!-- Supported Searches will need to do some sort of mapping instead of join to get the expectations printed out -->\n            <td>\n              \n                \n                  <span style=\"white-space: nowrap;\">_id<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">identifier<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">name<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">address<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">telecom<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">active</span>+<span style=\"white-space: nowrap;\">name</span>+<span title=\"SHALL\"><sup>♦</sup></span>, \n                  \n                \n              \n            </td>\n\n                <!-- Supported _includes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported _revincludes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported Operations -->\n            <td>\n              \n            </td>\n          </tr>\n          \n          <tr>\n            <td>\n              <a href=\"#Server_PractitionerRole\"><span style=\"white-space: nowrap;\">PractitionerRole<span title=\"null\"><sup/></span></span></a>\n            </td>\n\n                <!-- Supported Interactions -->\n            <td>\n              \n                \n                <span style=\"white-space: nowrap;\">create<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">search-type<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">read<span title=\"SHALL\"><sup>♦</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">vread<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">update<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">patch<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">delete<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-instance<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n                <span style=\"white-space: nowrap;\">history-type<span title=\"MAY\"><sup>▿</sup></span></span>,\n                \n              \n            </td>\n\n                <!-- Supported Profiles -->\n            <td>\n              \n                <a href=\"http://hl7.org/fhir/us/davinci-hrex/STU1/StructureDefinition-hrex-practitionerrole.html\">HRex PractitionerRole Profile</a><span title=\"SHALL\"><sup>♦</sup></span>,\n                \n                \n              \n            </td>\n\n                <!-- Supported Searches will need to do some sort of mapping instead of join to get the expectations printed out -->\n            <td>\n              \n                \n                  <span style=\"white-space: nowrap;\">_id<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">specialty<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">role<span title=\"SHALL\"><sup>♦</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">organization<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">practitioner<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                  <span style=\"white-space: nowrap;\">telecom<span title=\"SHOULD\"><sup>⋄</sup></span></span>, \n                  \n                \n                \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">active</span>+<span style=\"white-space: nowrap;\">name</span>+<span title=\"SHOULD\"><sup>⋄</sup></span>, \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">active</span>+<span style=\"white-space: nowrap;\">specialty</span>+<span title=\"SHOULD\"><sup>⋄</sup></span>, \n                  \n                        <!-- Each set of optional and required combo search parameters -->\n                    <span style=\"white-space: nowrap;\">active</span>+<span style=\"white-space: nowrap;\">role</span>+<span title=\"SHOULD\"><sup>⋄</sup></span>, \n                  \n                \n              \n            </td>\n\n                <!-- Supported _includes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported _revincludes -->\n            <td>\n              \n            </td>\n\n                <!-- Supported Operations -->\n            <td>\n              \n                \n                  <span style=\"white-space: nowrap;\">$gfe-retrieve<span title=\"SHALL\"><sup>♦</sup></span></span>\n                  \n                \n              \n            </td>\n          </tr>\n          \n        </tbody>\n      </table>\n      <br/>\n\n      <h3 id=\"resource-details\" class=\"no_toc\">RESTful Server Capabilities by Resource/Profile:</h3>\n          <!-- Each REST Resource Detail -->\n      \n        <h4 id=\"Server_Task\" class=\"no_toc\">Task</h4>\n\n          <p>Conformance Expectation:\t<strong/></p>\n\n          \n\n          \n\n          <p>Supported Profiles:</p>\n            <ul>\n              \n                <li><strong>SHALL</strong> support \n                <a href=\"StructureDefinition-davinci-pct-gfe-contributor-task.html\">PCT GFE Contributor Task</a>\n                </li>\n              \n            </ul>\n          \n      \n\n\n        <p>\n          \n\n          \n\n          \n\n          \n        </p>\n\n\n\n\n\n\n            <!-- Resource Interactions -->\n        \n\n            <!-- Resource Operations -->\n        \n\n\n\n            <!-- TODO Nexted ul items do not appear with a subbullet style -->\n        \n          <br/>\n          <p>Modify Criteria:</p> \n          <ul>\n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>create</code> interaction creating a Task resource using:\n                  <code class=\"highlighter-rouge\">POST [base]/Task/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n                <li>\n                      <!-- TODO change note if server allows putting of a new one (with a specified ID) -->\n                  A Server <strong>SHALL</strong> be capable of updating a existing Task resource using:\n                  <code class=\"highlighter-rouge\">PUT [base]/Task/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of patching an existing Task resource using:\n                  <code class=\"highlighter-rouge\">PATCH [base]/Task/[id]{?_format=[mime-type]}</code>\n                </li>\n              \n\n            \n              \n\n              \n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of deleting a Task resource using:\n                  <code class=\"highlighter-rouge\">DELETE [base]//[id]</code>\n                  \n                </li>\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n          </ul>\n        \n\n\n        \n          <br/>\n          <p>Fetch and Search Criteria:</p>\n          <ul>\n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>search-type</code> interaction returning Task resources matching a search query using:\n                  <code class=\"highlighter-rouge\">GET [base]/Task/[id]{?[parameters]{&amp;_format=[mime-type]}}</code>\n                </li>\n              \n              \n              \n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>read</code> interaction returning a Task resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Task/[id]</code>\n                  \n                </li>\n              \n              \n              \n              \n              \n            \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>vread</code> interaction returning a Task resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Task/[id]/_history/vid</code>\n                </li>\n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-instance</code> interaction returning a history of a Task using:\n                  <code class=\"highlighter-rouge\">GET [base]/Task/[id]/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n              \n            \n              \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-type</code> interaction returning the history of Task resources using:\n                  <code class=\"highlighter-rouge\">GET [base]/Task/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n            \n\n            \n\n            \n\n          </ul>\n        \n\n        \n          <br/>\n          <p>Search Parameter Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter</th>\n                <th>Type</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n                  <!-- TODO, should the search paramaters be limited to only SHALL and SHOULD -->\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@6ca9ec77 -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?_id=[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/clinical-code\">code</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@360432d3 -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?code=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Task-part-of\">part-of</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@6c2a7c73 -->\n                </td>\n                <td>\n                  Reference\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?part-of=[type]/[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Task-owner\">owner</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@3ade99bb -->\n                </td>\n                <td>\n                  Reference\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?owner=[type]/[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Task-requester\">requester</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@193710c3 -->\n                </td>\n                <td>\n                  Reference\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?requester=[type]/[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/us/davinci-pct/SearchParameter/task-requested-period\">task-requested-period</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@eb23b9c -->\n                </td>\n                <td>\n                  Date/DateTime\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?task-requested-period=[dateTime]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Task-status\">status</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@314407dd -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?status=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/clinical-identifier\">identifier</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@7f19430f -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?identifier=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Resource-lastUpdated\">_lastUpdated</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@5e89e527 -->\n                </td>\n                <td>\n                  Date/DateTime\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Task?_lastUpdated=[dateTime]\n                    </code>\n                </td>\n              </tr>\n              \n            </tbody>\n          </table>\n\n        \n\n            <!-- Search Combination -->\n        \n        \n          <br/>\n          <p>Search Parameter Combination Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter Combination</th>\n                <th>Types</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n              \n                <tr>\n                  <td>\n                    <strong>SHALL</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/clinical-code\">code</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-status\">status</a></span>+\n                  </td>\n                  <td>\n                    Token+Token+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/Task?code=[system]|[code]&amp;status=[system]|[code]&amp;</code>\n                  </td>\n                </tr>\n              \n                <tr>\n                  <td>\n                    <strong>SHALL</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/clinical-code\">code</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-status\">status</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-owner\">owner</a></span>+\n                  </td>\n                  <td>\n                    Token+Token+Reference+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/Task?code=[system]|[code]&amp;status=[system]|[code]&amp;owner=[type]/[id]&amp;</code>\n                  </td>\n                </tr>\n              \n                <tr>\n                  <td>\n                    <strong>SHALL</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/clinical-code\">code</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-status\">status</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-requester\">requester</a></span>+\n                  </td>\n                  <td>\n                    Token+Token+Reference+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/Task?code=[system]|[code]&amp;status=[system]|[code]&amp;requester=[type]/[id]&amp;</code>\n                  </td>\n                </tr>\n              \n                <tr>\n                  <td>\n                    <strong>SHALL</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-part-of\">part-of</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Task-owner\">owner</a></span>+\n                  </td>\n                  <td>\n                    Reference+Reference+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/Task?part-of=[type]/[id]&amp;owner=[type]/[id]&amp;</code>\n                  </td>\n                </tr>\n              \n            </tbody>\n          </table>\n        \n        \n          <div>\n            <p>Search Parameter Requirements (When Used Alone or in Combination):</p>\n            <ul>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a> (Token):<div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/clinical-code\">code</a> (Token):<div><p>Search by task type. For Patient Cost Transparency, this is the either the Coordination Task (gfe-coordination-task) or the GFE Contributor Task (gfe-contributor-task)</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Task-part-of\">part-of</a> (Reference):<div><p>Search by task this task is part of. For Patient Cost Transparency, this is used for searching for Contributor Tasks that are part of a Coordination Task</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Task-owner\">owner</a> (Reference):<div><p>Search by task owner. For Patient Cost Transparency, this is the provider assigned to the Task. Usually a GFE Contributor</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Task-requester\">requester</a> (Reference):<div><p>Search by task requester. For Patient Cost Transparency, this is the provider that is the GFE Coordination requester</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/us/davinci-pct/SearchParameter/task-requested-period\">task-requested-period</a> (Date/DateTime):<div><p>Search for a task by when the task should be performed. For Patient Cost Transparency, this is when the GFE Bundle should be provided by</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Task-status\">status</a> (Token):<div><p>Search by task status</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/clinical-identifier\">identifier</a> (Token):<div><p>Search for a task instance by its business identifier</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Resource-lastUpdated\">_lastUpdated</a> (Date/DateTime):<div><p>Allows filtering for only records that have changed since last query</p>\n</div></li>\n              \n            </ul>\n          </div>\n        \n\n      \n        <h4 id=\"Server_Bundle\" class=\"no_toc\">Bundle</h4>\n\n          <p>Conformance Expectation:\t<strong/></p>\n\n          \n\n          \n\n          <p>Supported Profiles:</p>\n            <ul>\n              \n                <li><strong>SHOULD</strong> support \n                <a href=\"StructureDefinition-davinci-pct-gfe-coordination-bundle.html\">PCT GFE Coordination Bundle</a>\n                </li>\n              \n                <li><strong>SHOULD</strong> support \n                <a href=\"StructureDefinition-davinci-pct-gfe-packet.html\">PCT GFE Packet</a>\n                </li>\n              \n                <li><strong>SHALL</strong> support \n                <a href=\"StructureDefinition-davinci-pct-gfe-information-bundle.html\">PCT GFE Information Bundle</a>\n                </li>\n              \n                <li><strong>SHOULD</strong> support \n                <a href=\"StructureDefinition-davinci-pct-gfe-bundle.html\">PCT GFE Bundle</a>\n                </li>\n              \n                <li><strong>SHALL</strong> support \n                <a href=\"StructureDefinition-davinci-pct-gfe-missing-bundle.html\">PCT GFE Missing Bundle</a>\n                </li>\n              \n            </ul>\n          \n      \n\n\n        <p>\n          \n\n          \n\n          \n\n          \n        </p>\n\n\n\n\n\n\n            <!-- Resource Interactions -->\n        \n\n            <!-- Resource Operations -->\n        \n\n\n\n            <!-- TODO Nexted ul items do not appear with a subbullet style -->\n        \n          <br/>\n          <p>Modify Criteria:</p> \n          <ul>\n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>create</code> interaction creating a Bundle resource using:\n                  <code class=\"highlighter-rouge\">POST [base]/Bundle/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n                <li>\n                      <!-- TODO change note if server allows putting of a new one (with a specified ID) -->\n                  A Server <strong>SHALL</strong> be capable of updating a existing Bundle resource using:\n                  <code class=\"highlighter-rouge\">PUT [base]/Bundle/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of patching an existing Bundle resource using:\n                  <code class=\"highlighter-rouge\">PATCH [base]/Bundle/[id]{?_format=[mime-type]}</code>\n                </li>\n              \n\n            \n              \n\n              \n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of deleting a Bundle resource using:\n                  <code class=\"highlighter-rouge\">DELETE [base]//[id]</code>\n                  \n                </li>\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n          </ul>\n        \n\n\n        \n          <br/>\n          <p>Fetch and Search Criteria:</p>\n          <ul>\n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>search-type</code> interaction returning Bundle resources matching a search query using:\n                  <code class=\"highlighter-rouge\">GET [base]/Bundle/[id]{?[parameters]{&amp;_format=[mime-type]}}</code>\n                </li>\n              \n              \n              \n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>read</code> interaction returning a Bundle resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Bundle/[id]</code>\n                  \n                </li>\n              \n              \n              \n              \n              \n            \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>vread</code> interaction returning a Bundle resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Bundle/[id]/_history/vid</code>\n                </li>\n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-instance</code> interaction returning a history of a Bundle using:\n                  <code class=\"highlighter-rouge\">GET [base]/Bundle/[id]/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n              \n            \n              \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-type</code> interaction returning the history of Bundle resources using:\n                  <code class=\"highlighter-rouge\">GET [base]/Bundle/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n            \n\n            \n\n            \n\n          </ul>\n        \n\n        \n          <br/>\n          <p>Search Parameter Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter</th>\n                <th>Type</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n                  <!-- TODO, should the search paramaters be limited to only SHALL and SHOULD -->\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@23f9d0ce -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Bundle?_id=[id]\n                    </code>\n                </td>\n              </tr>\n              \n            </tbody>\n          </table>\n\n        \n\n            <!-- Search Combination -->\n        \n        \n        \n          <div>\n            <p>Search Parameter Requirements (When Used Alone or in Combination):</p>\n            <ul>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a> (Token):<div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></li>\n              \n            </ul>\n          </div>\n        \n\n      \n        <h4 id=\"Server_Organization\" class=\"no_toc\">Organization</h4>\n\n          <p>Conformance Expectation:\t<strong/></p>\n\n          \n\n          \n\n          <p>Supported Profiles:</p>\n            <ul>\n              \n                <li><strong>SHALL</strong> support \n                <a href=\"StructureDefinition-davinci-pct-organization.html\">PCT Organization</a>\n                </li>\n              \n            </ul>\n          \n      \n\n\n        <p>\n          \n\n          \n\n          \n\n          \n        </p>\n\n\n\n\n\n\n            <!-- Resource Interactions -->\n        \n\n            <!-- Resource Operations -->\n        \n\n\n\n            <!-- TODO Nexted ul items do not appear with a subbullet style -->\n        \n          <br/>\n          <p>Modify Criteria:</p> \n          <ul>\n            \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>create</code> interaction creating a Organization resource using:\n                  <code class=\"highlighter-rouge\">POST [base]/Organization/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n                <li>\n                      <!-- TODO change note if server allows putting of a new one (with a specified ID) -->\n                  A Server <strong>MAY</strong> be capable of updating a existing Organization resource using:\n                  <code class=\"highlighter-rouge\">PUT [base]/Organization/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of patching an existing Organization resource using:\n                  <code class=\"highlighter-rouge\">PATCH [base]/Organization/[id]{?_format=[mime-type]}</code>\n                </li>\n              \n\n            \n              \n\n              \n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of deleting a Organization resource using:\n                  <code class=\"highlighter-rouge\">DELETE [base]//[id]</code>\n                  \n                </li>\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n          </ul>\n        \n\n\n        \n          <br/>\n          <p>Fetch and Search Criteria:</p>\n          <ul>\n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>search-type</code> interaction returning Organization resources matching a search query using:\n                  <code class=\"highlighter-rouge\">GET [base]/Organization/[id]{?[parameters]{&amp;_format=[mime-type]}}</code>\n                </li>\n              \n              \n              \n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>read</code> interaction returning a Organization resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Organization/[id]</code>\n                  \n                </li>\n              \n              \n              \n              \n              \n            \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>vread</code> interaction returning a Organization resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Organization/[id]/_history/vid</code>\n                </li>\n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-instance</code> interaction returning a history of a Organization using:\n                  <code class=\"highlighter-rouge\">GET [base]/Organization/[id]/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n              \n            \n              \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-type</code> interaction returning the history of Organization resources using:\n                  <code class=\"highlighter-rouge\">GET [base]/Organization/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n            \n\n            \n\n            \n\n          </ul>\n        \n\n        \n          <br/>\n          <p>Search Parameter Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter</th>\n                <th>Type</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n                  <!-- TODO, should the search paramaters be limited to only SHALL and SHOULD -->\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@53c0424a -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Organization?_id=[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Organization-identifier\">active</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@2d6cbbdb -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Organization?active=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Organization-identifier\">identifier</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@408a0e92 -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Organization?identifier=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Organization-name\">name</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@2d18d9ed -->\n                </td>\n                <td>\n                  String\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Organization?name=[name]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Organization-address\">address</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@7c9b0c16 -->\n                </td>\n                <td>\n                  String\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Organization?address=[address]\n                    </code>\n                </td>\n              </tr>\n              \n            </tbody>\n          </table>\n\n        \n\n            <!-- Search Combination -->\n        \n        \n          <br/>\n          <p>Search Parameter Combination Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter Combination</th>\n                <th>Types</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n              \n                <tr>\n                  <td>\n                    <strong>SHALL</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Organization-identifier\">active</a></span>+<span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Organization-name\">name</a></span>+\n                  </td>\n                  <td>\n                    Token+String+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/Organization?active=[system]|[code]&amp;name=[name]&amp;</code>\n                  </td>\n                </tr>\n              \n            </tbody>\n          </table>\n        \n        \n          <div>\n            <p>Search Parameter Requirements (When Used Alone or in Combination):</p>\n            <ul>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a> (Token):<div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Organization-identifier\">active</a> (Token):<div><p>Any identifier for the organization (not the accreditation issuer's identifier)</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Organization-identifier\">identifier</a> (Token):<div><p>Any identifier for the organization (not the accreditation issuer's identifier)</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Organization-name\">name</a> (String):<div><p>A portion of the organization's name or alias</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Organization-address\">address</a> (String):<div><p>A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text</p>\n</div></li>\n              \n            </ul>\n          </div>\n        \n\n      \n        <h4 id=\"Server_Practitioner\" class=\"no_toc\">Practitioner</h4>\n\n          <p>Conformance Expectation:\t<strong/></p>\n\n          \n\n          \n\n          <p>Supported Profiles:</p>\n            <ul>\n              \n                <li><strong>SHALL</strong> support \n                <a href=\"StructureDefinition-davinci-pct-practitioner.html\">PCT Practitioner</a>\n                </li>\n              \n            </ul>\n          \n      \n\n\n        <p>\n          \n\n          \n\n          \n\n          \n        </p>\n\n\n\n\n\n\n            <!-- Resource Interactions -->\n        \n\n            <!-- Resource Operations -->\n        \n\n\n\n            <!-- TODO Nexted ul items do not appear with a subbullet style -->\n        \n          <br/>\n          <p>Modify Criteria:</p> \n          <ul>\n            \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>create</code> interaction creating a Practitioner resource using:\n                  <code class=\"highlighter-rouge\">POST [base]/Practitioner/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n                <li>\n                      <!-- TODO change note if server allows putting of a new one (with a specified ID) -->\n                  A Server <strong>MAY</strong> be capable of updating a existing Practitioner resource using:\n                  <code class=\"highlighter-rouge\">PUT [base]/Practitioner/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of patching an existing Practitioner resource using:\n                  <code class=\"highlighter-rouge\">PATCH [base]/Practitioner/[id]{?_format=[mime-type]}</code>\n                </li>\n              \n\n            \n              \n\n              \n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of deleting a Practitioner resource using:\n                  <code class=\"highlighter-rouge\">DELETE [base]//[id]</code>\n                  \n                </li>\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n          </ul>\n        \n\n\n        \n          <br/>\n          <p>Fetch and Search Criteria:</p>\n          <ul>\n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>search-type</code> interaction returning Practitioner resources matching a search query using:\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner/[id]{?[parameters]{&amp;_format=[mime-type]}}</code>\n                </li>\n              \n              \n              \n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>read</code> interaction returning a Practitioner resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner/[id]</code>\n                  \n                </li>\n              \n              \n              \n              \n              \n            \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>vread</code> interaction returning a Practitioner resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner/[id]/_history/vid</code>\n                </li>\n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-instance</code> interaction returning a history of a Practitioner using:\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner/[id]/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n              \n            \n              \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-type</code> interaction returning the history of Practitioner resources using:\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n            \n\n            \n\n            \n\n          </ul>\n        \n\n        \n          <br/>\n          <p>Search Parameter Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter</th>\n                <th>Type</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n                  <!-- TODO, should the search paramaters be limited to only SHALL and SHOULD -->\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@34e1c23d -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner?_id=[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Practitioner-identifier\">identifier</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@240fa4ad -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner?identifier=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Practitioner-name\">name</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@4fb3c670 -->\n                </td>\n                <td>\n                  String\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner?name=[name]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/individual-address\">address</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@6b6c882c -->\n                </td>\n                <td>\n                  String\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner?address=[address]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/individual-telecom\">telecom</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@51a65f56 -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/Practitioner?telecom=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n            </tbody>\n          </table>\n\n        \n\n            <!-- Search Combination -->\n        \n        \n          <br/>\n          <p>Search Parameter Combination Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter Combination</th>\n                <th>Types</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n              \n                <tr>\n                  <td>\n                    <strong>SHALL</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/Practitioner-name\">name</a></span>+\n                  </td>\n                  <td>\n                    String+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/Practitioner?name=[name]&amp;</code>\n                  </td>\n                </tr>\n              \n            </tbody>\n          </table>\n        \n        \n          <div>\n            <p>Search Parameter Requirements (When Used Alone or in Combination):</p>\n            <ul>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a> (Token):<div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Practitioner-identifier\">identifier</a> (Token):<div><p>A practitioner's Identifier</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Practitioner-name\">name</a> (String):<div><p>A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/individual-address\">address</a> (String):<div><p>A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/individual-telecom\">telecom</a> (Token):<div><p>The value in any kind of contact.</p>\n</div></li>\n              \n            </ul>\n          </div>\n        \n\n      \n        <h4 id=\"Server_PractitionerRole\" class=\"no_toc\">PractitionerRole</h4>\n\n          <p>Conformance Expectation:\t<strong/></p>\n\n          \n\n          \n\n          <p>Supported Profiles:</p>\n            <ul>\n              \n                <li><strong>SHALL</strong> support \n                <a href=\"http://hl7.org/fhir/us/davinci-hrex/STU1/StructureDefinition-hrex-practitionerrole.html\">HRex PractitionerRole Profile</a>\n                </li>\n              \n            </ul>\n          \n      \n\n\n        <p>\n          \n\n          \n\n          \n\n          \n        </p>\n\n\n\n\n\n\n            <!-- Resource Interactions -->\n        <p>PractitionerRole Interaction Summary:</p>\n          <ul>\n            \n              <li><strong>SHALL</strong> support search-type,  read, </li>\n            \n            \n            \n            \n              <li><strong>MAY</strong> support create,  vread,  update,  patch,  delete,  history-instance,  history-type, </li>\n            \n            \n          </ul>\n\n          \n            \n          \n            \n          \n            \n          \n            \n          \n            \n          \n            \n          \n            \n          \n            \n          \n            \n          \n        \n\n            <!-- Resource Operations -->\n        \n\n\n\n            <!-- TODO Nexted ul items do not appear with a subbullet style -->\n        \n          <br/>\n          <p>Modify Criteria:</p> \n          <ul>\n            \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>create</code> interaction creating a PractitionerRole resource using:\n                  <code class=\"highlighter-rouge\">POST [base]/PractitionerRole/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n                <li>\n                      <!-- TODO change note if server allows putting of a new one (with a specified ID) -->\n                  A Server <strong>MAY</strong> be capable of updating a existing PractitionerRole resource using:\n                  <code class=\"highlighter-rouge\">PUT [base]/PractitionerRole/[id]{?_format=[mime-type]}</code>\n                  \n                </li>\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of patching an existing PractitionerRole resource using:\n                  <code class=\"highlighter-rouge\">PATCH [base]/PractitionerRole/[id]{?_format=[mime-type]}</code>\n                </li>\n              \n\n            \n              \n\n              \n\n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of deleting a PractitionerRole resource using:\n                  <code class=\"highlighter-rouge\">DELETE [base]//[id]</code>\n                  \n                </li>\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n              \n\n              \n\n              \n\n\n              \n\n            \n          </ul>\n        \n\n\n        \n          <br/>\n          <p>Fetch and Search Criteria:</p>\n          <ul>\n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>search-type</code> interaction returning PractitionerRole resources matching a search query using:\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole/[id]{?[parameters]{&amp;_format=[mime-type]}}</code>\n                </li>\n              \n              \n              \n            \n              \n                <li>\n                  A Server <strong>SHALL</strong> be capable of a <code>read</code> interaction returning a PractitionerRole resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole/[id]</code>\n                  \n                </li>\n              \n              \n              \n              \n              \n            \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>vread</code> interaction returning a PractitionerRole resource using:\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole/[id]/_history/vid</code>\n                </li>\n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n              \n            \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-instance</code> interaction returning a history of a PractitionerRole using:\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole/[id]/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n              \n            \n              \n              \n              \n              \n              \n                <li>\n                  A Server <strong>MAY</strong> be capable of a <code>history-type</code> interaction returning the history of PractitionerRole resources using:\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole/_history{?[parameters]&amp;_format=[mime-type]}</code>\n                </li>\n              \n            \n\n            \n\n            \n\n          </ul>\n        \n\n        \n          <br/>\n          <p>Search Parameter Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter</th>\n                <th>Type</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n                  <!-- TODO, should the search paramaters be limited to only SHALL and SHOULD -->\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@8d5b303 -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?_id=[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-specialty\">specialty</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@5984742f -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?specialty=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHALL</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-role\">role</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@56a6aadb -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?role=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-organization\">organization</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@359903b6 -->\n                </td>\n                <td>\n                  Reference\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?organization=[type]/[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-practitioner\">practitioner</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@1071f3ad -->\n                </td>\n                <td>\n                  Reference\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?practitioner=[type]/[id]\n                    </code>\n                </td>\n              </tr>\n              \n              <tr>\n                <td>\n                  <strong>SHOULD</strong>\n                </td>\n                <td>\n                  <a href=\"http://hl7.org/fhir/SearchParameter/individual-telecom\">telecom</a>\n                      <!-- org.hl7.fhir.r5.model.CapabilityStatement$CapabilityStatementRestResourceSearchParamComponent@6aaed880 -->\n                </td>\n                <td>\n                  Token\n                </td>\n                <td>\n                  <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?telecom=[system]|[code]\n                    </code>\n                </td>\n              </tr>\n              \n            </tbody>\n          </table>\n\n        \n\n            <!-- Search Combination -->\n        \n        \n          <br/>\n          <p>Search Parameter Combination Summary:</p>\n          <table class=\"grid\">\n            <thead>\n              <tr>\n                <th style=\"white-space: nowrap;\">Conformance</th>\n                <th>Parameter Combination</th>\n                <th>Types</th>\n                <th>Example</th>\n              </tr>\n            </thead>\n            <tbody>\n              \n                <tr>\n                  <td>\n                    <strong>SHOULD</strong>\n                  </td>\n                  <td>\n                    \n                  </td>\n                  <td>\n                    \n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?</code>\n                  </td>\n                </tr>\n              \n                <tr>\n                  <td>\n                    <strong>SHOULD</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-specialty\">specialty</a></span>+\n                  </td>\n                  <td>\n                    Token+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?specialty=[system]|[code]&amp;</code>\n                  </td>\n                </tr>\n              \n                <tr>\n                  <td>\n                    <strong>SHOULD</strong>\n                  </td>\n                  <td>\n                    <span title=\"required\"><a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-role\">role</a></span>+\n                  </td>\n                  <td>\n                    Token+\n                  </td>\n                  <td>\n                    <code class=\"highlighter-rouge\">GET [base]/PractitionerRole?role=[system]|[code]&amp;</code>\n                  </td>\n                </tr>\n              \n            </tbody>\n          </table>\n        \n        \n          <div>\n            <p>Search Parameter Requirements (When Used Alone or in Combination):</p>\n            <ul>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/Resource-id\">_id</a> (Token):<div><p>Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-specialty\">specialty</a> (Token):<div><p>Practitioner that is able to provide the defined services for the organization</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-role\">role</a> (Token):<div><p>The practitioner can perform this role at for the organization</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-organization\">organization</a> (Reference):<div><p>The identity of the organization the practitioner represents / acts on behalf of</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/PractitionerRole-practitioner\">practitioner</a> (Reference):<div><p>Practitioner that is able to provide the defined services for the organization.</p>\n</div></li>\n              \n                <li><a href=\"http://hl7.org/fhir/SearchParameter/individual-telecom\">telecom</a> (Token):<div><p>The value in any kind of contact.</p>\n</div></li>\n              \n            </ul>\n          </div>\n        \n\n      \n    \n\n\n\n  \n\n\n\n\n\n\n\n\n\n      <!-- Messaging Capabilities -->\n  \n\n      <!-- Document Capabilities -->\n  \n\n</div>"
   },
-  "extension": [
-    {
-      "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-wg",
-      "valueCode": "fm"
+  "extension" : [{
+    "url" : "http://hl7.org/fhir/StructureDefinition/structuredefinition-wg",
+    "valueCode" : "fm"
+  },
+  {
+    "url" : "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status",
+    "valueCode" : "trial-use",
+    "_valueCode" : {
+      "extension" : [{
+        "url" : "http://hl7.org/fhir/StructureDefinition/structuredefinition-conformance-derivedFrom",
+        "valueCanonical" : "http://hl7.org/fhir/us/davinci-pct/ImplementationGuide/hl7.fhir.us.davinci-pct"
+      }]
+    }
+  }],
+  "url" : "http://hl7.org/fhir/us/davinci-pct/CapabilityStatement/davinci-pct-coordination-platform",
+  "version" : "2.0.0-draft",
+  "name" : "CoordinationPlatformPatientCostTransparencyCapabilityStatement",
+  "title" : "Patient Cost Transparency Implementation Guide Coordination Platform Capability Statement",
+  "status" : "active",
+  "date" : "2024-03-23T14:21:32-05:00",
+  "publisher" : "HL7 International / Financial Management",
+  "contact" : [{
+    "name" : "HL7 International / Financial Management",
+    "telecom" : [{
+      "system" : "url",
+      "value" : "http://www.hl7.org/Special/committees/fm"
     },
     {
-      "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-standards-status",
-      "valueCode": "trial-use",
-      "_valueCode": {
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/StructureDefinition/structuredefinition-conformance-derivedFrom",
-            "valueCanonical": "http://hl7.org/fhir/us/davinci-pct/ImplementationGuide/hl7.fhir.us.davinci-pct"
-          }
-        ]
-      }
-    }
-  ],
-  "url": "http://hl7.org/fhir/us/davinci-pct/CapabilityStatement/davinci-pct-coordination-platform",
-  "version": "2.0.0-ballot",
-  "name": "CoordinationPlatformPatientCostTransparencyCapabilityStatement",
-  "title": "Patient Cost Transparency Implementation Guide Coordination Platform Capability Statement",
-  "status": "active",
-  "date": "2024-03-23T14:21:32-05:00",
-  "publisher": "HL7 International / Financial Management",
-  "contact": [
-    {
-      "name": "HL7 International / Financial Management",
-      "telecom": [
-        {
-          "system": "url",
-          "value": "http://www.hl7.org/Special/committees/fm"
+      "system" : "email",
+      "value" : "fmlists@lists.hl7.org"
+    }]
+  }],
+  "description" : "Coordination Platform Capability Statement for the Da Vinci Patient Cost Transparency Implementation Guide",
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "urn:iso:std:iso:3166",
+      "code" : "US"
+    }]
+  }],
+  "copyright" : "Used by permission of HL7 International, all rights reserved Creative Commons License",
+  "kind" : "requirements",
+  "imports" : ["http://hl7.org/fhir/us/core/CapabilityStatement/us-core-server"],
+  "fhirVersion" : "4.0.1",
+  "format" : ["json",
+  "xml"],
+  "_format" : [{
+    "extension" : [{
+      "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+      "valueCode" : "SHALL"
+    }]
+  },
+  {
+    "extension" : [{
+      "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+      "valueCode" : "SHOULD"
+    }]
+  }],
+  "rest" : [{
+    "mode" : "server",
+    "resource" : [{
+      "extension" : [{
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "code"
         },
         {
-          "system": "email",
-          "value": "fmlists@lists.hl7.org"
-        }
-      ]
-    }
-  ],
-  "description": "Coordination Platform Capability Statement for the Da Vinci Patient Cost Transparency Implementation Guide",
-  "jurisdiction": [
-    {
-      "coding": [
+          "url" : "required",
+          "valueString" : "status"
+        },
         {
-          "system": "urn:iso:std:iso:3166",
-          "code": "US"
-        }
-      ]
-    }
-  ],
-  "copyright": "Used by permission of HL7 International, all rights reserved Creative Commons License",
-  "kind": "requirements",
-  "imports": [
-    "http://hl7.org/fhir/us/core/CapabilityStatement/us-core-server"
-  ],
-  "fhirVersion": "4.0.1",
-  "format": [
-    "json",
-    "xml"
-  ],
-  "_format": [
-    {
-      "extension": [
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      },
+      {
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "code"
+        },
         {
-          "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-          "valueCode": "SHALL"
-        }
-      ]
+          "url" : "required",
+          "valueString" : "status"
+        },
+        {
+          "url" : "required",
+          "valueString" : "owner"
+        },
+        {
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      },
+      {
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "code"
+        },
+        {
+          "url" : "required",
+          "valueString" : "status"
+        },
+        {
+          "url" : "required",
+          "valueString" : "requester"
+        },
+        {
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      },
+      {
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "part-of"
+        },
+        {
+          "url" : "required",
+          "valueString" : "owner"
+        },
+        {
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      }],
+      "type" : "Task",
+      "_type" : {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      },
+      "supportedProfile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-contributor-task"],
+      "_supportedProfile" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      }],
+      "interaction" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "create"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "search-type"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "read"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "vread"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "update"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "patch"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "delete"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-instance"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-type"
+      }],
+      "searchParam" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "_id",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Resource-id",
+        "type" : "token",
+        "documentation" : "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "code",
+        "definition" : "http://hl7.org/fhir/SearchParameter/clinical-code",
+        "type" : "token",
+        "documentation" : "Search by task type. For Patient Cost Transparency, this is the either the Coordination Task (gfe-coordination-task) or the GFE Contributor Task (gfe-contributor-task)"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "part-of",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Task-part-of",
+        "type" : "reference",
+        "documentation" : "Search by task this task is part of. For Patient Cost Transparency, this is used for searching for Contributor Tasks that are part of a Coordination Task"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "owner",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Task-owner",
+        "type" : "reference",
+        "documentation" : "Search by task owner. For Patient Cost Transparency, this is the provider assigned to the Task. Usually a GFE Contributor"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "requester",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Task-requester",
+        "type" : "reference",
+        "documentation" : "Search by task requester. For Patient Cost Transparency, this is the provider that is the GFE Coordination requester"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "task-requested-period",
+        "definition" : "http://hl7.org/fhir/us/davinci-pct/SearchParameter/task-requested-period",
+        "type" : "date",
+        "documentation" : "Search for a task by when the task should be performed. For Patient Cost Transparency, this is when the GFE Bundle should be provided by"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "status",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Task-status",
+        "type" : "token",
+        "documentation" : "Search by task status"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "identifier",
+        "definition" : "http://hl7.org/fhir/SearchParameter/clinical-identifier",
+        "type" : "token",
+        "documentation" : "Search for a task instance by its business identifier"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "_lastUpdated",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Resource-lastUpdated",
+        "type" : "date",
+        "documentation" : "Allows filtering for only records that have changed since last query"
+      }]
     },
     {
-      "extension": [
-        {
-          "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-          "valueCode": "SHOULD"
-        }
-      ]
-    }
-  ],
-  "rest": [
+      "type" : "Bundle",
+      "_type" : {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }]
+      },
+      "supportedProfile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-coordination-bundle",
+      "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-packet",
+      "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-information-bundle",
+      "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle",
+      "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-missing-bundle"],
+      "_supportedProfile" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }]
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }]
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }]
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      }],
+      "interaction" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "create"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "search-type"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "read"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "vread"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "update"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "patch"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "delete"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-instance"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-type"
+      }],
+      "searchParam" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "_id",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Resource-id",
+        "type" : "token",
+        "documentation" : "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
+      }]
+    },
     {
-      "mode": "server",
-      "resource": [
-        {
-          "extension": [
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "code"
-                },
-                {
-                  "url": "required",
-                  "valueString": "status"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            },
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "code"
-                },
-                {
-                  "url": "required",
-                  "valueString": "status"
-                },
-                {
-                  "url": "required",
-                  "valueString": "owner"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            },
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "code"
-                },
-                {
-                  "url": "required",
-                  "valueString": "status"
-                },
-                {
-                  "url": "required",
-                  "valueString": "requester"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            },
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "part-of"
-                },
-                {
-                  "url": "required",
-                  "valueString": "owner"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            }
-          ],
-          "type": "Task",
-          "_type": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                "valueCode": "SHALL"
-              }
-            ]
-          },
-          "supportedProfile": [
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-contributor-task"
-          ],
-          "_supportedProfile": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ]
-            }
-          ],
-          "interaction": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "create"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "search-type"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "read"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "vread"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "update"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "patch"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "delete"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-instance"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-type"
-            }
-          ],
-          "searchParam": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "_id",
-              "definition": "http://hl7.org/fhir/SearchParameter/Resource-id",
-              "type": "token",
-              "documentation": "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "code",
-              "definition": "http://hl7.org/fhir/SearchParameter/clinical-code",
-              "type": "token",
-              "documentation": "Search by task type. For Patient Cost Transparency, this is the either the Coordination Task (gfe-coordination-task) or the GFE Contributor Task (gfe-contributor-task)"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "part-of",
-              "definition": "http://hl7.org/fhir/SearchParameter/Task-part-of",
-              "type": "reference",
-              "documentation": "Search by task this task is part of. For Patient Cost Transparency, this is used for searching for Contributor Tasks that are part of a Coordination Task"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "owner",
-              "definition": "http://hl7.org/fhir/SearchParameter/Task-owner",
-              "type": "reference",
-              "documentation": "Search by task owner. For Patient Cost Transparency, this is the provider assigned to the Task. Usually a GFE Contributor"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "requester",
-              "definition": "http://hl7.org/fhir/SearchParameter/Task-requester",
-              "type": "reference",
-              "documentation": "Search by task requester. For Patient Cost Transparency, this is the provider that is the GFE Coordination requester"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "task-requested-period",
-              "definition": "http://hl7.org/fhir/us/davinci-pct/SearchParameter/task-requested-period",
-              "type": "date",
-              "documentation": "Search for a task by when the task should be performed. For Patient Cost Transparency, this is when the GFE Bundle should be provided by"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "status",
-              "definition": "http://hl7.org/fhir/SearchParameter/Task-status",
-              "type": "token",
-              "documentation": "Search by task status"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "identifier",
-              "definition": "http://hl7.org/fhir/SearchParameter/clinical-identifier",
-              "type": "token",
-              "documentation": "Search for a task instance by its business identifier"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "_lastUpdated",
-              "definition": "http://hl7.org/fhir/SearchParameter/Resource-lastUpdated",
-              "type": "date",
-              "documentation": "Allows filtering for only records that have changed since last query"
-            }
-          ]
+      "extension" : [{
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "active"
         },
         {
-          "type": "Bundle",
-          "_type": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                "valueCode": "SHOULD"
-              }
-            ]
-          },
-          "supportedProfile": [
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-coordination-bundle",
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-collection-bundle",
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-information-bundle",
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-bundle",
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-missing-bundle"
-          ],
-          "_supportedProfile": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ]
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ]
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ]
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ]
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ]
-            }
-          ],
-          "interaction": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "create"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "search-type"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "read"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "vread"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "update"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "patch"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "delete"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-instance"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-type"
-            }
-          ],
-          "searchParam": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "_id",
-              "definition": "http://hl7.org/fhir/SearchParameter/Resource-id",
-              "type": "token",
-              "documentation": "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
-            }
-          ]
+          "url" : "required",
+          "valueString" : "name"
         },
         {
-          "extension": [
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "active"
-                },
-                {
-                  "url": "required",
-                  "valueString": "name"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            }
-          ],
-          "type": "Organization",
-          "_type": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                "valueCode": "SHALL"
-              }
-            ]
-          },
-          "supportedProfile": [
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-organization"
-          ],
-          "_supportedProfile": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ]
-            }
-          ],
-          "interaction": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "create"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "search-type"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "read"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "vread"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "update"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "patch"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "delete"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-instance"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-type"
-            }
-          ],
-          "searchParam": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "_id",
-              "definition": "http://hl7.org/fhir/SearchParameter/Resource-id",
-              "type": "token",
-              "documentation": "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "active",
-              "definition": "http://hl7.org/fhir/SearchParameter/Organization-identifier",
-              "type": "token",
-              "documentation": "Any identifier for the organization (not the accreditation issuer's identifier)"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "identifier",
-              "definition": "http://hl7.org/fhir/SearchParameter/Organization-identifier",
-              "type": "token",
-              "documentation": "Any identifier for the organization (not the accreditation issuer's identifier)"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "name",
-              "definition": "http://hl7.org/fhir/SearchParameter/Organization-name",
-              "type": "string",
-              "documentation": "A portion of the organization's name or alias"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "address",
-              "definition": "http://hl7.org/fhir/SearchParameter/Organization-address",
-              "type": "string",
-              "documentation": "A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text"
-            }
-          ]
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      }],
+      "type" : "Organization",
+      "_type" : {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      },
+      "supportedProfile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-organization"],
+      "_supportedProfile" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      }],
+      "interaction" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "create"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "search-type"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "read"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "vread"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "update"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "patch"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "delete"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-instance"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-type"
+      }],
+      "searchParam" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "_id",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Resource-id",
+        "type" : "token",
+        "documentation" : "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "active",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Organization-identifier",
+        "type" : "token",
+        "documentation" : "Any identifier for the organization (not the accreditation issuer's identifier)"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "identifier",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Organization-identifier",
+        "type" : "token",
+        "documentation" : "Any identifier for the organization (not the accreditation issuer's identifier)"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "name",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Organization-name",
+        "type" : "string",
+        "documentation" : "A portion of the organization's name or alias"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "address",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Organization-address",
+        "type" : "string",
+        "documentation" : "A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text"
+      }]
+    },
+    {
+      "extension" : [{
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "active"
         },
         {
-          "extension": [
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "active"
-                },
-                {
-                  "url": "required",
-                  "valueString": "name"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            }
-          ],
-          "type": "Practitioner",
-          "_type": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                "valueCode": "SHALL"
-              }
-            ]
-          },
-          "supportedProfile": [
-            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-practitioner"
-          ],
-          "_supportedProfile": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ]
-            }
-          ],
-          "interaction": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "create"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "search-type"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "read"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "vread"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "update"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "patch"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "delete"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-instance"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-type"
-            }
-          ],
-          "searchParam": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "_id",
-              "definition": "http://hl7.org/fhir/SearchParameter/Resource-id",
-              "type": "token",
-              "documentation": "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "identifier",
-              "definition": "http://hl7.org/fhir/SearchParameter/Practitioner-identifier",
-              "type": "token",
-              "documentation": "A practitioner's Identifier"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "name",
-              "definition": "http://hl7.org/fhir/SearchParameter/Practitioner-name",
-              "type": "string",
-              "documentation": "A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "address",
-              "definition": "http://hl7.org/fhir/SearchParameter/individual-address",
-              "type": "string",
-              "documentation": "A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "telecom",
-              "definition": "http://hl7.org/fhir/SearchParameter/individual-telecom",
-              "type": "token",
-              "documentation": "The value in any kind of contact."
-            }
-          ]
+          "url" : "required",
+          "valueString" : "name"
         },
         {
-          "extension": [
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "active"
-                },
-                {
-                  "url": "required",
-                  "valueString": "name"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            },
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "active"
-                },
-                {
-                  "url": "required",
-                  "valueString": "specialty"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            },
-            {
-              "extension": [
-                {
-                  "url": "required",
-                  "valueString": "active"
-                },
-                {
-                  "url": "required",
-                  "valueString": "role"
-                },
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
-            }
-          ],
-          "type": "PractitionerRole",
-          "_type": {
-            "extension": [
-              {
-                "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                "valueCode": "SHALL"
-              }
-            ]
-          },
-          "supportedProfile": [
-            "http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-practitionerrole"
-          ],
-          "_supportedProfile": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ]
-            }
-          ],
-          "interaction": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "create"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "search-type"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "code": "read"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "vread"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "update"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "patch"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "delete"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-instance"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "MAY"
-                }
-              ],
-              "code": "history-type"
-            }
-          ],
-          "searchParam": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "_id",
-              "definition": "http://hl7.org/fhir/SearchParameter/Resource-id",
-              "type": "token",
-              "documentation": "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "specialty",
-              "definition": "http://hl7.org/fhir/SearchParameter/PractitionerRole-specialty",
-              "type": "token",
-              "documentation": "Practitioner that is able to provide the defined services for the organization"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "role",
-              "definition": "http://hl7.org/fhir/SearchParameter/PractitionerRole-role",
-              "type": "token",
-              "documentation": "The practitioner can perform this role at for the organization"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "organization",
-              "definition": "http://hl7.org/fhir/SearchParameter/PractitionerRole-organization",
-              "type": "reference",
-              "documentation": "The identity of the organization the practitioner represents / acts on behalf of"
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "practitioner",
-              "definition": "http://hl7.org/fhir/SearchParameter/PractitionerRole-practitioner",
-              "type": "reference",
-              "documentation": "Practitioner that is able to provide the defined services for the organization."
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHOULD"
-                }
-              ],
-              "name": "telecom",
-              "definition": "http://hl7.org/fhir/SearchParameter/individual-telecom",
-              "type": "token",
-              "documentation": "The value in any kind of contact."
-            }
-          ],
-          "operation": [
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
-                  "valueCode": "SHALL"
-                }
-              ],
-              "name": "gfe-retrieve",
-              "definition": "http://hl7.org/fhir/us/davinci-pct/OperationDefinition/GFE-retrieve",
-              "documentation": "This operation is used by an entity to retrieve a GFE Collection Bundle containing the GFE Bundle(s) and other referenced resources based on a GFE Coordination Task. The only input parameter is the single reference to the GFE Coordination Task resource. The only output is a GFE Collection Bundle. If the task reference is to a Coordination Task, this will return the GFE Collection Bundle. If this task reference is for a GFE Contributor Task, it returns the GFE Bundle, if present. If the Task reference points to a Task resource that is neither a Coordination Task or a GFE Contributor Task, the response is an HTTP error `400 - Bad Request`. If a Task is not found, the response is an HTTP error `400 - Bad Request`. If a GFE Bundle does not exist for an associated GFE Contributor Task, in place of a GFE Bundle, a GFE Missing Bundle is provided in its place (either directly ina response if the referenced task was a GFE Contributor Task or inside the GFE Collection Bundle if the referenced task was a Coordination Task.)"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      }],
+      "type" : "Practitioner",
+      "_type" : {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      },
+      "supportedProfile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-practitioner"],
+      "_supportedProfile" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      }],
+      "interaction" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "create"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "search-type"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "read"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "vread"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "update"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "patch"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "delete"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-instance"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-type"
+      }],
+      "searchParam" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "_id",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Resource-id",
+        "type" : "token",
+        "documentation" : "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "identifier",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Practitioner-identifier",
+        "type" : "token",
+        "documentation" : "A practitioner's Identifier"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "name",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Practitioner-name",
+        "type" : "string",
+        "documentation" : "A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "address",
+        "definition" : "http://hl7.org/fhir/SearchParameter/individual-address",
+        "type" : "string",
+        "documentation" : "A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "telecom",
+        "definition" : "http://hl7.org/fhir/SearchParameter/individual-telecom",
+        "type" : "token",
+        "documentation" : "The value in any kind of contact."
+      }]
+    },
+    {
+      "extension" : [{
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "active"
+        },
+        {
+          "url" : "required",
+          "valueString" : "name"
+        },
+        {
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      },
+      {
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "active"
+        },
+        {
+          "url" : "required",
+          "valueString" : "specialty"
+        },
+        {
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      },
+      {
+        "extension" : [{
+          "url" : "required",
+          "valueString" : "active"
+        },
+        {
+          "url" : "required",
+          "valueString" : "role"
+        },
+        {
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-search-parameter-combination"
+      }],
+      "type" : "PractitionerRole",
+      "_type" : {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      },
+      "supportedProfile" : ["http://hl7.org/fhir/us/davinci-hrex/StructureDefinition/hrex-practitionerrole"],
+      "_supportedProfile" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }]
+      }],
+      "interaction" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "create"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "search-type"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "code" : "read"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "vread"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "update"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "patch"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "delete"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-instance"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "MAY"
+        }],
+        "code" : "history-type"
+      }],
+      "searchParam" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "_id",
+        "definition" : "http://hl7.org/fhir/SearchParameter/Resource-id",
+        "type" : "token",
+        "documentation" : "Searching by Logical id of this artifact. Allows retrieval of resources with special search result parameters, such as _summary"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "specialty",
+        "definition" : "http://hl7.org/fhir/SearchParameter/PractitionerRole-specialty",
+        "type" : "token",
+        "documentation" : "Practitioner that is able to provide the defined services for the organization"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "role",
+        "definition" : "http://hl7.org/fhir/SearchParameter/PractitionerRole-role",
+        "type" : "token",
+        "documentation" : "The practitioner can perform this role at for the organization"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "organization",
+        "definition" : "http://hl7.org/fhir/SearchParameter/PractitionerRole-organization",
+        "type" : "reference",
+        "documentation" : "The identity of the organization the practitioner represents / acts on behalf of"
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "practitioner",
+        "definition" : "http://hl7.org/fhir/SearchParameter/PractitionerRole-practitioner",
+        "type" : "reference",
+        "documentation" : "Practitioner that is able to provide the defined services for the organization."
+      },
+      {
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHOULD"
+        }],
+        "name" : "telecom",
+        "definition" : "http://hl7.org/fhir/SearchParameter/individual-telecom",
+        "type" : "token",
+        "documentation" : "The value in any kind of contact."
+      }],
+      "operation" : [{
+        "extension" : [{
+          "url" : "http://hl7.org/fhir/StructureDefinition/capabilitystatement-expectation",
+          "valueCode" : "SHALL"
+        }],
+        "name" : "gfe-retrieve",
+        "definition" : "http://hl7.org/fhir/us/davinci-pct/OperationDefinition/GFE-retrieve",
+        "documentation" : "This operation is used by an entity to retrieve a GFE Packet containing the GFE Bundle(s) and other referenced resources based on a GFE Coordination Task. The only input parameter is the single reference to the GFE Coordination Task resource. The only output is a GFE Packet. If the task reference is to a Coordination Task, this will return the GFE Packet. If this task reference is for a GFE Contributor Task, it returns the GFE Bundle, if present. If the Task reference points to a Task resource that is neither a Coordination Task or a GFE Contributor Task, the response is an HTTP error `400 - Bad Request`. If a Task is not found, the response is an HTTP error `400 - Bad Request`. If a GFE Bundle does not exist for an associated GFE Contributor Task, in place of a GFE Bundle, a GFE Missing Bundle is provided in its place (either directly ina response if the referenced task was a GFE Contributor Task or inside the GFE Packet if the referenced task was a Coordination Task.)"
+      }]
+    }]
+  }]
 }
