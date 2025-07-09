@@ -111,17 +111,6 @@ public class ProcessCustomizer {
                     System.out.println("Failure to update the Location: " + e.getMessage());
                 }
             }
-            for (String filename : getServerResources("ri_resources", "PractitionerRole-*.json")) {
-                try {
-                    System.out.println("Uploading resource " + filename);
-                    theDaoRegistry.getResourceDao(PractitionerRole.class).update(
-                            jparser.parseResource(PractitionerRole.class, util.loadResource(filename)),
-                            theRequestDetails);
-                } catch (Exception e) {
-                    System.out.println("Failure to update the PractitionerRole: " + e.getMessage());
-                }
-            }
-            logger.info("Loaded Coverage");
         }
         return true;
     }

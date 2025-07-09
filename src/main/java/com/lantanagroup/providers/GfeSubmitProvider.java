@@ -45,6 +45,8 @@ public class GfeSubmitProvider {
   private IFhirResourceDao<Organization> theOrganizationDao;
   private IFhirResourceDao<ExplanationOfBenefit> theExplanationOfBenefitDao;
   private IFhirResourceDao<Composition> theCompositionDao;
+  private IFhirResourceDao<DocumentReference> theDocumentReferenceDao;
+  private IFhirResourceDao<Patient> thePatientDao;
 
   private Integer simulatedDelaySeconds = 15;
   private IParser jparser;
@@ -58,6 +60,8 @@ public class GfeSubmitProvider {
     theOrganizationDao = daoRegistry.getResourceDao(Organization.class);
     theExplanationOfBenefitDao = daoRegistry.getResourceDao(ExplanationOfBenefit.class);
     theCompositionDao = daoRegistry.getResourceDao(Composition.class);
+    theDocumentReferenceDao = daoRegistry.getResourceDao(DocumentReference.class);
+    thePatientDao = daoRegistry.getResourceDao(Patient.class);
 
     jparser = this.theFhirContext.newJsonParser();
     jparser.setPrettyPrint(true);
@@ -263,6 +267,13 @@ public class GfeSubmitProvider {
 
       outputString = theRequestDetails.getFhirServerBase() + "/Claim/$gfe-submit-poll-status?_bundleId=" + returnAEOBPacket.getIdElement().getIdPart();
 
+      // Create and save the DocumentReference resource
+      DocumentReference docRef = createAeobPacketDocumentReference(returnAEOBPacket, theBundleResource, theRequestDetails);
+      if (docRef != null) {
+        logger.info("Saving DocumentReference");
+        theDocumentReferenceDao.create(docRef, theRequestDetails);
+      }
+
       logger.info("Returning 202 with Content-Location header");
       theResponse.setStatus(202);
       theResponse.setHeader("Content-Location", outputString);
@@ -291,7 +302,7 @@ public class GfeSubmitProvider {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
       if (bundleEntry.fhirType().equals("Patient")) {
         Patient patient = (Patient) bundleEntry;
-        logger.info("["+patient.getIdElement() != null ? patient.getIdElement().getValue() : "NULL"+"]");
+        logger.info("[" + (patient.getIdElement() != null ? patient.getIdElement().getValue() : "NULL") + "]");
         aeob.setPatient(new Reference(patient.getIdElement().getResourceType()+"/"+patient.getIdElement().getIdPart()));
       } else if (bundleEntry.fhirType().equals("Organization")) {
         Organization org = (Organization) bundleEntry;
@@ -329,7 +340,7 @@ public class GfeSubmitProvider {
       IBaseResource bundleEntry = (IBaseResource) e.getResource();
       if (bundleEntry.fhirType().equals("Patient")) {
         Patient patient = (Patient) bundleEntry;
-        logger.info("["+patient.getIdElement() != null ? patient.getIdElement().getValue() : "NULL"+"]");
+        logger.info("[" + (patient.getIdElement() != null ? patient.getIdElement().getValue() : "NULL") + "]");
         aeob.setPatient(new Reference(patient.getIdElement().getResourceType()+"/"+patient.getIdElement().getIdPart()));
       } else if (bundleEntry.fhirType().equals("Organization")) {
         Organization org = (Organization) bundleEntry;
@@ -419,6 +430,9 @@ public class GfeSubmitProvider {
       addGfeBundleToAeobPacket(gfePacket, aeobPacket, theRequestDetails);
     }
 
+    // Save or update Practitioner, Organization, Patient and contained GFE bundles locally for searchability
+    saveResourcesFromBundle(gfePacket, theRequestDetails);
+
     // Add AEOB Summary to AEOB Packet (ensure resource is added before referencing)
     addAEOBSummarytoAEOBPacket(gfePacket, aeobPacket, theRequestDetails);
 
@@ -427,6 +441,145 @@ public class GfeSubmitProvider {
 
   }
 
+  /**
+   * Builds a DocumentReference for the generated AEOB packet. Searching for document bundles is done through this DocumentReference resource.
+   * The DocumentReference attaches a link to the AEOB packet.
+   */
+  private DocumentReference createAeobPacketDocumentReference(Bundle aeobPacket, Bundle gfePacket, RequestDetails theRequestDetails) {
+    DocumentReference docRef = null;
+    try {
+      docRef = new DocumentReference();
+      //docRef.setId("PCT-AEOB-DocumentReference-" + UUID.randomUUID().toString());
+
+      // Set meta/profile
+      Meta meta = new Meta();
+      meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-documentreference");
+      docRef.setMeta(meta);
+
+      // Set status, docStatus, type, category
+      docRef.setStatus(Enumerations.DocumentReferenceStatus.CURRENT);
+      docRef.setDocStatus(DocumentReference.ReferredDocumentStatus.FINAL);
+      docRef.setType(new CodeableConcept().addCoding(
+        new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse", "aeob-packet", "AEOB Packet")
+      ));
+      docRef.addCategory(
+        new CodeableConcept().addCoding(
+          new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentCategoryTemporaryTrialUse", "estimate", "Estimation Packet")
+        )
+      );
+
+      // Add requestInitiationTime extension
+      Extension requestInitiationTime = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/requestInitiationTime");
+      requestInitiationTime.setValue(new InstantType(aeobPacket.getTimestamp()));
+      docRef.addExtension(requestInitiationTime);
+
+      // Copy gfeServiceLinkingInfo extension from GFE Composition if present
+      for (BundleEntryComponent entry : gfePacket.getEntry()) {
+        if (entry.getResource() instanceof Composition) {
+          Composition comp = (Composition) entry.getResource();
+          Extension gfeServiceLinkingInfo = comp.getExtensionByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeServiceLinkingInfo");
+          if (gfeServiceLinkingInfo != null) {
+            docRef.addExtension(gfeServiceLinkingInfo.copy());
+          }
+          break;
+        }
+      }
+
+      // Set subject (Patient reference)
+      for (BundleEntryComponent entry : gfePacket.getEntry()) {
+        if (entry.getResource() instanceof Patient) {
+          logger.info("DocRef Subject Patient/" + entry.getResource().getIdElement().getIdPart());
+          String idRaw = entry.getResource().getIdElement().getValue();
+          String uuid = idRaw.startsWith("urn:uuid:") ? idRaw.substring("urn:uuid:".length()) : null;
+          String patientId = idRaw.startsWith("urn:")
+                  ? uuid
+                  : entry.getResource().getIdElement().getIdPart();
+            docRef.setSubject(new Reference("Patient/" + patientId));
+          break;
+        }
+      }
+
+      // Set date
+      docRef.setDate(new Date());
+
+      // Add Authors (Organization|Practitioner) reference to the payer and all GFE Packet authors
+      Set<String> authorRefs = new HashSet<>();
+      for (BundleEntryComponent entry : gfePacket.getEntry()) {
+        if (entry.getResource() instanceof Organization || entry.getResource() instanceof Practitioner) {
+          String ref = entry.getResource().getIdElement().getResourceType() + "/" + entry.getResource().getIdElement().getIdPart();
+          if (authorRefs.add(ref)) {
+            logger.info("DocRef Author added: " + ref);
+            docRef.addAuthor(new Reference(ref));
+          }
+        }
+      }
+
+      // Add content (Attachment with AEOB packet URL)
+      DocumentReference.DocumentReferenceContentComponent content = new DocumentReference.DocumentReferenceContentComponent();
+      Attachment attachment = new Attachment();
+      attachment.setContentType("application/fhir+json");
+      logger.info("Attachment Url " + theRequestDetails.getFhirServerBase() + "/Bundle/" + aeobPacket.getIdElement().getIdPart());
+      attachment.setUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + aeobPacket.getIdElement().getIdPart());
+      content.setAttachment(attachment);
+      content.setFormat(new Coding()
+        .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse")
+        .setCode("pct-aeob-packet"));
+      docRef.addContent(content);
+
+    } catch (Exception e) {
+      logger.info("Error creating AEOB DocumentReference: " + e.getMessage());
+      e.printStackTrace();
+    }
+    return docRef;
+  }
+
+  private void saveResourcesFromBundle(Bundle theBundleResource, RequestDetails theRequestDetails) {
+    Set<String> processedResourceIds = new HashSet<>();
+    logger.info("Saving the GFE packet Resources");
+
+    for (Bundle.BundleEntryComponent entry : theBundleResource.getEntry()) {
+      Resource resource = entry.getResource();
+
+      if (resource == null ||
+              !(resource instanceof Practitioner ||
+                      resource instanceof Organization ||
+                      resource instanceof Bundle ||
+                      resource instanceof Patient)) continue;
+
+      String logicalId = resource.getIdElement().getIdPart();
+      logger.info("LogicalId: " + logicalId);
+      if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
+        logicalId = logicalId.substring("urn:uuid:".length());
+        // Set the resource's ID to the bare UUID for persistence
+        resource.setId(logicalId);
+      }/* else {
+        resource.setId(logicalId);
+      }*/
+
+      String resourceType = resource.getResourceType().toString();
+      if (logicalId != null) {
+        String uniqueKey = resourceType + "/" + logicalId;
+        if (!processedResourceIds.add(uniqueKey)) {
+          continue;
+        }
+      }
+
+      IFhirResourceDao dao = null;
+      if (resource instanceof Practitioner) {
+        dao = thePractitionerDao;
+      } else if (resource instanceof Organization) {
+        dao = theOrganizationDao;
+      } else if (resource instanceof Patient) {
+        dao = thePatientDao;
+      } else if (resource instanceof Bundle) {
+        dao = theBundleDao;
+      }
+
+      if (dao != null) {
+         dao.update(resource, theRequestDetails);
+      }
+    }
+  }
 
   public void claimToAEOB(Claim claim, Bundle gfeBundle, Bundle aeobPacket, RequestDetails theRequestDetails) {
     // load the base aeob
@@ -673,9 +826,9 @@ public class GfeSubmitProvider {
       aeobCompositionMeta.setLastUpdated(new Date());
       aeobCompositionMeta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-composition");
       aeobComposition.setMeta(aeobCompositionMeta);
-
-      String compId = "PCT-AEOB-Composition-" + UUID.randomUUID();
-      aeobComposition.setId(new IdType("Composition", compId));
+      //String compId = "Composition-" + UUID.randomUUID();
+      //aeobComposition.setId(new IdType("Composition", compId));
+      aeobComposition.setStatus(Composition.CompositionStatus.FINAL);
       aeobComposition.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse", "aeob-packet", "AEOB Packet")));
       aeobComposition.addCategory(
               new CodeableConcept().addCoding(
@@ -752,25 +905,30 @@ public class GfeSubmitProvider {
         } else if (gfePacketEntryResource instanceof Patient) {
           if (aeobComposition.getSubject() == null || aeobComposition.getSubject().isEmpty()) {
             Patient patient = (Patient) gfePacketEntryResource;
-            aeobComposition.setSubject(new Reference("Patient/" + patient.getIdElement().getIdPart()));
+            String logicalId = patient.getIdElement().getIdPart();
+            if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
+              logicalId = logicalId.substring("urn:uuid:".length());
+            }
+            aeobComposition.setSubject(new Reference("Patient/" + logicalId));
             aeobComposition.setTitle("Advanced Explanation of Benefit Packet for " + patient.getNameFirstRep().getText() + " - " + new Date().toString());
           }
         }
       }
 
+      logger.info("Saving AEOB Composition");
+      theCompositionDao.create(aeobComposition, theRequestDetails);
+
       // Add the AEOB Composition to the AEOB Packet
       BundleEntryComponent aeobCompositionEntry = new BundleEntryComponent();
-      aeobCompositionEntry.setId(compId);
-      aeobCompositionEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Composition/" + compId);
+      aeobCompositionEntry.setId(aeobComposition.getIdElement().getIdPart());
+      aeobCompositionEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Composition/" + aeobComposition.getIdElement().getIdPart());
       aeobCompositionEntry.setResource(aeobComposition);
 
       // Ensure AEOB Composition is the first resource in the AEOB packet
       aeobPacket.getEntry().add(0, aeobCompositionEntry);
-      //logger.info("Saving AEOB Composition");
-      //theCompositionDao.create(aeobComposition, theRequestDetails);
     } catch (Exception e) {
       logger.info("Error creating AEOB Composition: " + e.getMessage());
-      throw new RuntimeException("Error creating AEOB Composition", e);
+      throw new RuntimeException("Error creating AEOB Composition "+e.getMessage(), e);
     }
     return aeobPacket;
   }
@@ -801,8 +959,8 @@ public class GfeSubmitProvider {
       aeob_summary.setMeta(aeob_summary_meta);
 
       // Ensure the summary EOB has a unique and consistent ID
-      String summaryId = "PCT-AEOB-Summary-" + UUID.randomUUID();
-      aeob_summary.setId(new IdType("ExplanationOfBenefit", summaryId));
+      //String summaryId = "Summary-" + UUID.randomUUID();
+      //aeob_summary.setId(summaryId);
 
       Extension serviceExtension = new Extension(SERVICE_DESCRIPTION_EXTENSION);
       serviceExtension.setValue(new StringType(
@@ -914,10 +1072,13 @@ public class GfeSubmitProvider {
       for (String key : totals_map.keySet()) {
         aeob_summary.addTotal(totals_map.get(key));
       }
+      logger.info("Saving AEOB Summary");
+      theExplanationOfBenefitDao.create(aeob_summary, theRequestDetails);
+
       // Add AEOB Summary to AEOB Packet
       Bundle.BundleEntryComponent summary_aeobPacketEntry = new Bundle.BundleEntryComponent();
-      summary_aeobPacketEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/ExplanationOfBenefit/" + summaryId);
-      summary_aeobPacketEntry.setId(summaryId);
+      summary_aeobPacketEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/ExplanationOfBenefit/" + aeob_summary.getIdElement().getIdPart());
+      summary_aeobPacketEntry.setId(aeob_summary.getIdElement().getIdPart());
       summary_aeobPacketEntry.setResource(aeob_summary);
       aeobPacket.getEntry().add(1, summary_aeobPacketEntry);
       logger.info(summary_aeobPacketEntry.getFullUrl());
@@ -977,7 +1138,7 @@ public class GfeSubmitProvider {
   // #region GFE-Submit Operation Bundle Add Elements
 
   private void addGfeBundleToAeobPacket(Bundle gfeBundle, Bundle aeobPacket, RequestDetails theRequestDetails) {
-    logger.info("Adding GFE Bundle to AEOB Packet");
+    logger.info("Adding GFE Bundle "+gfeBundle.getIdPart()+" to AEOB Packet");
 
     // Add GFE Bundle to AEOB Packet
     Bundle.BundleEntryComponent gfeBundleEntry = new BundleEntryComponent();
