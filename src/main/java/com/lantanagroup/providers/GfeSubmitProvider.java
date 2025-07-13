@@ -547,11 +547,24 @@ public class GfeSubmitProvider {
                       resource instanceof Patient)) continue;
 
       String logicalId = resource.getIdElement().getIdPart();
+
+      // Fix for error HAPI-0989 - Remove _history from resource ID before update if exists
+      String fullId = resource.getIdElement().getValue();
+      // Log the full resource ID (including _history if present for debugging)
+      logger.info("----Full Resource ID: " + fullId);
       logger.info("LogicalId: " + logicalId);
+      if (fullId != null && fullId.contains("/_history/")) {
+        // Strip _history from ID for update
+        String baseId = fullId.substring(0, fullId.indexOf("/_history/"));
+        resource.setId(baseId.substring(baseId.lastIndexOf('/') + 1));
+        logicalId = resource.getIdElement().getIdPart();
+        logger.info("Removed _history, new Resource ID: " + resource.getIdElement().getValue());
+      }
       if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
         logicalId = logicalId.substring("urn:uuid:".length());
         // Set the resource's ID to the bare UUID for persistence
         resource.setId(logicalId);
+        logger.info("Removed urn:uuid:, new LogicalId: " + resource.getIdElement().getIdPart());
       }/* else {
         resource.setId(logicalId);
       }*/
