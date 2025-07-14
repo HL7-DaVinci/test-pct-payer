@@ -36,7 +36,13 @@ public class GfeSubmitProvider {
   private static final String PCT_GFE_SUMMARY_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-summary";
   private static final String PCT_GFE_MISSING_BUNDLE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-missing-bundle";
   private static final String PCT_AEOB_PACKET_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-packet";
+  private static final String PCT_AEOB_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob";
+  private static final String PCT_AEOB_SUMMARY_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-summary";
+  private static final String PCT_AEOB_DOCUMENT_REFERENCE_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-documentreference";
+  private static final String PCT_AEOB_COMPOSITION_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-composition";
   private static final String PCT_GFE_PACKET_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-packet";
+  private static final String PCT_GFE_INSTITUTIONAL_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-institutional";
+  private static final String PCT_GFE_PROFESSIONAL_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-professional";
 
   private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GfeSubmitProvider.class);
   private FhirContext theFhirContext;
@@ -150,7 +156,7 @@ public class GfeSubmitProvider {
 
       Resource res = entry.getResource();
 
-      // The gfe bundle meta is missing after AEOB packet save. Adding profile manually before returning the response. // todo check if this is needed
+      // The gfe bundle meta is missing after AEOB packet save. Adding profile manually before returning the response.
       if (res.fhirType().equals("Bundle")) {
         if (!res.hasMeta()) {
           Meta gfeBundle_meta = new Meta();
@@ -268,7 +274,7 @@ public class GfeSubmitProvider {
       outputString = theRequestDetails.getFhirServerBase() + "/Claim/$gfe-submit-poll-status?_bundleId=" + returnAEOBPacket.getIdElement().getIdPart();
 
       // Create and save the DocumentReference resource
-      DocumentReference docRef = createAeobPacketDocumentReference(returnAEOBPacket, theBundleResource, theRequestDetails);
+      DocumentReference docRef = createAeobPacketDocumentReference(returnAEOBPacket, theRequestDetails);
       if (docRef != null) {
         logger.info("Saving DocumentReference");
         theDocumentReferenceDao.create(docRef, theRequestDetails);
@@ -437,7 +443,7 @@ public class GfeSubmitProvider {
     addAEOBSummarytoAEOBPacket(gfePacket, aeobPacket, theRequestDetails);
 
     // Add AEOB Composition to AEOB Packet (after all referenced resources are present)
-    addAEOBCompositiontoAEOBPacket(gfePacket, aeobPacket, theRequestDetails);
+    addAEOBCompositiontoAEOBPacket(aeobPacket, theRequestDetails);
 
   }
 
@@ -445,7 +451,7 @@ public class GfeSubmitProvider {
    * Builds a DocumentReference for the generated AEOB packet. Searching for document bundles is done through this DocumentReference resource.
    * The DocumentReference attaches a link to the AEOB packet.
    */
-  private DocumentReference createAeobPacketDocumentReference(Bundle aeobPacket, Bundle gfePacket, RequestDetails theRequestDetails) {
+  private DocumentReference createAeobPacketDocumentReference(Bundle aeobPacket, RequestDetails theRequestDetails) {
     DocumentReference docRef = null;
     try {
       docRef = new DocumentReference();
@@ -453,7 +459,7 @@ public class GfeSubmitProvider {
 
       // Set meta/profile
       Meta meta = new Meta();
-      meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-documentreference");
+      meta.addProfile(PCT_AEOB_DOCUMENT_REFERENCE_PROFILE);
       docRef.setMeta(meta);
 
       // Set status, docStatus, type, category
@@ -473,46 +479,49 @@ public class GfeSubmitProvider {
       requestInitiationTime.setValue(new InstantType(aeobPacket.getTimestamp()));
       docRef.addExtension(requestInitiationTime);
 
-      // Copy gfeServiceLinkingInfo extension from GFE Composition if present
-      for (BundleEntryComponent entry : gfePacket.getEntry()) {
-        if (entry.getResource() instanceof Composition) {
-          Composition comp = (Composition) entry.getResource();
+      Set<String> authorRefs = new HashSet<>();
+      boolean isSubjectSet = false;
+      for (BundleEntryComponent entry : aeobPacket.getEntry()) {
+        Resource resource = (Resource) entry.getResource();
+        // Copy gfeServiceLinkingInfo extension from GFE Composition if present
+        if (resource instanceof Composition) {
+          Composition comp = (Composition) resource;
           Extension gfeServiceLinkingInfo = comp.getExtensionByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeServiceLinkingInfo");
           if (gfeServiceLinkingInfo != null) {
             docRef.addExtension(gfeServiceLinkingInfo.copy());
           }
-          break;
-        }
-      }
-
-      // Set subject (Patient reference)
-      for (BundleEntryComponent entry : gfePacket.getEntry()) {
-        if (entry.getResource() instanceof Patient) {
-          logger.info("DocRef Subject Patient/" + entry.getResource().getIdElement().getIdPart());
-          String idRaw = entry.getResource().getIdElement().getValue();
+        } else if (resource instanceof Patient && !isSubjectSet) {
+          logger.info("DocRef Subject Patient/" + resource.getIdElement().getIdPart());
+          String idRaw = resource.getIdElement().getValue();
           String uuid = idRaw.startsWith("urn:uuid:") ? idRaw.substring("urn:uuid:".length()) : null;
           String patientId = idRaw.startsWith("urn:")
                   ? uuid
-                  : entry.getResource().getIdElement().getIdPart();
-            docRef.setSubject(new Reference("Patient/" + patientId));
-          break;
+                  : resource.getIdElement().getIdPart();
+          docRef.setSubject(new Reference("Patient/" + patientId));
+          isSubjectSet = true;
+        } else if (resource instanceof ExplanationOfBenefit) {
+          ExplanationOfBenefit eob = (ExplanationOfBenefit) resource;
+          if (eob.getMeta() != null && eob.getMeta().hasProfile(PCT_AEOB_PROFILE)) {
+            if (eob.hasInsurer() && eob.getInsurer().hasReference()) {
+              String insurerRef = eob.getInsurer().getReference();
+              if (authorRefs.add(insurerRef)) { // Add author(payer) only if not already added
+                logger.info("DocRef Insurer Author added: " + insurerRef);
+                docRef.addAuthor(new Reference(insurerRef));
+              }
+            }
+            if (eob.hasProvider() && eob.getProvider().hasReference()) {
+              String providerRef = eob.getProvider().getReference();
+              if (authorRefs.add(providerRef)) { // Add author only if not already added
+                logger.info("DocRef Provider Author added: " + providerRef);
+                docRef.addAuthor(new Reference(providerRef));
+              }
+            }
+          }
         }
       }
 
       // Set date
       docRef.setDate(new Date());
-
-      // Add Authors (Organization|Practitioner) reference to the payer and all GFE Packet authors
-      Set<String> authorRefs = new HashSet<>();
-      for (BundleEntryComponent entry : gfePacket.getEntry()) {
-        if (entry.getResource() instanceof Organization || entry.getResource() instanceof Practitioner) {
-          String ref = entry.getResource().getIdElement().getResourceType() + "/" + entry.getResource().getIdElement().getIdPart();
-          if (authorRefs.add(ref)) {
-            logger.info("DocRef Author added: " + ref);
-            docRef.addAuthor(new Reference(ref));
-          }
-        }
-      }
 
       // Add content (Attachment with AEOB packet URL)
       DocumentReference.DocumentReferenceContentComponent content = new DocumentReference.DocumentReferenceContentComponent();
@@ -660,7 +669,7 @@ public class GfeSubmitProvider {
       theExplanationOfBenefitDao.create(aeob, theRequestDetails);
       addAeobToPacket(aeob, aeobPacket, theRequestDetails);
       if (claim.getMeta().getProfile().get(0).getValue()
-              .equals("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-institutional")) {
+              .equals( PCT_GFE_INSTITUTIONAL_PROFILE)) {
         convertInstitutional(claim, gfeBundle, aeob);
       } else {
         convertProfessional(claim, gfeBundle, aeob);
@@ -830,14 +839,14 @@ public class GfeSubmitProvider {
   /**
    * Add AEOB Composition to AEOB Packet and return the Composition resource.
    */
-  public Bundle addAEOBCompositiontoAEOBPacket(Bundle gfePacket, Bundle aeobPacket, RequestDetails theRequestDetails) {
+  public Bundle addAEOBCompositiontoAEOBPacket(Bundle aeobPacket, RequestDetails theRequestDetails) {
     logger.info("Creating AEOB Composition");
     try {
       Composition aeobComposition = new Composition();
       Meta aeobCompositionMeta = new Meta();
       aeobCompositionMeta.setVersionId("1");
       aeobCompositionMeta.setLastUpdated(new Date());
-      aeobCompositionMeta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-composition");
+      aeobCompositionMeta.addProfile(PCT_AEOB_COMPOSITION_PROFILE);
       aeobComposition.setMeta(aeobCompositionMeta);
       //String compId = "Composition-" + UUID.randomUUID();
       //aeobComposition.setId(new IdType("Composition", compId));
@@ -857,67 +866,13 @@ public class GfeSubmitProvider {
                       .setValue(UUID.randomUUID().toString())
       );
       // Track unique author references
-      Set<String> authorRefs = new HashSet<>();
+      Set<String> authors = new HashSet<>();
       // Add a section for AEOB Summary and AEOB section
       for (BundleEntryComponent aeobPacketEntry : aeobPacket.getEntry()) {
         Resource aeobPacketEntryResource = aeobPacketEntry.getResource();
-        if (aeobPacketEntryResource instanceof ExplanationOfBenefit) {
-          ExplanationOfBenefit eob = (ExplanationOfBenefit) aeobPacketEntryResource;
-          if (eob.getMeta() != null && eob.getMeta().hasProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-summary")) {
-            Composition.SectionComponent section = createSection("aeob-summary-section", "AEOB Summary", eob);
-            aeobComposition.addSection(section);
-          } else if (eob.getMeta() != null && eob.getMeta().hasProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob")) {
-            Composition.SectionComponent section = createSection("aeob-section", "AEOB Section", eob);
-            aeobComposition.addSection(section);
-            if (eob.hasInsurer() && eob.getInsurer().hasReference()) {
-              String insurerRef = eob.getInsurer().getReference();
-              if (authorRefs.add(insurerRef)) { // Add author only if not already added
-                aeobComposition.addAuthor(new Reference(insurerRef));
-              }
-            }
-            if (eob.hasProvider() && eob.getProvider().hasReference()) {
-              String providerRef = eob.getProvider().getReference();
-              if (authorRefs.add(providerRef)) { // Add author only if not already added
-                aeobComposition.addAuthor(new Reference(providerRef));
-              }
-            }
-          }
-        }
-      }
-
-      // Add a section for each GFE in the bundle
-      for (BundleEntryComponent gfePacketEntry : gfePacket.getEntry()) {
-        Resource gfePacketEntryResource = gfePacketEntry.getResource();
-        if (gfePacketEntryResource instanceof Bundle && gfePacketEntryResource.getMeta() != null
-                && gfePacketEntryResource.getMeta().hasProfile() && gfePacketEntryResource.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)
-                && !gfePacketEntryResource.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE)) {
-          Bundle gfeBundle = (Bundle) gfePacketEntryResource;
-          Composition.SectionComponent section = createSection("gfe-section", "GFE Section", gfeBundle);
-
-          // Add authors from the GFE bundle to the section
-          Set<String> sectionAuthorRefs = new HashSet<>();
-          for (BundleEntryComponent gfeBundleEntry : gfeBundle.getEntry()) {
-            Resource gfeBundleEntryResource = gfeBundleEntry.getResource();
-            if (gfeBundleEntryResource instanceof Organization) { //Associated GFE author (GFE Contributor)
-              Organization org = (Organization) gfeBundleEntryResource;
-              if (org.hasType() && org.getType().get(0).hasCoding() &&
-                      !"pay".equals(org.getType().get(0).getCoding().get(0).getCode())) {
-                String ref = gfeBundleEntryResource.getIdElement().getResourceType() + "/" + gfeBundleEntryResource.getIdElement().getIdPart();
-                if (sectionAuthorRefs.add(ref)) {
-                  section.addAuthor(new Reference(ref));
-                }
-              }
-            } else if (gfeBundleEntryResource instanceof Practitioner) { //Associated GFE author (GFE Contributor)
-              String ref = gfeBundleEntryResource.getIdElement().getResourceType() + "/" + gfeBundleEntryResource.getIdElement().getIdPart();
-              if (sectionAuthorRefs.add(ref)) {
-                section.addAuthor(new Reference(ref));
-              }
-            }
-          }
-          aeobComposition.addSection(section);
-        } else if (gfePacketEntryResource instanceof Patient) {
+         if (aeobPacketEntryResource instanceof Patient) {
           if (aeobComposition.getSubject() == null || aeobComposition.getSubject().isEmpty()) {
-            Patient patient = (Patient) gfePacketEntryResource;
+            Patient patient = (Patient) aeobPacketEntryResource;
             String logicalId = patient.getIdElement().getIdPart();
             if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
               logicalId = logicalId.substring("urn:uuid:".length());
@@ -925,7 +880,37 @@ public class GfeSubmitProvider {
             aeobComposition.setSubject(new Reference("Patient/" + logicalId));
             aeobComposition.setTitle("Advanced Explanation of Benefit Packet for " + patient.getNameFirstRep().getText() + " - " + new Date().toString());
           }
-        }
+        } else if (aeobPacketEntryResource instanceof ExplanationOfBenefit) {
+          ExplanationOfBenefit eob = (ExplanationOfBenefit) aeobPacketEntryResource;
+          if (eob.getMeta() != null && eob.getMeta().hasProfile(PCT_AEOB_SUMMARY_PROFILE)) {
+            Composition.SectionComponent section = createSection("aeob-summary-section", null, eob);
+            aeobComposition.addSection(section);
+          } else if (eob.getMeta() != null && eob.getMeta().hasProfile("PCT_AEOB_PROFILE")) {
+            Composition.SectionComponent section = createSection("aeob-section", null, eob);
+            aeobComposition.addSection(section);
+            if (eob.hasInsurer() && eob.getInsurer().hasReference()) {
+              String insurerRef = eob.getInsurer().getReference();
+              if (authors.add(insurerRef)) { // Add author(payer) only if not already added
+                aeobComposition.addAuthor(new Reference(insurerRef));
+              }
+            }
+            if (eob.hasProvider() && eob.getProvider().hasReference()) {
+              String providerRef = eob.getProvider().getReference();
+              if (authors.add(providerRef)) { // Add author only if not already added
+                aeobComposition.addAuthor(new Reference(providerRef));
+              }
+            }
+          }
+        } else if (aeobPacketEntryResource instanceof Bundle
+                 && aeobPacketEntryResource.hasMeta()
+                 && aeobPacketEntryResource.getMeta().hasProfile()
+                 && aeobPacketEntryResource.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)
+                 && !aeobPacketEntryResource.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE)) {
+           // Add a section for each GFE in the bundle
+           Bundle gfeBundle = (Bundle) aeobPacketEntryResource;
+           Composition.SectionComponent gfeBundleSection = buildGfeSectionAndAuthor(gfeBundle);
+           aeobComposition.addSection(gfeBundleSection);
+         }
       }
 
       logger.info("Saving AEOB Composition");
@@ -946,6 +931,23 @@ public class GfeSubmitProvider {
     return aeobPacket;
   }
 
+  private Composition.SectionComponent buildGfeSectionAndAuthor(Bundle gfeBundle) {
+    Composition.SectionComponent section = createSection("gfe-section", null, gfeBundle);
+
+    // Add author(provider that submitted) from the GFE bundle to the section
+    for (BundleEntryComponent gfeBundleEntry : gfeBundle.getEntry()) {
+      Resource gfeBundleEntryResource = gfeBundleEntry.getResource();
+      if (gfeBundleEntryResource instanceof Claim && !isGFESummary((Claim)gfeBundleEntryResource)) { //Associated GFE author (GFE Contributor)
+        Claim gfeClaim = (Claim) gfeBundleEntryResource;
+        if (gfeClaim.hasProvider() && gfeClaim.getProvider().hasReference()) {
+            String providerRef = gfeClaim.getProvider().getReference();
+            section.addAuthor(new Reference(providerRef));
+            break;
+        }
+      }
+    }
+    return section;
+  }
   private Composition.SectionComponent createSection(String code, String display, Resource resource) {
     Composition.SectionComponent section = new Composition.SectionComponent();
     section.setCode(new CodeableConcept(new Coding(
@@ -968,7 +970,7 @@ public class GfeSubmitProvider {
       Meta aeob_summary_meta = new Meta();
       aeob_summary_meta.setVersionId("1");
       aeob_summary_meta.setLastUpdated(new Date());
-      aeob_summary_meta.addProfile("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-aeob-summary");
+      aeob_summary_meta.addProfile(PCT_AEOB_SUMMARY_PROFILE);
       aeob_summary.setMeta(aeob_summary_meta);
 
       // Ensure the summary EOB has a unique and consistent ID
