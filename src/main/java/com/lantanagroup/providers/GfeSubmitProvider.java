@@ -885,7 +885,7 @@ public class GfeSubmitProvider {
           if (eob.getMeta() != null && eob.getMeta().hasProfile(PCT_AEOB_SUMMARY_PROFILE)) {
             Composition.SectionComponent section = createSection("aeob-summary-section", null, eob);
             aeobComposition.addSection(section);
-          } else if (eob.getMeta() != null && eob.getMeta().hasProfile("PCT_AEOB_PROFILE")) {
+          } else if (eob.getMeta() != null && eob.getMeta().hasProfile(PCT_AEOB_PROFILE)) {
             Composition.SectionComponent section = createSection("aeob-section", null, eob);
             aeobComposition.addSection(section);
             if (eob.hasInsurer() && eob.getInsurer().hasReference()) {
