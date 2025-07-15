@@ -157,18 +157,22 @@ public class GfeSubmitProvider {
       Resource res = entry.getResource();
 
       // The gfe bundle meta is missing after AEOB packet save. Adding profile manually before returning the response.
-      if (res.fhirType().equals("Bundle")) {
-        if (!res.hasMeta()) {
-          Meta gfeBundle_meta = new Meta();
-          gfeBundle_meta.addProfile(PCT_GFE_BUNDLE_PROFILE);
-          res.setMeta(gfeBundle_meta);
-        } else {
-          if (!res.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)) {
-            res.getMeta().addProfile(PCT_GFE_BUNDLE_PROFILE);
-          }
+      if (res.fhirType().equals("Bundle") && !res.hasMeta()) {
+        boolean hasGfeClaim = false;
+        Bundle bundleRes = (Bundle) res;
+        for (Bundle.BundleEntryComponent bundleEntry : bundleRes.getEntry()) {
+          Resource entryRes = bundleEntry.getResource();
+          if (entryRes instanceof Claim) {
+              hasGfeClaim = true;
+              break;
+            }
         }
-      }
 
+        String targetProfile = hasGfeClaim ? PCT_GFE_BUNDLE_PROFILE : PCT_GFE_MISSING_BUNDLE_PROFILE;
+        Meta gfeBundle_meta = new Meta();
+        gfeBundle_meta.addProfile(targetProfile);
+        res.setMeta(gfeBundle_meta);
+      }
       if (res.fhirType().equals("Patient")) {
 
         String familyName = "";
@@ -552,7 +556,6 @@ public class GfeSubmitProvider {
       if (resource == null ||
               !(resource instanceof Practitioner ||
                       resource instanceof Organization ||
-                      resource instanceof Bundle ||
                       resource instanceof Patient)) continue;
 
       String logicalId = resource.getIdElement().getIdPart();
@@ -560,7 +563,7 @@ public class GfeSubmitProvider {
       // Fix for error HAPI-0989 - Remove _history from resource ID before update if exists
       String fullId = resource.getIdElement().getValue();
       // Log the full resource ID (including _history if present for debugging)
-      logger.info("----Full Resource ID: " + fullId);
+      logger.info("---Full Resource ID: " + fullId);
       logger.info("LogicalId: " + logicalId);
       if (fullId != null && fullId.contains("/_history/")) {
         // Strip _history from ID for update
@@ -593,12 +596,10 @@ public class GfeSubmitProvider {
         dao = theOrganizationDao;
       } else if (resource instanceof Patient) {
         dao = thePatientDao;
-      } else if (resource instanceof Bundle) {
-        dao = theBundleDao;
       }
 
       if (dao != null) {
-         dao.update(resource, theRequestDetails);
+          dao.update(resource, theRequestDetails);
       }
     }
   }
@@ -1153,11 +1154,22 @@ public class GfeSubmitProvider {
   // #region GFE-Submit Operation Bundle Add Elements
 
   private void addGfeBundleToAeobPacket(Bundle gfeBundle, Bundle aeobPacket, RequestDetails theRequestDetails) {
-    logger.info("Adding GFE Bundle "+gfeBundle.getIdPart()+" to AEOB Packet");
+    logger.info("Adding GFE Bundle to AEOB Packet");
+
+    if (gfeBundle.hasMeta()
+            && gfeBundle.getMeta().hasProfile()
+            && gfeBundle.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)
+            && !gfeBundle.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE)) {
+      // Always save (create) the gfe bundle, not update
+      logger.info("Saving GFE Bundle");
+      theBundleDao.create(gfeBundle, theRequestDetails);
+    }
 
     // Add GFE Bundle to AEOB Packet
     Bundle.BundleEntryComponent gfeBundleEntry = new BundleEntryComponent();
-    gfeBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getIdPart());
+    if(gfeBundle.getIdPart() != null && !gfeBundle.getIdPart().isEmpty()) {
+      gfeBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getIdPart());
+    }
     gfeBundleEntry.setResource(gfeBundle);
 
     if (!gfeBundle.hasMeta()) {
@@ -1166,11 +1178,6 @@ public class GfeSubmitProvider {
       gfeBundle_meta.setLastUpdated(new Date());
       gfeBundle_meta.addProfile(PCT_GFE_BUNDLE_PROFILE);
       gfeBundle.setMeta(gfeBundle_meta);
-    } else {
-      Meta gfeBundle_meta = gfeBundle.getMeta();
-      if (!gfeBundle_meta.hasProfile(PCT_GFE_BUNDLE_PROFILE)) {
-        gfeBundle_meta.addProfile(PCT_GFE_BUNDLE_PROFILE);
-      }
     }
     aeobPacket.addEntry(gfeBundleEntry);
   }
