@@ -558,32 +558,25 @@ public class GfeSubmitProvider {
                       resource instanceof Organization ||
                       resource instanceof Patient)) continue;
 
-      String logicalId = resource.getIdElement().getIdPart();
 
-      // Fix for error HAPI-0989 - Remove _history from resource ID before update if exists
-      String fullId = resource.getIdElement().getValue();
-      // Log the full resource ID (including _history if present for debugging)
-      logger.info("---Full Resource ID: " + fullId);
-      logger.info("LogicalId: " + logicalId);
-      if (fullId != null && fullId.contains("/_history/")) {
-        // Strip _history from ID for update
-        String baseId = fullId.substring(0, fullId.indexOf("/_history/"));
-        resource.setId(baseId.substring(baseId.lastIndexOf('/') + 1));
-        logicalId = resource.getIdElement().getIdPart();
-        logger.info("Removed _history, new Resource ID: " + resource.getIdElement().getValue());
-      }
+      logger.info("Full Resource ID: " + resource.getIdElement().getValue());
+      logger.info("LogicalId: " + resource.getIdElement().getIdPart());
+
+      resource.setId(resource.getIdElement().toVersionless());
+
+      logger.info("Full Resource ID Post Versionless: " + resource.getIdElement().getValue());
+      logger.info("LogicalId: Post Versionless: " + resource.getIdElement().getIdPart());
+
+      String logicalId = resource.getIdElement().getIdPart();
       if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
         logicalId = logicalId.substring("urn:uuid:".length());
-        // Set the resource's ID to the bare UUID for persistence
         resource.setId(logicalId);
         logger.info("Removed urn:uuid:, new LogicalId: " + resource.getIdElement().getIdPart());
-      }/* else {
-        resource.setId(logicalId);
-      }*/
+      }
 
       String resourceType = resource.getResourceType().toString();
-      if (logicalId != null) {
-        String uniqueKey = resourceType + "/" + logicalId;
+      if (resource.getIdElement().getIdPart() != null) {
+        String uniqueKey = resourceType + "/" + resource.getIdElement().getIdPart();
         if (!processedResourceIds.add(uniqueKey)) {
           continue;
         }
@@ -669,8 +662,7 @@ public class GfeSubmitProvider {
 
       theExplanationOfBenefitDao.create(aeob, theRequestDetails);
       addAeobToPacket(aeob, aeobPacket, theRequestDetails);
-      if (claim.getMeta().getProfile().get(0).getValue()
-              .equals( PCT_GFE_INSTITUTIONAL_PROFILE)) {
+      if (claim.getMeta().hasProfile(PCT_GFE_INSTITUTIONAL_PROFILE)) {
         convertInstitutional(claim, gfeBundle, aeob);
       } else {
         convertProfessional(claim, gfeBundle, aeob);
@@ -1246,7 +1238,10 @@ public class GfeSubmitProvider {
     if (providerEntry != null) {
       IBaseResource providerResource = providerEntry.getResource();
       if (getClaimProvider(claim, gfeBundle) != null) {
-        logger.info("Saving provider");
+        logger.info("Saving provider "+providerResource.getIdElement().getIdPart());
+        // Use versionless ID for update
+        providerResource.setId(providerResource.getIdElement().toVersionless());
+
         switch (providerResource.fhirType()) {
           case "Practitioner":
             thePractitionerDao.update((Practitioner) providerResource, theRequestDetails);
