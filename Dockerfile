@@ -1,4 +1,4 @@
-FROM maven:3.9.6-eclipse-temurin-17 as build
+FROM maven:3.9.11-amazoncorretto-17-debian AS build
 WORKDIR /tmp/server
 
 COPY pom.xml .
@@ -10,7 +10,7 @@ RUN mkdir /app && cp /tmp/server/target/ROOT.war /app/main.war
 
 
 
-FROM eclipse-temurin:17-jdk-alpine
+FROM amazoncorretto:17-alpine
 WORKDIR /app
 COPY --from=build /app/main.war /app/main.war
 
