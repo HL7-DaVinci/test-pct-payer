@@ -1,6 +1,7 @@
 package com.lantanagroup.providers;
 
 import com.lantanagroup.common.util;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 
@@ -162,7 +163,7 @@ public class GfeSubmitProvider {
         Bundle bundleRes = (Bundle) res;
         for (Bundle.BundleEntryComponent bundleEntry : bundleRes.getEntry()) {
           Resource entryRes = bundleEntry.getResource();
-          if (entryRes instanceof Claim) {
+          if (entryRes instanceof Claim && !isGFESummary((Claim) entryRes)) {
               hasGfeClaim = true;
               break;
             }
@@ -278,7 +279,7 @@ public class GfeSubmitProvider {
       outputString = theRequestDetails.getFhirServerBase() + "/Claim/$gfe-submit-poll-status?_bundleId=" + returnAEOBPacket.getIdElement().getIdPart();
 
       // Create and save the DocumentReference resource
-      DocumentReference docRef = createAeobPacketDocumentReference(returnAEOBPacket, theRequestDetails);
+      DocumentReference docRef = createAeobPacketDocumentReference(returnAEOBPacket, theBundleResource, theRequestDetails);
       if (docRef != null) {
         logger.info("Saving DocumentReference");
         theDocumentReferenceDao.create(docRef, theRequestDetails);
@@ -454,8 +455,10 @@ public class GfeSubmitProvider {
   /**
    * Builds a DocumentReference for the generated AEOB packet. Searching for document bundles is done through this DocumentReference resource.
    * The DocumentReference attaches a link to the AEOB packet.
+   * @param aeobPacket The AEOB packet bundle
+   * @param theRequestDetails FHIR request details
    */
-  private DocumentReference createAeobPacketDocumentReference(Bundle aeobPacket, RequestDetails theRequestDetails) {
+  private DocumentReference createAeobPacketDocumentReference(Bundle aeobPacket, Bundle gfePacket, RequestDetails theRequestDetails) {
     DocumentReference docRef = null;
     try {
       docRef = new DocumentReference();
@@ -483,16 +486,26 @@ public class GfeSubmitProvider {
       requestInitiationTime.setValue(new InstantType(aeobPacket.getTimestamp()));
       docRef.addExtension(requestInitiationTime);
 
+      // Collect procedures/services and conditions from all Claims in all GFE bundles using the existing loop
+      List<Coding> procedureCodings = new ArrayList<>();
+      List<Coding> conditionCodings = new ArrayList<>();
+
       Set<String> authorRefs = new HashSet<>();
       boolean isSubjectSet = false;
       for (BundleEntryComponent entry : aeobPacket.getEntry()) {
         Resource resource = (Resource) entry.getResource();
-        // Copy gfeServiceLinkingInfo extension from GFE Composition if present
-        if (resource instanceof Composition) {
-          Composition comp = (Composition) resource;
-          Extension gfeServiceLinkingInfo = comp.getExtensionByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeServiceLinkingInfo");
-          if (gfeServiceLinkingInfo != null) {
-            docRef.addExtension(gfeServiceLinkingInfo.copy());
+
+        if (resource instanceof Bundle) {
+          Bundle gfeBundle = (Bundle) resource;
+          if (gfeBundle.hasMeta() && gfeBundle.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)) {
+            for (BundleEntryComponent gfeEntry : gfeBundle.getEntry()) {
+              Resource gfeResource = gfeEntry.getResource();
+              if (gfeResource instanceof Claim && !isGFESummary((Claim) gfeResource)) {
+                // Get procedures/services and conditions for doc ref extensions
+                getProcedureAndConditionCodings((Claim) gfeResource, procedureCodings, conditionCodings);
+                break;
+              }
+            }
           }
         } else if (resource instanceof Patient && !isSubjectSet) {
           logger.info("DocRef Subject Patient/" + resource.getIdElement().getIdPart());
@@ -524,26 +537,101 @@ public class GfeSubmitProvider {
         }
       }
 
-      // Set date
+      // Set procedure/service extension as CodeableConcept
+      if (!procedureCodings.isEmpty()) {
+        CodeableConcept procedureConcept = new CodeableConcept();
+        procedureConcept.setCoding(procedureCodings);
+        Extension procedureExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/estimateProcedureOrService");
+        procedureExt.setValue(procedureConcept);
+        docRef.addExtension(procedureExt);
+      }
+      // Set condition extension as CodeableConcept
+      if (!conditionCodings.isEmpty()) {
+        CodeableConcept conditionConcept = new CodeableConcept();
+        conditionConcept.setCoding(conditionCodings);
+        Extension conditionExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/estimateCondition");
+        conditionExt.setValue(conditionConcept);
+        docRef.addExtension(conditionExt);
+      }
+
       docRef.setDate(new Date());
 
-      // Add content (Attachment with AEOB packet URL)
+      // Add content (Attachment with AEOB packet URL and base64 encoded data)
       DocumentReference.DocumentReferenceContentComponent content = new DocumentReference.DocumentReferenceContentComponent();
       Attachment attachment = new Attachment();
       attachment.setContentType("application/fhir+json");
       logger.info("Attachment Url " + theRequestDetails.getFhirServerBase() + "/Bundle/" + aeobPacket.getIdElement().getIdPart());
       attachment.setUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + aeobPacket.getIdElement().getIdPart());
+      String jsonString = jparser.encodeResourceToString(aeobPacket);
+      attachment.setData(jsonString.getBytes(StandardCharsets.UTF_8));
       content.setAttachment(attachment);
       content.setFormat(new Coding()
         .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse")
         .setCode("pct-aeob-packet"));
       docRef.addContent(content);
 
+      //Set gfeServiceLinkingInfo extension
+      Composition gfeComposition = null;
+      for (BundleEntryComponent entry : gfePacket.getEntry()) {
+          Resource resource = entry.getResource();
+          if (resource instanceof Composition) {
+              gfeComposition = (Composition) resource;
+              break;
+          }
+      }
+      if (gfeComposition != null) {
+          Extension gfeServiceLinkingInfo = gfeComposition.getExtensionByUrl("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/gfeServiceLinkingInfo");
+          if (gfeServiceLinkingInfo != null) {
+              docRef.addExtension(gfeServiceLinkingInfo.copy());
+          }
+      }
+
     } catch (Exception e) {
       logger.info("Error creating AEOB DocumentReference: " + e.getMessage());
       e.printStackTrace();
     }
     return docRef;
+  }
+
+  // Helper to get codings for procedures/services and conditions
+  private void getProcedureAndConditionCodings(Claim claim, List<Coding> procedureCodings, List<Coding> conditionCodings) {
+    // Collect procedure codings from Claim.procedure
+    if (claim.hasProcedure()) {
+      for (Claim.ProcedureComponent proc : claim.getProcedure()) {
+        CodeableConcept procConcept = proc.getProcedureCodeableConcept();
+        if (procConcept != null && procConcept.hasCoding()) {
+          for (Coding coding : procConcept.getCoding()) {
+            procedureCodings.add(coding.copy());
+          }
+        }
+      }
+    }
+    // Collect procedure codings from Claim.item.productOrService
+    if (claim.hasItem()) {
+      for (Claim.ItemComponent item : claim.getItem()) {
+        Extension serviceDescExt = item.getExtensionByUrl(SERVICE_DESCRIPTION_EXTENSION);
+        if (serviceDescExt != null && item.hasProductOrService()) {
+            // add productOrService codings if present
+            CodeableConcept productOrService = item.getProductOrService();
+            if (productOrService != null && productOrService.hasCoding()) {
+              for (Coding coding : productOrService.getCoding()) {
+                procedureCodings.add(coding.copy());
+              }
+            }
+        }
+      }
+    }
+    // Collect condition codings from Claim.diagnosis
+    if (claim.hasDiagnosis()) {
+      for (Claim.DiagnosisComponent diag : claim.getDiagnosis()) {
+        CodeableConcept diagConcept = diag.getDiagnosisCodeableConcept();
+        if (diagConcept != null && diagConcept.hasCoding()) {
+          for (Coding coding : diagConcept.getCoding()) {
+            conditionCodings.add(coding.copy());
+          }
+        }
+      }
+    }
   }
 
   private void saveResourcesFromBundle(Bundle theBundleResource, RequestDetails theRequestDetails) {
@@ -569,7 +657,7 @@ public class GfeSubmitProvider {
 
       String logicalId = resource.getIdElement().getIdPart();
       if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
-        logicalId = logicalId.substring("urn:uuid:".length());
+        //logicalId = logicalId.substring("urn:uuid:".length);
         resource.setId(logicalId);
         logger.info("Removed urn:uuid:, new LogicalId: " + resource.getIdElement().getIdPart());
       }
