@@ -1,5 +1,7 @@
 # PCT Payer Server
 
+[![Build Status](https://ci.hl7.org/api/badges/HL7-DaVinci/test-pct-payer/status.svg)](https://ci.hl7.org/HL7-DaVinci/test-pct-payer)
+
 This server is based on the HAPI FHIR JPA Starter server with modifications to support Patient Cost
 Transparency. 
 This version of the reference Implementation supports the [STU1 version of the Da Vinci Patient Cost Transparency Implementation Guide](https://hl7.org/fhir/us/davinci-pct/STU1/)
