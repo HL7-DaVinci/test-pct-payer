@@ -54,6 +54,7 @@ public class GfeSubmitProvider {
   private IFhirResourceDao<Composition> theCompositionDao;
   private IFhirResourceDao<DocumentReference> theDocumentReferenceDao;
   private IFhirResourceDao<Patient> thePatientDao;
+  private IFhirResourceDao<Coverage> theCoverageDao;
 
   private Integer simulatedDelaySeconds = 15;
   private IParser jparser;
@@ -69,6 +70,7 @@ public class GfeSubmitProvider {
     theCompositionDao = daoRegistry.getResourceDao(Composition.class);
     theDocumentReferenceDao = daoRegistry.getResourceDao(DocumentReference.class);
     thePatientDao = daoRegistry.getResourceDao(Patient.class);
+    theCoverageDao = daoRegistry.getResourceDao(Coverage.class);
 
     jparser = this.theFhirContext.newJsonParser();
     jparser.setPrettyPrint(true);
@@ -396,6 +398,9 @@ public class GfeSubmitProvider {
   public void convertGFEPacketToAEOBPacket(Bundle gfePacket, Bundle aeobPacket, RequestDetails theRequestDetails) {
     boolean isCollectionBundle = false;
 
+    // Save or update Practitioner, Organization, Patient and Coverage(TODO validate Coverage save) locally for searchability
+    saveResourcesFromBundle(gfePacket, theRequestDetails);
+
     for (BundleEntryComponent gfePacketBundleEntry : gfePacket.getEntry()) {
       IBaseResource gfePacketBundleResource = (IBaseResource) gfePacketBundleEntry.getResource();
 
@@ -440,9 +445,6 @@ public class GfeSubmitProvider {
     else {
       addGfeBundleToAeobPacket(gfePacket, aeobPacket, theRequestDetails);
     }
-
-    // Save or update Practitioner, Organization, Patient and contained GFE bundles locally for searchability
-    saveResourcesFromBundle(gfePacket, theRequestDetails);
 
     // Add AEOB Summary to AEOB Packet (ensure resource is added before referencing)
     addAEOBSummarytoAEOBPacket(gfePacket, aeobPacket, theRequestDetails);
@@ -635,55 +637,39 @@ public class GfeSubmitProvider {
   }
 
   private void saveResourcesFromBundle(Bundle theBundleResource, RequestDetails theRequestDetails) {
-    Set<String> processedResourceIds = new HashSet<>();
-    logger.info("Saving the GFE packet Resources");
-
+    // Map resources by type
+    Map<Class<? extends Resource>, List<Resource>> resourcesByType = new HashMap<>();
     for (Bundle.BundleEntryComponent entry : theBundleResource.getEntry()) {
-      Resource resource = entry.getResource();
-
-      if (resource == null ||
-              !(resource instanceof Practitioner ||
-                      resource instanceof Organization ||
-                      resource instanceof Patient)) continue;
-
-
-      logger.info("Full Resource ID: " + resource.getIdElement().getValue());
-      logger.info("LogicalId: " + resource.getIdElement().getIdPart());
-
-      resource.setId(resource.getIdElement().toVersionless());
-
-      logger.info("Full Resource ID Post Versionless: " + resource.getIdElement().getValue());
-      logger.info("LogicalId: Post Versionless: " + resource.getIdElement().getIdPart());
-
-      String logicalId = resource.getIdElement().getIdPart();
-      if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
-        //logicalId = logicalId.substring("urn:uuid:".length);
-        resource.setId(logicalId);
-        logger.info("Removed urn:uuid:, new LogicalId: " + resource.getIdElement().getIdPart());
-      }
-
-      String resourceType = resource.getResourceType().toString();
-      if (resource.getIdElement().getIdPart() != null) {
-        String uniqueKey = resourceType + "/" + resource.getIdElement().getIdPart();
-        if (!processedResourceIds.add(uniqueKey)) {
-          continue;
-        }
-      }
-
-      IFhirResourceDao dao = null;
-      if (resource instanceof Practitioner) {
-        dao = thePractitionerDao;
-      } else if (resource instanceof Organization) {
-        dao = theOrganizationDao;
-      } else if (resource instanceof Patient) {
-        dao = thePatientDao;
-      }
-
-      if (dao != null) {
-          dao.update(resource, theRequestDetails);
-      }
+        Resource resource = entry.getResource();
+        if (resource == null) continue;
+        resourcesByType.computeIfAbsent(resource.getClass(), k -> new ArrayList<>()).add(resource);
     }
-  }
+    Set<String> processedResourceIds = new HashSet<>();
+    // Save in dependency order
+    saveResourceList(resourcesByType.get(Organization.class), theOrganizationDao, processedResourceIds, theRequestDetails);
+    saveResourceList(resourcesByType.get(Practitioner.class), thePractitionerDao, processedResourceIds, theRequestDetails);
+    saveResourceList(resourcesByType.get(Patient.class), thePatientDao, processedResourceIds, theRequestDetails);
+    saveResourceList(resourcesByType.get(Coverage.class), theCoverageDao, processedResourceIds, theRequestDetails);
+}
+
+private <T extends Resource> void saveResourceList(List<Resource> resources, IFhirResourceDao<T> dao, Set<String> processedResourceIds, RequestDetails theRequestDetails) {
+    if (resources == null) return;
+    for (Resource resource : resources) {
+        resource.setId(resource.getIdElement().toVersionless());
+        String logicalId = resource.getIdElement().getIdPart();
+        if (logicalId != null && logicalId.startsWith("urn:uuid:")) {
+            resource.setId(logicalId);
+        }
+        String resourceType = resource.getResourceType().toString();
+        if (resource.getIdElement().getIdPart() != null) {
+            String uniqueKey = resourceType + "/" + resource.getIdElement().getIdPart();
+            if (!processedResourceIds.add(uniqueKey)) {
+                continue;
+            }
+        }
+        dao.update((T) resource, theRequestDetails);
+    }
+}
 
   public void claimToAEOB(Claim claim, Bundle gfeBundle, Bundle aeobPacket, RequestDetails theRequestDetails) {
     // load the base aeob
