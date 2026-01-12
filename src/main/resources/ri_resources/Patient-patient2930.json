@@ -5,7 +5,7 @@
         "lastUpdated": "2022-02-18T21:58:32.938+00:00",
         "source": "MANUAL",
         "profile": [
-            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+            "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient|7.0.0"
         ]
     },
     "identifier": [
