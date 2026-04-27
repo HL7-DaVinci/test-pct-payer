@@ -1,6 +1,7 @@
 spring:
   main:
     allow-circular-references: true
+    allow-bean-definition-overriding: true
 management:
   endpoints:
     web:
@@ -37,7 +38,7 @@ davincipct:
       url: http://hl7.org/fhir/us/davinci-hrex/package.tgz
       name: hl7.fhir.us.davinci-hrex
       version: 1.0.0
-  
+
 
 
 
@@ -94,6 +95,11 @@ davincipct:
 
 
   allow_external_references: true
+
+  subscription:
+    websocket_enabled: true
+    resthook_enabled: true
+
   allowed_bundle_types: COLLECTION,DOCUMENT,MESSAGE,TRANSACTION,TRANSACTIONRESPONSE,BATCH,BATCHRESPONSE,HISTORY,SEARCHSET
   # cors:
   #     allow_Credentials: true
@@ -105,3 +111,6 @@ davincipct:
   #   search-coord-core-pool-size: 20
   #   search-coord-max-pool-size: 100
   #   search-coord-queue-capacity: 200
+
+initialData:
+  - ri_resources
