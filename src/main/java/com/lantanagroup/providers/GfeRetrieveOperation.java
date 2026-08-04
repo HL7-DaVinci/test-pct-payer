@@ -13,7 +13,7 @@ public class GfeRetrieveOperation {
   ) {
     // TODO: Implement operation $gfe-retrieve
     throw new NotImplementedOperationException("Operation $gfe-retrieve is not implemented");
-    
+    // test
     // Bundle retVal = new Bundle();
     // return retVal;
     
