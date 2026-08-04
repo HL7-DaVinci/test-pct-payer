@@ -44,6 +44,7 @@ public class GfeSubmitProvider {
   private static final String PCT_GFE_PACKET_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-packet";
   private static final String PCT_GFE_INSTITUTIONAL_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-institutional";
   private static final String PCT_GFE_PROFESSIONAL_PROFILE = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-gfe-professional";
+  private static final String REQUEST_INITIATION_TIME_EXTENSION = "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/requestInitiationTime";
 
   private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GfeSubmitProvider.class);
   private FhirContext theFhirContext;
@@ -99,6 +100,7 @@ public class GfeSubmitProvider {
           HttpServletResponse theResponse) {
 
     logger.info("Received GFE Submit");
+    Instant estimateRequestInstant = Instant.now();
 
     try {
       // Validate if the input Bundle has the correct GFE packet profile and is of type 'document'. If not, return an error response.
@@ -112,7 +114,7 @@ public class GfeSubmitProvider {
         logger.info("Input Bundle must be of type 'document' for GFE packet.");
         return;
       }
-      handleSubmit(theBundleResource, theRequestDetails, theRequest, theResponse);
+      handleSubmit(theBundleResource, theRequestDetails, theRequest, theResponse, estimateRequestInstant);
     } catch (Exception e) {
       logger.info("Error in submission");
       logger.info(e.getMessage());
@@ -242,7 +244,7 @@ public class GfeSubmitProvider {
    * @throws Exception any errors
    */
   public void handleSubmit(Bundle theBundleResource, RequestDetails theRequestDetails, HttpServletRequest theRequest,
-      HttpServletResponse theResponse) throws Exception {
+      HttpServletResponse theResponse, Instant estimateRequestInstant) throws Exception {
     theResponse.setStatus(404);
     theResponse.setContentType("application/json");
     theResponse.setCharacterEncoding("UTF-8");
@@ -264,7 +266,7 @@ public class GfeSubmitProvider {
       returnAEOBPacket.setMeta(aeob_packet_meta);
 
       returnAEOBPacket.setIdentifier(new Identifier().setSystem(theRequestDetails.getFhirServerBase() + "/identifiers/bundle").setValue(UUID.randomUUID().toString()));
-      returnAEOBPacket.setTimestamp(new Date());
+      returnAEOBPacket.setTimestamp(Date.from(estimateRequestInstant));
 
       try {
         convertGFEPacketToAEOBPacket(theBundleResource, returnAEOBPacket, theRequestDetails);
@@ -419,13 +421,23 @@ public class GfeSubmitProvider {
             claimToAEOB((Claim) innerGfeBundleResource, innerGfeBundle, aeobPacket, theRequestDetails);
           }
         }
+        // Ensure inner-bundle supporting resources are available at top-level for Composition/DocumentReference references.
+        addSupportingResourcesToTopLevel(innerGfeBundle, aeobPacket, theRequestDetails);
       } else if (gfePacketBundleResource.fhirType().equals("Composition")) {
         // do nothing
       }
 
       // Add all other resources like patient , coverage , organization , practitioner to the return aeob packet
       else {
-        aeobPacket.addEntry(gfePacketBundleEntry);
+        BundleEntryComponent copiedEntry = gfePacketBundleEntry.copy();
+        Resource resource = copiedEntry.getResource();
+        if (resource != null && resource.getIdElement() != null && resource.getIdElement().hasIdPart()) {
+          copiedEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/"
+                  + resource.getResourceType().name() + "/" + resource.getIdElement().getIdPart());
+        }
+        if (!containsResourceByTypeAndId(aeobPacket, resource)) {
+          aeobPacket.addEntry(copiedEntry);
+        }
       }
 
       // TODO Make sure the individual aeob references are working right
@@ -438,12 +450,12 @@ public class GfeSubmitProvider {
       for (BundleEntryComponent gfePacketEntry : gfePacket.getEntry()) {
         IBaseResource gfePacketResource = (IBaseResource) gfePacketEntry.getResource();
         if (gfePacketResource.fhirType().equals("Bundle")) {
-          addGfeBundleToAeobPacket((Bundle) gfePacketResource, aeobPacket, theRequestDetails);
+          addGfeBundleToAeobPacket((Bundle) gfePacketResource, gfePacketEntry.getFullUrl(), aeobPacket, theRequestDetails);
         }
       }
     }
     else {
-      addGfeBundleToAeobPacket(gfePacket, aeobPacket, theRequestDetails);
+      addGfeBundleToAeobPacket(gfePacket, null, aeobPacket, theRequestDetails);
     }
 
     // Add AEOB Summary to AEOB Packet (ensure resource is added before referencing)
@@ -452,6 +464,49 @@ public class GfeSubmitProvider {
     // Add AEOB Composition to AEOB Packet (after all referenced resources are present)
     addAEOBCompositiontoAEOBPacket(aeobPacket, theRequestDetails);
 
+  }
+
+  private void addSupportingResourcesToTopLevel(Bundle sourceBundle, Bundle aeobPacket, RequestDetails theRequestDetails) {
+    for (BundleEntryComponent sourceEntry : sourceBundle.getEntry()) {
+      Resource sourceResource = sourceEntry.getResource();
+      if (sourceResource == null) {
+        continue;
+      }
+      if (!(sourceResource instanceof Patient
+              || sourceResource instanceof Coverage
+              || sourceResource instanceof Practitioner
+              || sourceResource instanceof Organization)) {
+        continue;
+      }
+      if (containsResourceByTypeAndId(aeobPacket, sourceResource)) {
+        continue;
+      }
+
+      BundleEntryComponent copiedEntry = sourceEntry.copy();
+      if (sourceResource.getIdElement() != null && sourceResource.getIdElement().hasIdPart()) {
+        copiedEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/"
+                + sourceResource.getResourceType().name() + "/" + sourceResource.getIdElement().getIdPart());
+      }
+      aeobPacket.addEntry(copiedEntry);
+    }
+  }
+
+  private boolean containsResourceByTypeAndId(Bundle packet, Resource candidate) {
+    if (candidate == null || candidate.getIdElement() == null || !candidate.getIdElement().hasIdPart()) {
+      return false;
+    }
+    String candidateType = candidate.fhirType();
+    String candidateId = candidate.getIdElement().getIdPart();
+    for (BundleEntryComponent existingEntry : packet.getEntry()) {
+      Resource existing = existingEntry.getResource();
+      if (existing == null || existing.getIdElement() == null || !existing.getIdElement().hasIdPart()) {
+        continue;
+      }
+      if (candidateType.equals(existing.fhirType()) && candidateId.equals(existing.getIdElement().getIdPart())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -475,17 +530,18 @@ public class GfeSubmitProvider {
       docRef.setStatus(Enumerations.DocumentReferenceStatus.CURRENT);
       docRef.setDocStatus(DocumentReference.ReferredDocumentStatus.FINAL);
       docRef.setType(new CodeableConcept().addCoding(
-        new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse", "aeob-packet", "AEOB Packet")
+        new Coding("http://loinc.org", "111479-2", "Advanced explanation of benefits")
       ));
       docRef.addCategory(
         new CodeableConcept().addCoding(
-          new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentCategoryTemporaryTrialUse", "estimate", "Estimation Packet")
+          new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse", "estimate", null)
         )
       );
 
       // Add requestInitiationTime extension
-      Extension requestInitiationTime = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/requestInitiationTime");
-      requestInitiationTime.setValue(new InstantType(aeobPacket.getTimestamp()));
+      Date requestInitiationTimeValue = aeobPacket.getTimestamp() != null ? aeobPacket.getTimestamp() : new Date();
+      Extension requestInitiationTime = new Extension(REQUEST_INITIATION_TIME_EXTENSION);
+      requestInitiationTime.setValue(new InstantType(requestInitiationTimeValue));
       docRef.addExtension(requestInitiationTime);
 
       // Collect procedures/services and conditions from all Claims in all GFE bundles using the existing loop
@@ -836,9 +892,13 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
             .setDisplay("Submitted Amount");
     eobItem2Adjudication.setCategory(adj2Category);
     eobItem2Adjudication.setAmount(claimItem.getNet());
+    eobItemAdjudications.add(eobItem2Adjudication);
 
     // Mock adjudication for subject to medical mgmt
-    subjectToMedicalManagementAdjudication(eobItemAdjudications, eobItem2Adjudication);
+    ExplanationOfBenefit.AdjudicationComponent medMgmtAdjudication = subjectToMedicalManagementAdjudication();
+    if (medMgmtAdjudication != null) {
+      eobItemAdjudications.add(medMgmtAdjudication);
+    }
 
     // Eligible
     ExplanationOfBenefit.AdjudicationComponent eobItem3Adjudication = new ExplanationOfBenefit.AdjudicationComponent();
@@ -869,38 +929,62 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
     return cost;
   }
 
-  private void subjectToMedicalManagementAdjudication(
-          List<ExplanationOfBenefit.AdjudicationComponent> eobItemAdjudications,
-          ExplanationOfBenefit.AdjudicationComponent eobItem2Adjudication) {
-    if (rand.nextInt(6) == 0) {
-      // Medical Management extension
-      int codeType = rand.nextInt(4);
-      Extension medMgmtExt;
-      if (codeType == 0) {
-        medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-                new CodeableConcept()
-                        .addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                                "concurrent-review", "Concurrent Review")));
-      } else if (codeType == 1) {
-        medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-                new CodeableConcept()
-                        .addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                                "prior-auth", "Prior Authorization")));
-      } else if (codeType == 2) {
-        medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-                new CodeableConcept()
-                        .addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                                "step-therapy", "Step Therapy")));
-      } else {
-        medMgmtExt = new Extension("http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
-                new CodeableConcept()
-                        .addCoding(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
-                                "fail-first", "Fail-First")));
-      }
-
-      eobItem2Adjudication.addExtension(medMgmtExt);
-      eobItemAdjudications.add(eobItem2Adjudication);
+  /**
+   * Randomly (1-in-6) builds a separate item.adjudication entry for the
+   * "medicalmanagement" slice, carrying the subjectToMedicalMgmt extension
+   */
+  private ExplanationOfBenefit.AdjudicationComponent subjectToMedicalManagementAdjudication() {
+    if (rand.nextInt(6) != 0) {
+      return null;
     }
+
+    ExplanationOfBenefit.AdjudicationComponent medMgmtAdjudication =
+            new ExplanationOfBenefit.AdjudicationComponent();
+
+    CodeableConcept medMgmtCategory = new CodeableConcept();
+    medMgmtCategory.addCoding()
+            .setSystem("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS")
+            .setCode("medicalmanagement")
+            .setDisplay("Medical Management");
+    medMgmtAdjudication.setCategory(medMgmtCategory);
+
+    Extension medMgmtExt = new Extension(
+            "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/subjectToMedicalMgmt",
+            buildSubjectToMedicalMgmtReason(rand.nextInt(4)));
+    medMgmtAdjudication.addExtension(medMgmtExt);
+
+    return medMgmtAdjudication;
+  }
+
+  /**
+   * Builds the reason CodeableConcept for the subjectToMedicalMgmt extension,
+   * picking one of the four PCT-defined reason codes.
+   */
+  private CodeableConcept buildSubjectToMedicalMgmtReason(int codeType) {
+    String code;
+    String display;
+    switch (codeType) {
+      case 0:
+        code = "concurrent-review";
+        display = "Concurrent Review";
+        break;
+      case 1:
+        code = "prior-auth";
+        display = "Prior Authorization";
+        break;
+      case 2:
+        code = "step-therapy";
+        display = "Step Therapy";
+        break;
+      default:
+        code = "fail-first";
+        display = "Fail-First";
+        break;
+    }
+    return new CodeableConcept()
+            .addCoding(new Coding(
+                    "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTSubjectToMedicalMgmtReasonCS",
+                    code, display));
   }
 
   /**
@@ -918,13 +1002,17 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
       //String compId = "Composition-" + UUID.randomUUID();
       //aeobComposition.setId(new IdType("Composition", compId));
       aeobComposition.setStatus(Composition.CompositionStatus.FINAL);
-      aeobComposition.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse", "aeob-packet", "AEOB Packet")));
+      aeobComposition.setType(new CodeableConcept(new Coding("http://loinc.org", "111479-2", "Advanced explanation of benefits")));
       aeobComposition.addCategory(
               new CodeableConcept().addCoding(
-                      new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentCategoryTemporaryTrialUse", "estimate", "Estimation Packet")
+                      new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentTypeTemporaryTrialUse", "estimate", null)
               )
       );
       aeobComposition.setDate(new Date());
+      Date requestInitiationTimeValue = aeobPacket.getTimestamp() != null ? aeobPacket.getTimestamp() : new Date();
+      Extension requestInitiationTime = new Extension(REQUEST_INITIATION_TIME_EXTENSION);
+      requestInitiationTime.setValue(new InstantType(requestInitiationTimeValue));
+      aeobComposition.addExtension(requestInitiationTime);
       aeobComposition.setSection(new ArrayList<Composition.SectionComponent>());
       // Add identifier to the Composition. This identifier is used to track the AEOB Composition
       aeobComposition.setIdentifier(
@@ -971,16 +1059,19 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
         } else if (aeobPacketEntryResource instanceof Bundle
                  && aeobPacketEntryResource.hasMeta()
                  && aeobPacketEntryResource.getMeta().hasProfile()
-                 && aeobPacketEntryResource.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)
-                 && !aeobPacketEntryResource.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE)) {
+                 && (aeobPacketEntryResource.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)
+                 || aeobPacketEntryResource.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE))) {
            // Add a section for each GFE in the bundle
            Bundle gfeBundle = (Bundle) aeobPacketEntryResource;
-           Composition.SectionComponent gfeBundleSection = buildGfeSectionAndAuthor(gfeBundle);
+           String bundleEntryFullUrl = aeobPacketEntry.hasFullUrl() ? aeobPacketEntry.getFullUrl() : null;
+           Composition.SectionComponent gfeBundleSection = buildGfeSectionAndAuthor(gfeBundle, bundleEntryFullUrl);
            aeobComposition.addSection(gfeBundleSection);
          }
       }
 
       logger.info("Saving AEOB Composition");
+      //print before save
+      logger.info("AEOB Composition JSON: " + jparser.encodeResourceToString(aeobComposition));
       theCompositionDao.create(aeobComposition, theRequestDetails);
 
       // Add the AEOB Composition to the AEOB Packet
@@ -998,31 +1089,72 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
     return aeobPacket;
   }
 
-  private Composition.SectionComponent buildGfeSectionAndAuthor(Bundle gfeBundle) {
-    Composition.SectionComponent section = createSection("gfe-section", null, gfeBundle);
+  private Composition.SectionComponent buildGfeSectionAndAuthor(Bundle gfeBundle, String originalFullUrl) {
+    Composition.SectionComponent section = createSection("gfe-section", null, gfeBundle, (gfeBundle.hasMeta() && gfeBundle.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE))? originalFullUrl: null);
 
-    // Add author(provider that submitted) from the GFE bundle to the section
+    // For regular GFE bundles: author = GFE Contributor (Claim.provider)
     for (BundleEntryComponent gfeBundleEntry : gfeBundle.getEntry()) {
       Resource gfeBundleEntryResource = gfeBundleEntry.getResource();
-      if (gfeBundleEntryResource instanceof Claim && !isGFESummary((Claim)gfeBundleEntryResource)) { //Associated GFE author (GFE Contributor)
+      if (gfeBundleEntryResource instanceof Claim && !isGFESummary((Claim) gfeBundleEntryResource)) {
         Claim gfeClaim = (Claim) gfeBundleEntryResource;
         if (gfeClaim.hasProvider() && gfeClaim.getProvider().hasReference()) {
-            String providerRef = gfeClaim.getProvider().getReference();
-            section.addAuthor(new Reference(providerRef));
-            break;
+          section.addAuthor(new Reference(gfeClaim.getProvider().getReference()));
+          return section;
         }
       }
     }
+
+    // For missing GFE bundles: no Claim present — use proposed author.
+    // Prefer Practitioner; for Organization skip payers (type=pay).
+    if (gfeBundle.hasMeta() && gfeBundle.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE)) {
+      for (BundleEntryComponent gfeBundleEntry : gfeBundle.getEntry()) {
+        Resource res = gfeBundleEntry.getResource();
+        if (res instanceof Practitioner && res.getIdElement().hasIdPart()) {
+          section.addAuthor(new Reference("Practitioner/" + res.getIdElement().getIdPart()));
+          return section;
+        }
+      }
+      for (BundleEntryComponent gfeBundleEntry : gfeBundle.getEntry()) {
+        Resource res = gfeBundleEntry.getResource();
+        if (res instanceof Organization && res.getIdElement().hasIdPart()) {
+          Organization org = (Organization) res;
+          boolean isPayer = org.getType().stream()
+                  .flatMap(t -> t.getCoding().stream())
+                  .anyMatch(c -> "pay".equals(c.getCode()));
+          if (!isPayer) {
+            section.addAuthor(new Reference("Organization/" + org.getIdElement().getIdPart()));
+            return section;
+          }
+        }
+      }
+    }
+
     return section;
   }
   private Composition.SectionComponent createSection(String code, String display, Resource resource) {
-    Composition.SectionComponent section = new Composition.SectionComponent();
-    section.setCode(new CodeableConcept(new Coding(
-            "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentSection",
-            code, display)));
-    section.addEntry(new Reference(resource.getIdElement().getResourceType() + "/" + resource.getIdElement().getIdPart()));
-    return section;
+    return createSection(code, display, resource, null);
   }
+
+   private Composition.SectionComponent createSection(String code, String display, Resource resource, String fullUrl) {
+     Composition.SectionComponent section = new Composition.SectionComponent();
+     section.setCode(new CodeableConcept(new Coding(
+             "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTDocumentSection",
+             code, display)));
+
+     String ref;
+     if (fullUrl != null && !fullUrl.isEmpty()) {
+       ref = fullUrl;
+     } else if (resource != null && resource.getIdElement() != null && resource.getIdElement().hasIdPart()) {
+       // Use fhirType() to get the resource type as a string
+       ref = resource.fhirType() + "/" + resource.getIdElement().getIdPart();
+     } else {
+       // Fallback: create reference without ID (will likely fail validation but prevents NPE)
+       ref = (resource != null ? resource.fhirType() : "Unknown") + "/";
+     }
+
+     section.addEntry(new Reference(ref));
+     return section;
+   }
 
   /**
    * Add AEOB Summary EOB to the AOEB Packet
@@ -1132,8 +1264,7 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
             // totals_dict
             if (total.hasCategory() && total.getCategory().hasCoding()) {
               for (Coding coding : total.getCategory().getCoding()) {
-                if (coding.hasSystem()
-                        && coding.getSystem().equals("http://terminology.hl7.org/CodeSystem/adjudication")) {
+                if (coding.hasSystem() && isSummaryTotalCategoryCoding(coding)) {
                   if (!totals_map.containsKey(coding.getCode())) {
                     CodeableConcept category = total.getCategory();
                     totals_map.put(coding.getCode(), new ExplanationOfBenefit.TotalComponent(category, new Money().setValue(BigDecimal.ZERO)));
@@ -1151,9 +1282,16 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
         }
 
       }
-      for (String key : totals_map.keySet()) {
-        aeob_summary.addTotal(totals_map.get(key));
-      }
+      ensureSummaryTotal(totals_map, "memberliability",
+              "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS", "Member Liability");
+      ensureSummaryTotal(totals_map, "submitted",
+              "http://terminology.hl7.org/CodeSystem/adjudication", "Submitted Amount");
+      ensureSummaryTotal(totals_map, "eligible",
+              "http://terminology.hl7.org/CodeSystem/adjudication", "Eligible Amount");
+
+      aeob_summary.addTotal(totals_map.get("memberliability"));
+      aeob_summary.addTotal(totals_map.get("submitted"));
+      aeob_summary.addTotal(totals_map.get("eligible"));
       logger.info("Saving AEOB Summary");
       theExplanationOfBenefitDao.create(aeob_summary, theRequestDetails);
 
@@ -1162,12 +1300,39 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
       summary_aeobPacketEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/ExplanationOfBenefit/" + aeob_summary.getIdElement().getIdPart());
       summary_aeobPacketEntry.setId(aeob_summary.getIdElement().getIdPart());
       summary_aeobPacketEntry.setResource(aeob_summary);
-      aeobPacket.getEntry().add(1, summary_aeobPacketEntry);
+      aeobPacket.addEntry(summary_aeobPacketEntry);
       logger.info(summary_aeobPacketEntry.getFullUrl());
     } catch (Exception e) {
       logger.info("Error: " + e.getMessage());
     }
     return aeobPacket;
+  }
+
+  private boolean isSummaryTotalCategoryCoding(Coding coding) {
+    if (coding == null || !coding.hasCode() || !coding.hasSystem()) {
+      return false;
+    }
+    String code = coding.getCode();
+    String system = coding.getSystem();
+
+    if ("submitted".equals(code) || "eligible".equals(code)) {
+      return "http://terminology.hl7.org/CodeSystem/adjudication".equals(system);
+    }
+
+    if ("memberliability".equals(code)) {
+      return "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTAdjudicationCategoryCS".equals(system);
+    }
+
+    return false;
+  }
+
+  private void ensureSummaryTotal(Map<String, ExplanationOfBenefit.TotalComponent> totalsMap, String code,
+                                  String system, String display) {
+    if (!totalsMap.containsKey(code)) {
+      CodeableConcept category = new CodeableConcept();
+      category.addCoding().setSystem(system).setCode(code).setDisplay(display);
+      totalsMap.put(code, new ExplanationOfBenefit.TotalComponent(category, new Money().setValue(BigDecimal.ZERO)));
+    }
   }
 
   private void processSummaryBillablePeriod(Claim claim, ExplanationOfBenefit aeobSummary) {
@@ -1219,22 +1384,42 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
 
   // #region GFE-Submit Operation Bundle Add Elements
 
-  private void addGfeBundleToAeobPacket(Bundle gfeBundle, Bundle aeobPacket, RequestDetails theRequestDetails) {
+  private void addGfeBundleToAeobPacket(Bundle gfeBundle, String originalFullUrl, Bundle aeobPacket, RequestDetails theRequestDetails) {
     logger.info("Adding GFE Bundle to AEOB Packet");
 
-    if (gfeBundle.hasMeta()
+    boolean isMissingBundle = gfeBundle.hasMeta()
             && gfeBundle.getMeta().hasProfile()
-            && gfeBundle.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)
-            && !gfeBundle.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE)) {
-      // Always save (create) the gfe bundle, not update
+            && gfeBundle.getMeta().hasProfile(PCT_GFE_MISSING_BUNDLE_PROFILE);
+
+    if (!isMissingBundle && gfeBundle.hasMeta()
+            && gfeBundle.getMeta().hasProfile()
+            && gfeBundle.getMeta().hasProfile(PCT_GFE_BUNDLE_PROFILE)) {
+      // Always save (create) regular gfe bundle, not update
       logger.info("Saving GFE Bundle");
       theBundleDao.create(gfeBundle, theRequestDetails);
     }
 
     // Add GFE Bundle to AEOB Packet
     Bundle.BundleEntryComponent gfeBundleEntry = new BundleEntryComponent();
-    if(gfeBundle.getIdPart() != null && !gfeBundle.getIdPart().isEmpty()) {
-      gfeBundleEntry.setFullUrl(theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getIdPart());
+    String bundleFullUrl = null;
+
+    if (isMissingBundle) {
+      // Missing bundles are not persisted on payer
+      if (originalFullUrl != null && !originalFullUrl.isEmpty()) {
+        bundleFullUrl = originalFullUrl;
+      } else if (gfeBundle.getIdElement().hasIdPart()) {
+        bundleFullUrl = "urn:uuid:" + gfeBundle.getIdElement().getIdPart();
+      } else {
+        // Missing bundle without ID - assign a UUID
+        String uuid = UUID.randomUUID().toString();
+        gfeBundle.setId(uuid);
+        bundleFullUrl = "urn:uuid:" + uuid;
+      }
+      gfeBundleEntry.setFullUrl(bundleFullUrl);
+    } else if (gfeBundle.getIdElement().hasIdPart()) {
+      // Regular GFE bundle saved with original ID — use payer server URL with that same ID
+      bundleFullUrl = theRequestDetails.getFhirServerBase() + "/Bundle/" + gfeBundle.getIdElement().getIdPart();
+      gfeBundleEntry.setFullUrl(bundleFullUrl);
     }
     gfeBundleEntry.setResource(gfeBundle);
 
@@ -1411,7 +1596,7 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
     // c.setDisplay("Unique Claim ID");
 
     //idType.getCoding().add(c);
-    id.setType(new CodeableConcept(new Coding("http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTIdentifierType", "uc", "Unique Claim ID")));
+    id.setType(new CodeableConcept(new Coding("http://terminology.hl7.org/CodeSystem/v2-0203", "UCID", "Unique Claim ID")));
     id.setValue("urn:uuid:" + UUID.randomUUID().toString());
     ids.add(id);
   }
@@ -1435,7 +1620,7 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
             summaryBenefitBalance = new BenefitBalanceComponent();
             summaryBenefitBalance.setUnit(benefitBalance.getUnit());
             summaryBenefitBalance.setTerm(benefitBalance.getTerm());
-            summaryBenefitBalance.setCategory(benefitBalance.getCategory());
+            summaryBenefitBalance.setCategory(benefitBalance.getCategory().copy());
             summaryBenefitBalanceCategoryMap.put(category, summaryBenefitBalance);
           }
           // Loop through all benefit balance
@@ -1484,7 +1669,8 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
     // "http://terminology.hl7.org/CodeSystem/benefit-unit"));
     // bb.setTerm(createCodeableConcept("annual",
     // "http://terminology.hl7.org/CodeSystem/benefit-term"));
-    bb.setCategory(new CodeableConcept(new Coding("https://x12.org/codes/service-type-codes", "1", "Medical Care")));
+    bb.setCategory(new CodeableConcept(new Coding("https://x12.org/codes/service-type-codes", "1", "Medical Care"))
+            .setText("Medical Care"));
     bb.setUnit(new CodeableConcept(
             new Coding("http://terminology.hl7.org/CodeSystem/benefit-unit", "individual", "Individual")));
     bb.setTerm(
