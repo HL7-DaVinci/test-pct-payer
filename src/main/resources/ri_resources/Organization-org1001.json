@@ -11,7 +11,7 @@
   "identifier" : [{
     "type" : {
       "coding" : [{
-        "system" : "http://hl7.org/fhir/us/davinci-pct/CodeSystem/PCTOrgIdentifierTypeCS",
+        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
         "code" : "ETIN"
       }]
     },
@@ -32,13 +32,6 @@
     "use" : "work"
   }],
   "address" : [{
-    "extension" : [{
-      "url" : "http://hl7.org/fhir/us/davinci-pct/StructureDefinition/countrySubdivisionCode",
-      "valueCoding" : {
-        "system" : "urn:iso:std:iso:3166:-2",
-        "code" : "US-CT"
-      }
-    }],
     "line" : ["680 Asylum Street"],
     "city" : "Hartford",
     "state" : "CT",

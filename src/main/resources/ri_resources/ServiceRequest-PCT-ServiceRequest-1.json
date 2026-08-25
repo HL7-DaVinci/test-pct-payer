@@ -1,0 +1,23 @@
+{
+  "resourceType" : "ServiceRequest",
+  "id" : "PCT-ServiceRequest-1",
+  "meta" : {
+    "profile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-servicerequest"]
+  },
+  "text" : {
+    "status" : "generated",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p class=\"res-header-id\"><b>Generated Narrative: ServiceRequest PCT-ServiceRequest-1</b></p><a name=\"PCT-ServiceRequest-1\"> </a><a name=\"hcPCT-ServiceRequest-1\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-servicerequest.html\">PCT GFE ServiceRequest</a></p></div><p><b>status</b>: Active</p><p><b>intent</b>: Proposal</p><p><b>code</b>: <span title=\"Codes:{http://www.ama-assn.org/go/cpt 73722}\">Magnetic resonance (eg, proton) imaging, any joint of lower extremity; with contrast material(s)</span></p><p><b>subject</b>: <a href=\"Patient-patient1001.html\">Eve Betterhalf Female, DoB: 1955-07-23 ( http://example.com/identifiers/patient#1001)</a></p></div>"
+  },
+  "status" : "active",
+  "intent" : "proposal",
+  "code" : {
+    "coding" : [{
+      "system" : "http://www.ama-assn.org/go/cpt",
+      "code" : "73722",
+      "display" : "Magnetic resonance (eg, proton) imaging, any joint of lower extremity; with contrast material(s)"
+    }]
+  },
+  "subject" : {
+    "reference" : "Patient/patient1001"
+  }
+}

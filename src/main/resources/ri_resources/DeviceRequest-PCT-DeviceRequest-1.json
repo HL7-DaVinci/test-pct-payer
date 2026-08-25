@@ -1,0 +1,22 @@
+{
+  "resourceType" : "DeviceRequest",
+  "id" : "PCT-DeviceRequest-1",
+  "meta" : {
+    "profile" : ["http://hl7.org/fhir/us/davinci-pct/StructureDefinition/davinci-pct-devicerequest"]
+  },
+  "text" : {
+    "status" : "generated",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p class=\"res-header-id\"><b>Generated Narrative: DeviceRequest PCT-DeviceRequest-1</b></p><a name=\"PCT-DeviceRequest-1\"> </a><a name=\"hcPCT-DeviceRequest-1\"> </a><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\"/><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-davinci-pct-devicerequest.html\">PCT GFE DeviceRequest</a></p></div><p><b>status</b>: Active</p><p><b>intent</b>: Proposal</p><p><b>code</b>: <span title=\"Codes:{http://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets L1820}\">otherwise customized to fit a specific patient by an individual with expertise</span></p><p><b>subject</b>: <a href=\"Patient-patient1001.html\">Eve Betterhalf Female, DoB: 1955-07-23 ( http://example.com/identifiers/patient#1001)</a></p></div>"
+  },
+  "status" : "active",
+  "intent" : "proposal",
+  "codeCodeableConcept" : {
+    "coding" : [{
+      "system" : "http://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets",
+      "code" : "L1820"
+    }]
+  },
+  "subject" : {
+    "reference" : "Patient/patient1001"
+  }
+}

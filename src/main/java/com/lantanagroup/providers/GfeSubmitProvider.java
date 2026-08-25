@@ -1787,10 +1787,10 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
     String outputString;
 
     if (accept.equals("application/fhir+xml")) {
-      theResponse.setContentType("application/fhir+xml");
+      theResponse.setContentType("application/fhir+xml;charset=UTF-8");
       outputString = xparser.encodeResourceToString(resource);
     } else {
-      theResponse.setContentType("application/json");
+      theResponse.setContentType("application/fhir+json;charset=UTF-8");
       outputString = jparser.encodeResourceToString(resource);
     }
 
