@@ -31,11 +31,9 @@ davincipct:
       fetchDependencies: false
       reloadExisting: false
     uscore:
-        installMode: STORE_AND_INSTALL
-        url: http://hl7.org/fhir/us/core/STU7/package.tgz
-        name: hl7.fhir.us.core
-        version: 7.0.0
-        reloadExisting: true
+      url: http://hl7.org/fhir/us/core/STU7/package.tgz
+      name: hl7.fhir.us.core
+      version: 7.0.0
     hrex:
       url: http://hl7.org/fhir/us/davinci-hrex/package.tgz
       name: hl7.fhir.us.davinci-hrex
