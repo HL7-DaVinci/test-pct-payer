@@ -19,7 +19,7 @@
   "status" : "active",
   "subscriberId" : "PFP123450000",
   "beneficiary" : {
-    "reference" : "Patient/patient1001"
+    "reference" : "Patient/9c05d948-b931-4bff-8766-18b99b0650d4"
   },
   "relationship" : {
     "coding" : [{
