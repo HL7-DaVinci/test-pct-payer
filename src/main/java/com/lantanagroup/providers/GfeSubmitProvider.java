@@ -843,13 +843,6 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
         claimItem.setNet(netValue);
       }
     }
-    // extensions - includes estimated service date
-
-    for (Extension e : claimItem.getExtension()) {
-      eobItem.addExtension(e);
-      logger.info("Adding item extension: " + e.getUrl());
-    }
-
     // sequence
     eobItem.setSequence(claimItem.getSequence());
 
@@ -1596,7 +1589,7 @@ private <T extends Resource> void saveResourceList(List<Resource> resources, IFh
     // c.setDisplay("Unique Claim ID");
 
     //idType.getCoding().add(c);
-    id.setType(new CodeableConcept(new Coding("http://terminology.hl7.org/CodeSystem/v2-0203", "UCID", "Unique Claim ID")));
+    id.setType(new CodeableConcept(new Coding("http://terminology.hl7.org/CodeSystem/v2-0203", "UCID", "Unique Claim Identifier")));
     id.setValue("urn:uuid:" + UUID.randomUUID().toString());
     ids.add(id);
   }
