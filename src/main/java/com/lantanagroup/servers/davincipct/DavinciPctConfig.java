@@ -22,6 +22,7 @@ import org.springframework.context.annotation.PropertySource;
 import com.lantanagroup.common.CapabilityStatementCustomizer;
 import com.lantanagroup.common.CommonConfig;
 import com.lantanagroup.providers.GfeSubmitProvider;
+import com.lantanagroup.providers.SystemValidateProvider;
 
 import ca.uhn.fhir.batch2.jobs.config.Batch2JobsConfig;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
@@ -83,7 +84,8 @@ public class DavinciPctConfig extends CommonConfig {
     //restfulServer.registerInterceptor(new ProcessCustomizer(restfulServer.getFhirContext(), daoRegistry, "davincipctcoordinationplatform"));
 
     restfulServer.registerProviders(
-        new GfeSubmitProvider(restfulServer.getFhirContext(), daoRegistry)
+        new GfeSubmitProvider(restfulServer.getFhirContext(), daoRegistry),
+        new SystemValidateProvider(daoRegistry)
     );
 
     ServletRegistrationBean<RestfulServer> registration = new ServletRegistrationBean<>(restfulServer, "/fhir/*");
