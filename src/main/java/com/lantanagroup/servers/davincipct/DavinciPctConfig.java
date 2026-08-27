@@ -1,10 +1,12 @@
 package com.lantanagroup.servers.davincipct;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.interceptor.api.IInterceptorService;
 import ca.uhn.fhir.jpa.subscription.match.matcher.subscriber.SubscriptionMatchDeliverer;
 import ca.uhn.fhir.jpa.subscription.match.registry.SubscriptionRegistry;
 import ca.uhn.fhir.jpa.topic.SubscriptionTopicDispatcher;
 import ca.uhn.fhir.jpa.topic.SubscriptionTopicPayloadBuilder;
+import com.lantanagroup.notification.PctSubscriptionTopicProfileInterceptor;
 import com.lantanagroup.notification.SubscriptionNotificationInterceptor;
 import com.lantanagroup.notification.SubscriptionWebSocketConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,11 +77,15 @@ public class DavinciPctConfig extends CommonConfig {
   }
 
   @Bean
-  public ServletRegistrationBean<RestfulServer> fhirServletRegistrationBean(RestfulServer restfulServer, SubscriptionNotificationInterceptor subscriptionNotificationInterceptor) {
+  public ServletRegistrationBean<RestfulServer> fhirServletRegistrationBean(
+      RestfulServer restfulServer,
+      SubscriptionNotificationInterceptor subscriptionNotificationInterceptor,
+      IInterceptorService interceptorService) {
 
     restfulServer.registerInterceptor(new ResponseHighlighterInterceptor());
     restfulServer.registerInterceptor(new CapabilityStatementCustomizer(restfulServer.getFhirContext(), "davincipct"));
-    restfulServer.registerInterceptor(subscriptionNotificationInterceptor);
+    interceptorService.registerInterceptor(new PctSubscriptionTopicProfileInterceptor());
+    interceptorService.registerInterceptor(subscriptionNotificationInterceptor);
     // Switched to preloading resources using DataInitializer.
     //restfulServer.registerInterceptor(new ProcessCustomizer(restfulServer.getFhirContext(), daoRegistry, "davincipctcoordinationplatform"));
 
