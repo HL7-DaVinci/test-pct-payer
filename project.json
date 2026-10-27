@@ -1,15 +1,16 @@
 {
   "name": "test-pct-payer",
   "$schema": "node_modules/nx/schemas/project-schema.json",
+  "includedScripts": [],
   "projectType": "application",
   "sourceRoot": "src",
+  "packageBase": "com.lantanagroup",
+  "fhirVersion": "R4",
+  "pluginVersion": "0.3.2",
+  "hapiReleaseVersion": "8.0.0",
   "tags": [
     "nx-fhir-server",
     "fhir",
     "server"
-  ],
-  "packageBase": "com.lantanagroup",
-  "fhirVersion": "R4",
-  "pluginVersion": "0.3.2",
-  "hapiReleaseVersion": "7.0.2"
+  ]
 }

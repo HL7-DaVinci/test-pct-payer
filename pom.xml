@@ -14,7 +14,7 @@
     <parent>
         <groupId>ca.uhn.hapi.fhir</groupId>
         <artifactId>hapi-fhir</artifactId>
-        <version>7.0.2</version>
+        <version>8.0.0</version>
     </parent>
 
     <groupId>com.lantanagroup</groupId>
@@ -22,8 +22,7 @@
     <packaging>war</packaging>
 
     <properties>
-        <java.version>11</java.version>
-        <spring_boot_version>3.2.3</spring_boot_version>
+        <java.version>17</java.version>
     </properties>
 
     <prerequisites>
@@ -44,7 +43,8 @@
 
     <dependencyManagement>
        <dependencies>
-           <dependency>
+
+            <dependency>
                <groupId>org.glassfish.jaxb</groupId>
                <artifactId>jaxb-runtime</artifactId>
                <version>2.3.8</version>
@@ -79,13 +79,13 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-base</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <!-- This dependency includes the EmailSenderImpl we will be using instead of standard javamail.-->
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-jpaserver-subscription</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.zaxxer</groupId>
@@ -98,7 +98,7 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-jpaserver-base</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -114,13 +114,13 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-storage-cr</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <!-- This dependency includes the JPA MDM Server -->
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-jpaserver-mdm</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -130,13 +130,13 @@
         <dependency>
           <groupId>ca.uhn.hapi.fhir</groupId>
           <artifactId>hapi-fhir-server-cds-hooks</artifactId>
-          <version>${project.version}</version>
+          <version>${project.parent.version}</version>
         </dependency>
         <!-- This dependency includes the OpenAPI Server -->
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-server-openapi</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.yaml</groupId>
@@ -148,21 +148,21 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-testpage-overlay</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <type>war</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-testpage-overlay</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <classifier>classes</classifier>
         </dependency>
         <!-- This dependency is used to include the IPS Base Implementation -->
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-jpaserver-ips</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <!-- HAPI-FHIR uses Logback for logging support. The logback library is included automatically by Maven as a part of the hapi-fhir-base dependency, but you also need to include a logging library. Logback
@@ -263,7 +263,7 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-jpaserver-test-utilities</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -302,7 +302,7 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>hapi-fhir-test-utilities</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -347,15 +347,23 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.11.3</version>
+            <version>1.13.3</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.11.3</version>
+            <version>1.13.3</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus-simpleclient -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus-simpleclient</artifactId>
+            <version>1.13.3</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.zaxxer</groupId>
@@ -403,7 +411,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.4.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -439,9 +447,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
 
@@ -470,6 +478,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.4.0</version>
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 </configuration>
@@ -606,9 +615,20 @@
                 </dependency>
             </dependencies>
         </profile>
-        <!-- examples of how to start the server using the default profile-->
-        <!-- mvn clean package jetty:run -->
-        <!-- java -jar jetty-runner.jar target/hapi-fhir-jpaserver.war -->
+        <!--                                                              -->
+        <!-- Examples of how to run the server:                           -->
+        <!--                                                              -->
+        <!-- For Spring Boot use:                                         -->
+        <!-- mvn spring-boot:run                                          -->
+        <!--                                                              -->
+        <!-- For JETTY use:                                               -->
+        <!-- mvn -Pjetty spring-boot:run                                  -->
+        <!--                                                              -->
+        <!-- For the Tomcat WAR approach use:                             -->
+        <!-- mvn clean package -DskipTests && java -jar ./target/ROOT.war -->
+        <!--                                                              -->
+        <!-- NEXT: Browse to http://localhost:8080/fhir                   -->
+        <!--                                                              -->
         <profile>
             <id>jetty</id>
             <dependencies>
@@ -686,5 +706,18 @@
                 </plugins>
             </build>
         </profile>
+        <!-- For connecting to GCP CloudSQL Postgres instances:
+        https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory/blob/main/docs/jdbc.md#postgres-1
+        Needs 'boot' profile as well. -->
+        <profile>
+            <id>cloudsql-postgres</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.google.cloud.sql</groupId>
+                    <artifactId>postgres-socket-factory</artifactId>
+                    <version>1.17.0</version>
+                </dependency>
+            </dependencies>
+        </profile>       
     </profiles>
 </project>
