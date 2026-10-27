@@ -1,5 +1,8 @@
 package ca.uhn.fhir.jpa.starter.cdshooks;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "hapi.fhir.cdshooks")
 public class CdsHooksProperties {
 
 	private boolean enabled;

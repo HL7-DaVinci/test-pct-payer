@@ -35,3 +35,6 @@ target/
 hs_err_pid*
 
 .DS_Store
+node_modules
+.nx/cache
+.nx/workspace-data

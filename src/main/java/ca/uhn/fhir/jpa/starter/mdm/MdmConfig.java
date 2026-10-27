@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Configuration
+@Conditional(MdmConfigCondition.class)
 @Import({MdmConsumerConfig.class, MdmSubmitterConfig.class, NicknameServiceConfig.class})
 public class MdmConfig {
 

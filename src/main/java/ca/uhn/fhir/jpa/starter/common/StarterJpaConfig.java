@@ -39,7 +39,12 @@ import ca.uhn.fhir.jpa.search.DatabaseBackedPagingProvider;
 import ca.uhn.fhir.jpa.search.IStaleSearchDeletingSvc;
 import ca.uhn.fhir.jpa.search.StaleSearchDeletingSvcImpl;
 import ca.uhn.fhir.jpa.starter.AppProperties;
+import ca.uhn.fhir.jpa.starter.annotations.OnCorsPresent;
+import ca.uhn.fhir.jpa.starter.annotations.OnImplementationGuidesPresent;
+import ca.uhn.fhir.jpa.starter.common.validation.IRepositoryValidationInterceptorFactory;
+import ca.uhn.fhir.jpa.starter.ig.IImplementationGuideOperationProvider;
 import ca.uhn.fhir.jpa.starter.util.EnvironmentHelper;
+import ca.uhn.fhir.jpa.starter.ig.IImplementationGuideOperationProvider;
 import ca.uhn.fhir.jpa.subscription.util.SubscriptionDebugLogInterceptor;
 import ca.uhn.fhir.jpa.util.ResourceCountCache;
 import ca.uhn.fhir.jpa.validation.JpaValidationSupportChain;
@@ -73,6 +78,8 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.*;
 import javax.sql.DataSource;
+
+import static ca.uhn.fhir.jpa.starter.common.validation.IRepositoryValidationInterceptorFactory.ENABLE_REPOSITORY_VALIDATING_INTERCEPTOR;
 
 @Configuration
 // allow users to configure custom packages to scan for additional beans
@@ -157,6 +164,13 @@ public class StarterJpaConfig {
 	}
 
 	@Bean
+	@ConditionalOnProperty(prefix = "hapi.fhir", name = ENABLE_REPOSITORY_VALIDATING_INTERCEPTOR, havingValue = "true")
+	public RepositoryValidatingInterceptor repositoryValidatingInterceptor(
+			IRepositoryValidationInterceptorFactory factory) {
+		return factory.buildUsingStoredStructureDefinitions();
+	}
+
+	@Bean
 	public LoggingInterceptor loggingInterceptor(AppProperties appProperties) {
 
 		/*
@@ -173,6 +187,7 @@ public class StarterJpaConfig {
 
 	@Bean("packageInstaller")
 	@Primary
+	@Conditional(OnImplementationGuidesPresent.class)
 	public IPackageInstallerSvc packageInstaller(
 			AppProperties appProperties,
 			JobDefinition<ReindexJobParameters> reindexJobParametersJobDefinition,
@@ -199,6 +214,7 @@ public class StarterJpaConfig {
 	}
 
 	@Bean
+	@Conditional(OnCorsPresent.class)
 	public CorsInterceptor corsInterceptor(AppProperties appProperties) {
 		// Define your CORS configuration. This is an example
 		// showing a typical setup. You should customize this
@@ -214,16 +230,14 @@ public class StarterJpaConfig {
 		config.addAllowedHeader("X-Requested-With");
 		config.addAllowedHeader("Prefer");
 
-		if (appProperties.getCors() != null) {
-			List<String> allAllowedCORSOrigins = appProperties.getCors().getAllowed_origin();
-			allAllowedCORSOrigins.forEach(config::addAllowedOriginPattern);
-			ourLog.info("CORS allows the following origins: " + String.join(", ", allAllowedCORSOrigins));
-			config.setAllowCredentials(appProperties.getCors().getAllow_Credentials());
-		}
+		List<String> allAllowedCORSOrigins = appProperties.getCors().getAllowed_origin();
+		allAllowedCORSOrigins.forEach(config::addAllowedOriginPattern);
+		ourLog.info("CORS allows the following origins: " + String.join(", ", allAllowedCORSOrigins));
 
 		config.addExposedHeader("Location");
 		config.addExposedHeader("Content-Location");
 		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+		config.setAllowCredentials(appProperties.getCors().getAllow_Credentials());
 
 		// Create the interceptor and register it
 		return new CorsInterceptor(config);
@@ -259,7 +273,7 @@ public class StarterJpaConfig {
 			IPackageInstallerSvc packageInstallerSvc,
 			ThreadSafeResourceDeleterSvc theThreadSafeResourceDeleterSvc,
 			ApplicationContext appContext,
-			Optional<IpsOperationProvider> theIpsOperationProvider) {
+			Optional<IpsOperationProvider> theIpsOperationProvider, Optional<IImplementationGuideOperationProvider> implementationGuideOperationProvider) {
 		RestfulServer fhirServer = new RestfulServer(fhirSystemDao.getContext());
 
 		List<String> supportedResourceTypes = appProperties.getSupported_resource_types();
@@ -321,6 +335,8 @@ public class StarterJpaConfig {
 		}
 
 		fhirServer.registerInterceptor(loggingInterceptor);
+
+		implementationGuideOperationProvider.ifPresent(fhirServer::registerProvider);
 
 		/*
 		 * If you are hosting this server at a specific DNS name, the server will try to

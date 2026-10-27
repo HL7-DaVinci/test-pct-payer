@@ -10,6 +10,7 @@ import ca.uhn.fhir.jpa.ips.strategy.DefaultIpsGenerationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 
+@Conditional(IpsConfigCondition.class)
 public class StarterIpsConfig {
 	@Bean
 	IIpsGenerationStrategy ipsGenerationStrategy() {

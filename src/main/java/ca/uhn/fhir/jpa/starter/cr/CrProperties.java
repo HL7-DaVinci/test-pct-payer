@@ -3,7 +3,9 @@ package ca.uhn.fhir.jpa.starter.cr;
 import org.cqframework.cql.cql2elm.CqlCompilerException;
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@ConfigurationProperties(prefix = "hapi.fhir.cr")
 public class CrProperties {
 	private Boolean enabled;
 	// cql settings

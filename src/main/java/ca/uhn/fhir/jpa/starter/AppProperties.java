@@ -1,5 +1,6 @@
 package ca.uhn.fhir.jpa.starter;
 
+
 import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.jpa.api.config.JpaStorageSettings.ClientIdStrategyEnum;
 import ca.uhn.fhir.jpa.api.config.JpaStorageSettings.IdStrategyEnum;
@@ -7,6 +8,8 @@ import ca.uhn.fhir.jpa.model.entity.NormalizedQuantitySearchLevel;
 import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import org.hl7.fhir.r4.model.Bundle;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
@@ -16,7 +19,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+@ConfigurationProperties(prefix = "hapi.fhir")
 @Configuration
+@EnableConfigurationProperties
 public class AppProperties {
 
   private Boolean cr_enabled = false;
