@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import com.apicatalog.jsonld.loader.FileLoader;
 
 import ca.uhn.fhir.rest.server.exceptions.UnclassifiedServerFailureException;
-import oracle.net.aso.l;
 
 public class util {
     public static String loadResource(String fileName) {

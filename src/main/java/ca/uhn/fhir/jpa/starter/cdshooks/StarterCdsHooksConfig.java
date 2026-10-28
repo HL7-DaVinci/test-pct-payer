@@ -1,24 +1,24 @@
 package ca.uhn.fhir.jpa.starter.cdshooks;
 
-import ca.uhn.fhir.jpa.starter.cr.CrProperties;
+import ca.uhn.fhir.jpa.starter.cr.*;
 import ca.uhn.hapi.fhir.cdshooks.api.ICdsHooksDaoAuthorizationSvc;
 import ca.uhn.hapi.fhir.cdshooks.config.CdsHooksConfig;
 import ca.uhn.hapi.fhir.cdshooks.svc.CdsHooksContextBooter;
-import ca.uhn.hapi.fhir.cdshooks.svc.cr.CdsCrSettings;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.opencds.cqf.fhir.cr.hapi.cdshooks.CdsCrSettings;
+import org.opencds.cqf.fhir.cr.hapi.config.CrCdsHooksConfig;
+import org.opencds.cqf.fhir.cr.hapi.config.RepositoryConfig;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import(CdsHooksConfig.class)
+@Conditional({CdsHooksConfigCondition.class, CrConfigCondition.class})
+@Import({RepositoryConfig.class, CrCdsHooksConfig.class, CrCommonConfig.class, CdsHooksConfig.class})
 public class StarterCdsHooksConfig {
-	@Bean
-	public CdsHooksProperties cdsHooksProperties() {
-		return new CdsHooksProperties();
-	}
 
 	@Bean
 	public CdsCrSettings cdsCrSettings(CdsHooksProperties cdsHooksProperties) {
@@ -39,8 +39,9 @@ public class StarterCdsHooksConfig {
 	}
 
 	@Bean
-	public ProviderConfiguration providerConfiguration(CdsHooksProperties cdsProperties, CrProperties crProperties) {
-		return new ProviderConfiguration(cdsProperties, crProperties);
+	public ProviderConfiguration providerConfiguration(
+			CdsHooksProperties cdsProperties, CqlProperties cqlProperties, CqlRuntimeProperties cqlRuntimeProperties) {
+		return new ProviderConfiguration(cdsProperties, cqlRuntimeProperties);
 	}
 
 	@Bean

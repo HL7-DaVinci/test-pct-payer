@@ -1,12 +1,8 @@
 package ca.uhn.fhir.jpa.starter.cdshooks;
 
-import ca.uhn.fhir.jpa.starter.cr.CrProperties;
+import ca.uhn.fhir.jpa.starter.cr.CqlRuntimeProperties;
 
 public class ProviderConfiguration {
-
-	public static final ProviderConfiguration DEFAULT_PROVIDER_CONFIGURATION =
-			new ProviderConfiguration(false, "client_id");
-
 	private final String clientIdHeaderName;
 	private final boolean cqlLoggingEnabled;
 
@@ -15,9 +11,8 @@ public class ProviderConfiguration {
 		this.clientIdHeaderName = clientIdHeaderName;
 	}
 
-	public ProviderConfiguration(CdsHooksProperties cdsProperties, CrProperties crProperties) {
-		this.clientIdHeaderName = cdsProperties.getClientIdHeaderName();
-		this.cqlLoggingEnabled = crProperties.isCqlRuntimeDebugLoggingEnabled();
+	public ProviderConfiguration(CdsHooksProperties cdsProperties, CqlRuntimeProperties cqlRuntimeProperties) {
+		this(cqlRuntimeProperties.isDebugLoggingEnabled(), cdsProperties.getClientIdHeaderName());
 	}
 
 	public String getClientIdHeaderName() {
