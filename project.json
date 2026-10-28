@@ -12,5 +12,16 @@
     "nx-fhir-server",
     "fhir",
     "server"
-  ]
+  ],
+  "features": {
+    "otel": {
+      "version": 1,
+      "options": {
+        "serviceName": "pct-payer-server",
+        "dashboard": true,
+        "compose": true,
+        "serve": true
+      }
+    }
+  }
 }
