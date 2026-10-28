@@ -519,6 +519,12 @@ hapi:
     # -------------------------------------------------------------------------------
     # S. Testers (webui)
     # -------------------------------------------------------------------------------
+    tester:
+      home:
+        name: Local Tester
+        server_address: 'http://localhost:8083/fhir'
+        refuse_to_fetch_third_party_urls: false
+        fhir_version: R4
 
     # -------------------------------------------------------------------------------
     # T. Outbound HTTP client (RestfulClientFactory)
@@ -540,6 +546,9 @@ hapi:
     #   connection_ttl: 5000              # ms — time-to-live for pooled persistent connections
     #   pool_max_total: 20                # total connections across all routes
     #   pool_max_per_route: 20            # connections per target host
+
+initialData:
+  - ri_resources
 
 telemetry:
   capture-query-strings: false
